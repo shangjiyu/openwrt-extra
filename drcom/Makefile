@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=drcom
-PKG_VERSION:=1.4.8.3
+PKG_VERSION:=1.4.8.4
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-#PKG_SOURCE_URL:=file///localhost/
-PKG_MD5SUM:=4399017ca0643e73de420ff0cefdde7c
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz?raw=true
+PKG_SOURCE_URL:=https://github.com/shangjiyu/drcom/blob/master/
+PKG_MD5SUM:=0c8cbb4970facc60290f4e2d57d52637
 
 PKG_INSTALL:=1
 arch="$(ARCH)"
@@ -17,7 +17,7 @@ define Package/drcom
 	CATEGORY:=Network
 	DEPENDS:=+libpthread
 	TITLE:=An CERNET client daemon
-	URL:=http://sourceforge.net/projects/drcom-client/
+	URL:=https://github.com/shangjiyu/drcom/
 	SUBMENU:=CERNET
 endef
 
