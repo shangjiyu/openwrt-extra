@@ -1,0 +1,32 @@
+#!/bin/sh
+WAN_INTERFACE=$(echo ${INTERFACE} |grep -c wan)
+qosv4_enable=$(uci get qosv4.@qos_settings[0].enable)
+
+
+
+if [ "$WAN_INTERFACE" -ge "1" ] && [ "$ACTION" = "ifup" ] &&[ "$qosv4_enable" = "1" ]
+then
+
+IPM="iptables -t mangle"
+WAN_IF=$DEVICE
+$IPM -N NEWLMT
+$IPM -D NEWLMT -i $WAN_IF -j RETURN
+iptables -D FORWARD -o $WAN_IF -p udp -j UDPLMT
+$IPM -D FORWARD -i $WAN_IF -j QOSDOWN
+$IPM -D INPUT -i $WAN_IF -j QOSDOWN
+
+$IPM -D POSTROUTING -o $WAN_IF -j QOSUP
+$IPM -D FORWARD -o $WAN_IF -m hashlimit --hashlimit-mode srcip --hashlimit-name online --hashlimit-htable-expire 150000 --hashlimit 10
+
+
+#add new chain
+$IPM -I NEWLMT -i $WAN_IF -j RETURN
+iptables -I FORWARD -o $WAN_IF -p udp -j UDPLMT
+$IPM -I FORWARD -i $WAN_IF -j QOSDOWN
+$IPM -I INPUT -i $WAN_IF -j QOSDOWN
+$IPM -I POSTROUTING -o $WAN_IF -j QOSUP
+$IPM -I FORWARD -o $WAN_IF -m hashlimit --hashlimit-mode srcip --hashlimit-name online --hashlimit-htable-expire 150000 --hashlimit 10
+
+fi
+
+

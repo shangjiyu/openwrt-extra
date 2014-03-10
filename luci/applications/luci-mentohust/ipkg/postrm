@@ -1,0 +1,5 @@
+#!/bin/sh
+uci delete ucitrack.@mentohust[-1] >/dev/null 2>&1
+uci commit ucitrack
+
+eixt 0

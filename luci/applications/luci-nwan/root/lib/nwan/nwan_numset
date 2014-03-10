@@ -1,0 +1,172 @@
+#!/bin/sh 
+# copyrights 
+# (1)load-balance(N-WAN) Script VER 0.10a-1 for openwrt  by QQ GROUP 120752328
+# (2)modified by admin of www.openwrt.org.cn to adapt to luci support 
+
+. /etc/functions.sh
+
+HISTORY_DIR="/etc/config/macvlan"
+[  -e /etc/config/macvlan ]||mkdir -p /etc/config/macvlan
+
+#config macvlan_numset
+#        option enable      1   是否生成虚拟wan
+#        option macvlan_num 3  
+#        option wan_start_idx 2
+#        option macvlan_switch 1  是否启用macvlan
+
+nwan_debug=0
+
+get_macvlan_numset() {
+  config_get enable $1 enable
+  config_get macvlan_num $1 macvlan_num
+  config_get wan_start_idx $1 wan_start_idx
+  config_get macvlan_switch $1 macvlan_switch
+  
+  if [  "$enable" == ""  ]; then
+		enable=0
+  fi  
+    if [  "$macvlan_switch" == ""  ]; then
+		macvlan_switch=0
+  fi                                              
+}
+
+
+
+add_wan()
+{
+	if [  "$macvlan_switch" == "1"  ];then 
+	#生成不同的mac
+	#mac1=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	#sleep 1
+	mac2=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	mac3=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	mac4=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	mac5=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	#mac6=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	#sleep 1
+	#mac=$(echo 00:${mac2}:${mac3}:${mac4}:${mac5}:01)
+	fi
+	echo "" > ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+	echo "" > ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+	
+	#fw_wanx=$(uci get firewall.@zone[1].network)
+	#echo "uci set firewall.@zone[1].network=${fw_wanx}" > ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+
+	while [ "$i" -lt "$n" ]
+	do
+    echo "ifdown wan"$i" &" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+		#生成不同的mac
+		if [  "$macvlan_switch" == "1"  ];then 
+		
+		mac6=$(printf "%x" ${i})
+		mac6=$(echo ${mac6:0-1:2})
+		mac=$(echo 00:${mac2}:${mac3}:${mac4}:${mac5}:${mac6})
+
+		# add /lib/nwan/nwan_macvlan
+		
+		echo "ip link add link $ifname vth"$i" type macvlan" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		echo "ifconfig vth"$i" hw ether $mac" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		echo "ifconfig vth"$i" up" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		echo "ip link delete vth"$i" type macvlan" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+   fi
+
+   
+		# add /etc/config/network
+		uci set network.wan${i}=interface
+		if [  "$macvlan_switch" == "1"  ];then 
+		uci set network.wan${i}.ifname=vth${i}
+		else
+		uci set network.wan${i}.ifname=$ifname
+		fi
+		uci set network.wan${i}.proto=pppoe
+		uci set network.wan${i}.username=$pppoe_name
+		uci set network.wan${i}.password=$pppoe_pw
+		uci set network.wan${i}.defaultroute=0
+		uci set network.wan${i}.peerdns=1
+
+		echo "uci delete network.wan${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+		
+		# add /etc/config/nwan
+
+		uci set nwan.wan${i}=interface 
+		uci set nwan.wan${i}.name=telecom 
+		uci set nwan.wan${i}.route=balance 
+		uci set nwan.wan${i}.weight=1 
+		uci set nwan.wan${i}.uptime=0day,0hour,0min
+		echo "uci delete nwan.wan${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+		
+	# add /etc/config/dhcp
+
+		uci set dhcp.vth${i}=dhcp 
+		uci set dhcp.vth${i}.interface=wan${i}
+		uci set dhcp.vth${i}.ignore=1 
+		echo "uci delete dhcp.vth${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}	
+		
+		
+  	echo "wan${i} 配置已经完成"
+		i=$((i+1))
+	done
+	# echo "/etc/init.d/firewall restart" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+
+	#echo "rm -rf /tmp/luci*" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		
+}
+	
+del_macvlan_network_firewall(){
+	
+	sh ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+	
+	[ "$nwan_debug" != 0 ] && echo "line 104" >> /tmp/xx_nwan_debug
+	
+	uci commit firewall
+	uci commit network
+	uci commit nwan
+
+	#rm -rf ${HISTORY_DIR}/macvlan_num                                                         
+	#rm -rf ${HISTORY_DIR}/wan_start_idx                                                         
+	rm -rf ${HISTORY_DIR}/nwan_macvlan${Line_NO}                                                         
+	rm -rf ${HISTORY_DIR}/nwan_macvlan${Line_NO}_del
+#	echo "rm -rf /tmp/luci*" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+	
+}
+		
+set_macvlan() {
+	
+	
+	n=$2
+	Line_NO=$1	
+	i=$1
+	n=$((i+n))
+	i=$((i+1))
+
+	# 2 get wan config
+echo "start congfig N-WAN....." 
+echo "每增加一个WAN口大概需要 7秒种..." 
+
+[ "$Line_NO" = 0 ] && Line_NO=""
+ifname=$(uci get network.wan${Line_NO}.ifname)
+pppoe_name=$(uci get network.wan${Line_NO}.username) 
+pppoe_pw=$(uci get network.wan${Line_NO}.password) 
+
+	del_macvlan_network_firewall
+	add_wan
+	chmod 755 ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+	chmod 755 ${HISTORY_DIR}/nwan_macvlan${Line_NO}_del
+echo "所有的WAN 配置已经完成"
+echo "all WAN config finshed"
+}
+ 
+  unset enable
+	unset macvlan_num
+	unset wan_start_idx
+	unset macvlan_num_prev
+	unset wan_start_idx_prev
+	unset macvlan_switch  	
+	config_load nwannumset
+	config_foreach get_macvlan_numset macvlan_numset
+
+[ "$enable" == "1" ]&& set_macvlan $wan_start_idx $macvlan_num 

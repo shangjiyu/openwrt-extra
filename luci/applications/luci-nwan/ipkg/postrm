@@ -1,0 +1,9 @@
+#!/bin/sh
+uci delete ucitrack.@nwan[-1] >/dev/null 2>&1
+uci delete ucitrack.@nwannumset[-1] >/dev/null 2>&1
+uci commit ucitrack
+sh /lib/nwan/nwan_macvlan_del  >/dev/null 2>&1
+sh /lib/nwan/nwan_macvlan100_del  >/dev/null 2>&1
+sh /lib/nwan/nwan_macvlan200_del  >/dev/null 2>&1
+sh /lib/nwan/nwan_macvlan300_del  >/dev/null 2>&1
+eixt 0

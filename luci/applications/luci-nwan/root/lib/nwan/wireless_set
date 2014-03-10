@@ -1,0 +1,63 @@
+#!/bin/sh 
+# copyrights 
+# wireless ap & cilent set Script VER 0.10a-1 for openwrt  by QQ GROUP 120752328
+
+. /etc/functions.sh
+get_wireless_numset(){
+   config_get channel $1 channel
+   config_get hwmode $1 hwmode
+   config_get enable $1 enable
+   config_get encryption $1 encryption
+   config_get device $1 device
+   config_get ssid $1 ssid
+   config_get mode $1 mode 
+   
+}
+
+
+set_wireless(){
+
+	   if [ -n "$device" ]; then
+        num=`echo $device | tr -d "radio"`
+        v=$num
+       num=$(($num+500)) 
+     fi
+ 
+      uci set wireless.wifi-iface.disabled=0
+		  uci set wireless.@wifi-iface[$v]=wifi-iface >/dev/null 2>&1
+		  uci set wireless.@wifi-iface[$v].device=$device >/dev/null 2>&1
+		  uci set wireless.@wifi-iface[$v].network="wan${num}" >/dev/null 2>&1	
+      [ "$mode" == "ap" ]&&uci set wireless.@wifi-iface[$v].network=lan >/dev/null 2>&1	 	  
+		  uci set wireless.@wifi-iface[$v].mode=$mode >/dev/null 2>&1
+		  uci set wireless.@wifi-iface[$v].sside=$ssid >/dev/null 2>&1
+		  uci set wireless.@wifi-iface[$v].encryption=$encryption >/dev/null 2>&1		  
+		  uci set wireless.@wifi-iface[$v].key=$key >/dev/null 2>&1
+
+		   [ "$mode" == "sta" ]&& { 
+		  uci set network.wan${num}=interface 
+      uci set network.wan${num}.ifname=$device 
+      uci set network.wan${num}.proto=dhcp 
+      uci set network.wan${num}.defaultroute=0 
+      uci set network.wan${num}.peerdns=1
+      uci set nwan.wan${num}=interface 
+      uci set nwan.wan${num}.name=telecom
+      uci set nwan.wan${num}.route=balance 
+      uci set nwan.wan${num}.weight=1 
+      uci set nwan.wan${num}.uptime=0day,0hour,0min 
+      wifi up
+		  ifup wan${num}
+     }
+      
+     [ "$mode" == "ap" ]&&{
+      uci delete network.wan${num}
+		  uci delete nwan.wan${num}
+		   wifi up
+		 }
+		 wifi up
+		 ifup wan${num}
+}		  
+
+	config_load nwannumset
+	config_foreach get_wireless_numset wireless_numset
+ set_wireless  >/dev/null 2>&1
+	

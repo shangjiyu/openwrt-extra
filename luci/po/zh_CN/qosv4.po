@@ -1,0 +1,175 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-06-10 03:40+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "DOWN speed"
+msgstr "下载带宽的总速度"
+
+msgid "DOWN speed desc"
+msgstr "下载宽带的总速度，单位(KB/S)，2M宽带填写200即可"
+
+msgid "DOWNLOADC speed"
+msgstr "下载最大带宽"
+
+msgid "DOWNLOADC2 speed"
+msgstr "被“惩罚”后的单IP下载最大带宽"
+
+msgid "DOWNLOADR speed"
+msgstr "下载保证带宽"
+
+msgid "DOWNLOADR2 speed"
+msgstr "被“惩罚”后的单IP下载保证带宽"
+
+msgid "UP speed"
+msgstr "上传总速度"
+
+msgid "UP speed desc"
+msgstr "上传宽带的总速度，单位(KB/S)，2M宽带填写200即可adsl 填写50"
+
+msgid "UPLOADC speed"
+msgstr "上传最大带宽"
+
+msgid "UPLOADC2 speed"
+msgstr "被“惩罚”后的单IP上传UDP最大带宽，一般不要超过6KB/S"
+
+msgid "UPLOADR speed"
+msgstr "上传保证带宽"
+
+msgid "UPLOADR2 speed"
+msgstr "被“惩罚”后的单IP上传保证带宽"
+
+msgid "downlimit speed"
+msgstr "下载最大速度，单位(KB/S)"
+
+msgid "enable"
+msgstr "开启"
+
+msgid "black enable"
+msgstr "开启"
+
+msgid "trlimit enable"
+msgstr "开启"
+
+msgid "white enable"
+msgstr "开启"
+
+msgid "ip prio"
+msgstr "优先级"
+
+msgid "ip prio desc"
+msgstr "默认5"
+
+msgid "limit_ips"
+msgstr ""
+
+msgid "limitp_ipe"
+msgstr ""
+
+msgid "qos black ip"
+msgstr "qos 限速ip"
+
+msgid "qos enable"
+msgstr "qos 启用"
+
+msgid "qos goble setting"
+msgstr "qos总体设定"
+
+msgid "qos scheduler desc"
+msgstr "当在线IP数量>1的时候（白名单除外），按需开启transmission限速和qos限速；当只有1个IP在线时候，关闭内网QOS限速，根据设置开启 transmission限速；当没有IP在线时候，关闭QOS限速 关闭transmission限速。"
+
+msgid "qos scheduler enable"
+msgstr "开启智能QOS"
+
+msgid "qos white"
+msgstr "qos 白名单"
+
+msgid "qosv4 title"
+msgstr "QoS 脚本"
+
+msgid "qosv4 title desc"
+msgstr "小包优先+web优先+游戏爆发+单IP限速+连接数限制 QOS脚本V4.0 ，主要参考自zhoutao0712的tomato脚本，飞翔的天空整理移植，并添加了部分新功能"
+
+msgid "transmission limit"
+msgstr "transmission 限速"
+
+msgid "uplimit speed"
+msgstr "上传最大速度，单位(KB/S)"
+
+msgid "white ip"
+msgstr "白名单 IP"
+
+msgid "white mac"
+msgstr "白名单 MAC"
+
+msgid "limit_ips"
+msgstr "起始ip地址"
+
+msgid "limitp_ipe"
+msgstr "结束ip地址"
+
+# ipid
+
+msgid "ipid title desc"
+msgstr "IPID伪装和TTL修改，据说能有效对付，网络煎饼，具体效果，是各地情况而定"
+
+msgid "ipid title"
+msgstr "IPID"
+
+msgid "IPID TTL set desc"
+msgstr "IPID和TTL修改"
+
+msgid "IPID enable"
+msgstr "开启IPID伪装"
+
+msgid "IPID set desc"
+msgstr "打开或者关闭IPID伪装"
+
+msgid "TTL enable"
+msgstr "开启TTL"
+
+msgid "TTL set desc"
+msgstr "打开或者关闭TTL伪装"
+
+msgid "qos ipid ttl setting"
+msgstr "网络煎饼设定"
+
+msgid "ttl inc"
+msgstr "TTL inc值"
+
+msgid "ttl inc desc"
+msgstr "设定TTL inc值，默认1"
+
+msgid "ttl set"
+msgstr "TTL 设定"
+
+msgid "ttl set desc"
+msgstr "设定TTL值，默认128"
+
+msgid "qosv4 ip limit desc"
+msgstr "ip限速设定，支持不同的ip段限速，支持各类vpn和pppoe拨号后的限速"
+
+msgid "tcplimit"
+msgstr "TCP连接数"
+
+msgid "udplimit"
+msgstr "UDP连接数"
+
+msgid "speed desc"
+msgstr "单位(KB/S)"
+
+msgid "tcplimit desc"
+msgstr "TCP连接数，默认0，表示不限制"
+
+msgid "udplimit desc"
+msgstr "UDP连接数，默认0，表示不限制"
+

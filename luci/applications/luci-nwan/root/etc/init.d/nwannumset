@@ -1,0 +1,64 @@
+#!/bin/sh /etc/rc.common
+# copyrights 
+# (1)load-balance(N-WAN) Script VER 0.10a-1 for openwrt  by QQ GROUP 120752328
+# (2)modified by admin of www.openwrt.org.cn to adapt to luci support 
+
+
+
+START=25
+
+HISTORY_DIR="/etc/config/macvlan"
+start() {
+	#start setting....
+	macvlan_numset_enable=$(uci get nwannumset.@macvlan_numset[0].enable)
+  switch_numset_enable=$(uci get nwannumset.@switch_numset[0].enable)
+  wireless_numset_enable=$(uci get nwannumset.@wireless_numset[0].enable)
+	[ "$macvlan_numset_enable" == "1" ]&&sh /lib/nwan/nwan_numset >/dev/null 2>&1 
+	[ "$switch_numset_enable" == "1" ]&&sh /lib/nwan/n_lineset >/dev/null 2>&1		
+ 	[ "$wireless_numset_enable" == "1" ]&&sh /lib/nwan/wireless_set >/dev/null 2>&1
+macvlan_switch=$(uci get nwannumset.@macvlan_numset[0].macvlan_switch)
+	#start vth........
+ if [ "$macvlan_switch" == "1" ];then
+    line_num=$(uci get nwannumset.@switch_numset[0].line_num)	
+ 			 case $line_num in
+        4)
+          sh ${HISTORY_DIR}/nwan_macvlan300 >/dev/null 2>&1
+	        sh ${HISTORY_DIR}/nwan_macvlan200 >/dev/null 2>&1
+	        sh ${HISTORY_DIR}/nwan_macvlan100 >/dev/null 2>&1
+	        sh ${HISTORY_DIR}/nwan_macvlan >/dev/null 2>&1
+	       	;;
+        3)
+	        sh ${HISTORY_DIR}/nwan_macvlan200 >/dev/null 2>&1
+	        sh ${HISTORY_DIR}/nwan_macvlan100 >/dev/null 2>&1
+	        sh ${HISTORY_DIR}/nwan_macvlan >/dev/null 2>&1
+	       	;;	
+        2)
+	        sh ${HISTORY_DIR}/nwan_macvlan100 >/dev/null 2>&1
+	        sh ${HISTORY_DIR}/nwan_macvlan >/dev/null 2>&1
+	        ;;	
+        1)
+	        sh ${HISTORY_DIR}/nwan_macvlan >/dev/null 2>&1
+	       	;;			
+      esac
+	 fi   
+
+ [ "$macvlan_numset_enable" == "1" -o "$switch_numset_enable" == "1" -o "$wireless_numset_enable" == "1" ]&&{	
+  fw_wan_list=$(uci show network |grep =interface |grep -v lan|grep -v loopback |cut -d"." -f2 | awk -F "=" '{printf $1" "}') 
+  uci set firewall.@zone[1].network="$fw_wan_list"
+  uci commit firewall
+	uci commit network
+	uci commit nwan
+	uci commit wireless
+	uci commit dhcp
+	uci set nwannumset.@macvlan_numset[0].enable=0
+	uci set nwannumset.@switch_numset[0].enable=0
+	uci set nwannumset.@wireless_numset[0].enable=0	
+  uci commit nwannumset
+  /etc/init.d/firewall restart  
+   }
+
+}
+
+stop() {
+	echo "not implemented yet!"
+}

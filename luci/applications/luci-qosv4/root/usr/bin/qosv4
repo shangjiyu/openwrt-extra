@@ -1,0 +1,436 @@
+#!/bin/sh
+#copyright by zhoutao0712 2011.6.1  moded zjhzzyf 
+
+#i1mq0=down
+#i1mq1=up
+. /etc/functions.sh
+devup="imq1"
+devdown="imq0"
+qosv4_tmp_pach="/tmp/qosv4"
+ [ -d $qosv4_tmp_pach ]|| mkdir -p ${qosv4_tmp_pach}
+load_modules(){
+
+        insmod imq numdevs=2 
+        insmod cls_fw 
+        insmod sch_hfsc 
+        insmod sch_sfq 
+        insmod sch_red 
+        insmod sch_htb 
+        insmod sch_prio 
+        insmod xt_multiport 
+        insmod xt_CONNMARK
+        insmod xt_length 
+  
+        insmod xt_hashlimit
+        insmod cls_u32
+	insmod xt_connlimit
+	insmod xt_connbytes
+	echo "" > ${qosv4_tmp_pach}/insmod
+}
+
+lan_net(){
+lan_ipaddr=$(uci get network.lan.ipaddr)
+lan_netmask=$(uci get network.lan.netmask)
+ calc=$(ipcalc.sh $lan_ipaddr $lan_netmask)
+prefix=${calc##*=}
+lan_network=${calc##*NETWORK=}
+lan_network=$(echo $lan_network | sed 's/.PRE.*//')
+NET="$lan_network/$prefix"
+UIP=$(uci get network.lan.ipaddr|awk -F "." '{print $1"."$2"."$3 }')
+}
+
+
+qos_start(){
+
+
+
+IPM="iptables -t mangle"
+
+ifconfig imq0 up;ifconfig imq1 up
+
+$IPM -N NEWLMT
+
+$IPM -D PREROUTING -m state --state NEW -j NEWLMT
+$IPM -I PREROUTING -m state --state NEW -j NEWLMT
+
+$IPM -A NEWLMT -s $(uci get network.lan.ipaddr)/24 -d $(uci get network.lan.ipaddr)/24 -j RETURN
+$IPM -A NEWLMT -p udp -m multiport --dports 53,67,68,1900 -j RETURN
+$IPM -A NEWLMT -p udp -m connlimit --connlimit-above 100 -j DROP
+$IPM -A NEWLMT -p tcp --syn -m connlimit --connlimit-above 200 -j DROP
+$IPM -A NEWLMT -m hashlimit --hashlimit-name newlmt --hashlimit-mode srcip --hashlimit 20 -j RETURN
+$IPM -A NEWLMT -p tcp --dport 80 -m limit --limit 20 -j RETURN
+$IPM -A NEWLMT -j DROP
+
+iptables -N UDPLMT
+
+iptables -A UDPLMT -m hashlimit --hashlimit-mode srcip --hashlimit-name udplmt --hashlimit 120 -j RETURN
+iptables -A UDPLMT -p udp -m multiport --dports 53,8000 -m limit --limit 30 -j RETURN
+iptables -A UDPLMT -j DROP
+
+
+
+$IPM -N QOSDOWN
+$IPM -N QOSUP
+
+
+wan_list=$(uci show -P /var/state/ nwan |grep gateway= |cut -d"." -f2 | cut -d"." -f1) 
+[ "$log_record" = "5" ]&&echo wan list : $wan_list >> $logpath
+for ifc in $wan_list; 
+do
+WAN_IF=$(uci -P /var/state get network.${ifc}.ifname)
+
+#dele old chain
+
+$IPM -D NEWLMT -i $WAN_IF -j RETURN
+iptables -D FORWARD -o $WAN_IF -p udp -j UDPLMT
+$IPM -D FORWARD -i $WAN_IF -j QOSDOWN
+$IPM -D INPUT -i $WAN_IF -j QOSDOWN
+
+$IPM -D POSTROUTING -o $WAN_IF -j QOSUP
+$IPM -D FORWARD -o $WAN_IF -m hashlimit --hashlimit-mode srcip --hashlimit-name online --hashlimit-htable-expire 150000 --hashlimit 10
+
+#add new chain
+$IPM -I NEWLMT -i $WAN_IF -j RETURN
+iptables -I FORWARD -o $WAN_IF -p udp -j UDPLMT
+$IPM -I FORWARD -i $WAN_IF -j QOSDOWN
+$IPM -I INPUT -i $WAN_IF -j QOSDOWN
+$IPM -I POSTROUTING -o $WAN_IF -j QOSUP
+$IPM -I FORWARD -o $WAN_IF -m hashlimit --hashlimit-mode srcip --hashlimit-name online --hashlimit-htable-expire 150000 --hashlimit 10
+
+done
+
+$IPM -A QOSDOWN -p udp --sport 53 -j RETURN
+$IPM -A QOSUP -p udp --dport 53 -j RETURN
+$IPM -A QOSDOWN -p tcp ! --syn -m length --length :100 -j RETURN
+$IPM -A QOSUP -p tcp ! --syn -m length --length :80 -j RETURN
+$IPM -A QOSDOWN -j IMQ --todev 0
+$IPM -A QOSUP -j IMQ --todev 1
+
+# $IPM -A PREROUTING -p tcp -m connmark ! --mark 80 -m web --path ".exe$ .rar$ .iso$ .zip$ .rm$ .rmvb$ .wma$ .avi$" -j CONNMARK --set-mark 80
+$IPM -A QOSDOWN -m connmark --mark 80 -j MARK --set-mark 80
+$IPM -A QOSUP -m connmark --mark 80 -j MARK --set-mark 80
+$IPM -A QOSDOWN -p tcp -m length --length :768 -j MARK --set-mark 255
+$IPM -A QOSUP -p tcp -m length --length :512 -j MARK --set-mark 255
+iptables -t mangle -A QOSDOWN -p tcp -m multiport --sports 80,443,25,110 -j CONNBYTES
+iptables -t mangle -A QOSUP -p tcp -m multiport --sports 80,443,25,110  -m connbytes  --connbytes :51200 --connbytes-dir both --connbytes-mode bytes -j MARK --set-mark 254
+iptables -t mangle -A QOSUP -p tcp -m multiport --dports 80,443,25,110 -j CONNBYTES
+iptables -t mangle -A QOSDOWN -p tcp -m multiport --sports 80,443,25,110 -m connbytes  --connbytes :102400 --connbytes-dir both --connbytes-mode bytes -j MARK --set-mark 254
+
+$IPM -A QOSDOWN -j MARK --set-mark 0
+$IPM -A QOSUP -j MARK --set-mark 0
+
+if [ $(cat ${qosv4_tmp_pach}/qos_state) -eq 1 ]
+then
+exit
+else
+echo 1 >${qosv4_tmp_pach}/qos_state
+fi
+
+tc qdisc del dev imq0 root;tc qdisc del dev imq1 root
+tc qdisc add dev imq0 root handle 1: htb default 9999
+tc qdisc add dev imq1 root handle 1: htb default 9999
+
+tc class add dev imq1 parent 1: classid 1:1 htb rate $((UP))kbps
+tc class add dev imq0 parent 1: classid 1:1 htb rate $((DOWN))kbps
+
+tc class add dev imq0 parent 1:1 classid 1:a255 htb rate $((DOWN/4))kbps quantum 15000 prio 1
+tc filter add dev imq0 parent 1:0 protocol ip prio 5 handle 255 fw flowid 1:a255
+tc class add dev imq1 parent 1:1 classid 1:a255 htb rate $((UP))kbps quantum 15000 prio 1
+tc filter add dev imq1 parent 1:0 protocol ip prio 5 handle 255 fw flowid 1:a255
+
+tc class add dev imq0 parent 1:1 classid 1:a254 htb rate $((DOWN/10))kbps ceil $((DOWN*7/10))kbps quantum 8000 prio 3
+tc qdisc add dev imq0 parent 1:a254 handle a254 sfq perturb 12
+tc filter add dev imq0 parent 1:0 protocol ip prio 10 handle 254 fw flowid 1:a254
+tc class add dev imq1 parent 1:1 classid 1:a254 htb rate $((UP/8))kbps ceil $((UP/2))kbps quantum 1500 prio 3
+tc qdisc add dev imq1 parent 1:a254 handle a254 sfq perturb 12
+tc filter add dev imq1 parent 1:0 protocol ip prio 10 handle 254 fw flowid 1:a254
+
+}
+
+#所有普通IP单独限速
+qos_ip_limit()
+{
+n=$(echo $1|cut -d '-' -f1|cut -d '.' -f4)
+m=$(echo $1|cut -d '-' -f2|cut -d '.' -f4)
+NET=$(echo $1|cut -d '.' -f1-3)
+while [ $n -le $m ]
+do
+NN=$(printf "%02x\n" $n)
+echo "line 181 $n,$m,$MM,$NET,$1,$2,$3,$4,$5,$6"
+tc cl ad dev imq0 parent 1:1 classid 1:$MM$NN htb rate $2kbps ceil $3kbps quantum 2000 prio $6
+tc qd ad dev imq0 parent 1:$MM$NN handle $MM$NN sfq perturb 12
+tc fi ad dev imq0 parent 1: protocol ip prio 200 u32 match ip dst $NET.$n flowid 1:$MM$NN
+tc cl ad dev imq1 parent 1:1 classid 1:$MM$NN htb rate $4kbps ceil $5kbps quantum 1500 prio $6
+tc qd ad dev imq1 parent 1:$MM$NN handle $MM$NN sfq limit 64 perturb 12
+tc fi ad dev imq1 parent 1: protocol ip prio 200 u32 match ip src $NET.$n flowid 1:$MM$NN
+[ "$7" != "0" ]&& {
+	echo "iptables -t mangle -D FORWARD -p tcp -d $NET.$n -m connlimit --connlimit-above $7 -j DROP" >> $qosv4_tmp_pach/connlimit
+	       iptables -t mangle -A FORWARD -p tcp -d $NET.$n -m connlimit --connlimit-above $7 -j DROP
+	}
+[ "$8" != "0" ]&& {
+echo "iptables -t mangle -D FORWARD -p udp -d $NET.$n -m connlimit --connlimit-above $8 -j DROP" >> $qosv4_tmp_pach/connlimit
+iptables -t mangle -A FORWARD -p udp -d $NET.$n -m connlimit --connlimit-above $8 -j DROP
+}
+
+n=$((n+1))
+done
+MM=$((MM+1))
+}
+
+
+qos_ip_limit_2(){
+tc class add dev $devup parent 1:1 classid 1:999 htb rate 1kbps ceil $((UP/5))kbps quantum 1500 prio 7
+tc class add dev $devdown parent 1:1 classid 1:999 htb rate 2kbps ceil $((DOWN))kbps quantum 1500 prio 7
+}
+
+#192.168.1.8,192.168.1.80-192.168.1.90有zhoutao0712发放的免死金牌
+qos_else(){
+#iptables -t mangle -I PUNISH0 -m iprange --src-range 192.168.1.80-192.168.1.90 -j RETURN
+iptables -t mangle -I PUNISH0 -s $nolimit_ip -j RETURN
+}
+
+
+qos_transmission_limit(){
+ config_get enable $1 enable
+ config_get downlimit $1 downlimit
+ config_get uplimit $1 uplimit
+ echo "transmission limit enable=$enable "
+transmission_enable=$(uci get transmission.@transmission[0].enable)
+transmission_enabled=$(uci get transmission.@transmission[0].enabled)
+ echo "transmission-daemon enable=$transmission_enable"
+  echo "transmission-daemon enabled=$transmission_enabled"
+if [ "$transmission_enable" == "1" -o "$transmission_enabled" == "1" ];then
+
+ 		if [ "$enable" == "1" ];then
+		 echo " transmission limit ........downlimit=$downlimit  uplimit=$uplimit"
+		 transmission-remote --downlimit $downlimit
+		 transmission-remote --uplimit $uplimit
+
+		 else
+ 		echo " transmission no limit oooooooooo"
+ 		transmission-remote --no-downlimit
+ 		transmission-remote --no-uplimit
+ 		fi
+fi
+
+}
+
+
+#加入例行任务（5分钟执行一次）：当有ip在线的时候，按需开启transmission限速和qos限速。
+#当只有1个IP在线时候，关闭内网QOS限速 。
+#当没有IP在线时候，关闭QOS限速 关闭transmission限速。
+qos_scheduler(){
+
+cat >${qosv4_tmp_pach}/qos_scheduler <<"EOF"
+
+devup="imq1"
+devdown="imq0"
+qosv4_tmp_pach="/tmp/qosv4"
+
+UIP=$(uci get network.lan.ipaddr|awk -F "." '{print $1"."$2"."$3 }')
+[ -e ${qosv4_tmp_pach}/qosv4_nolimit_mac ]&&mac_list=$(cat ${qosv4_tmp_pach}/qosv4_nolimit_mac)
+local RUN="ip neigh| grep : ${mac_list} |grep -c $UIP"
+ip_num=`eval $RUN`
+old_ip_num=$(cat ${qosv4_tmp_pach}/qosv4_old_ip_num)
+echo "new_ip_num=$ip_num"
+echo "old_ip_num=$old_ip_num"
+#如果在线ip和上次相同 退出
+if [ "$ip_num" -eq "$old_ip_num" ]
+then
+ip neigh flush dev br-lan
+echo "在线ip和上次相同"
+exit
+fi
+
+qosv4_transmission_enabl=$(uci get qosv4.@transmission_limit[0].enable)
+qosv4_transmission_uplimit=$(uci get qosv4.@transmission_limit[0].uplimit)
+qosv4_transmission_downlimit=$(uci get qosv4.@transmission_limit[0].downlimit)
+transmission_enable=$(uci get transmission.@transmission[0].enable)
+transmission_enabled=$(uci get transmission.@transmission[0].enabled)
+
+
+#如果在线ip为1 关闭内网QOS限速 根据设置开启 transmission限速，然后退出
+if [ "$ip_num" -eq "1" ]
+then
+ifconfig $devdown down
+ifconfig $devup down
+
+ if [ "$transmission_enable" == "1" -o "$transmission_enabled" == "1" ];then
+
+ 		if [ "$qosv4_transmission_enabl" == "1" ];then
+		 echo " transmission limit ........downlimit=$qosv4_transmission_downlimit  uplimit=$qosv4_transmission_uplimit"
+		 transmission-remote --downlimit $qosv4_transmission_downlimit
+		 transmission-remote --uplimit $qosv4_transmission_uplimit
+		 else
+ 		transmission-remote --no-downlimit
+ 		transmission-remote --no-uplimit
+ 
+ 		fi
+ fi
+ip neigh flush dev br-lan
+echo "$ip_num" >${qosv4_tmp_pach}/qosv4_old_ip_num
+exit
+fi
+
+
+# 当没有IP在线时候，关闭QOS限速 关闭transmission限速。
+if [ "$ip_num" -eq "0" ]
+then
+ifconfig $devdown down
+ifconfig $devup down
+
+    if [ "$transmission_enable" == "1" -o "$transmission_enabled" == "1" ];then
+ 		transmission-remote --no-downlimit
+ 		transmission-remote --no-uplimit
+ 		fi
+ip neigh flush dev br-lan
+echo "$ip_num" >${qosv4_tmp_pach}/qosv4_old_ip_num
+exit 
+fi
+#如果在线ip 大于1 开启内网QOS限速 开启transmission限速
+if [ $(ifconfig |grep -c $devdown) -eq 0 ]
+then
+ifconfig $devdown up
+ifconfig $devup up
+echo "cass 3"
+fi
+
+ if [ "$transmission_enable" == "1" -o "$transmission_enabled" == "1" ];then
+
+ 		if [ "$qosv4_transmission_enabl" == "1" ];then
+		 echo " transmission limit ........downlimit=$qosv4_transmission_downlimit  uplimit=$qosv4_transmission_uplimit"
+		 transmission-remote --downlimit $qosv4_transmission_downlimit
+		 transmission-remote --uplimit $qosv4_transmission_uplimit
+		 else
+ 		transmission-remote --no-downlimit
+ 		transmission-remote --no-uplimit
+ 		
+ 		fi
+ fi
+ 
+ 
+ip neigh flush dev br-lan
+
+echo "$ip_num" >${qosv4_tmp_pach}/qosv4_old_ip_num
+EOF
+
+}
+
+qos_stop(){
+
+for iface in $(tc qdisc show | grep htb | awk '{print $5}'); do
+	tc qdisc del dev "$iface" root
+done
+
+iptables -t mangle -F QOSDOWN
+iptables -t mangle -F QOSUP
+iptables -t mangle -F NEWLMT
+iptables -F UDPLMT
+
+iptables -t mangle -F PUNISH0
+iptables -t mangle -F NEWCONN
+iptables -t mangle -F BCOUNT
+
+iptables -t mangle -X QOSDOWN
+iptables -t mangle -X QOSUP
+iptables -t mangle -X NEWLMT
+iptables -X UDPLMT
+
+iptables -t mangle -X PUNISH0
+iptables -t mangle -X NEWCONN
+iptables -t mangle -X BCOUNT
+
+[ -f ${qosv4_tmp_pach}/connlimit ] && {
+	sh ${qosv4_tmp_pach}/connlimit
+	echo "" > ${qosv4_tmp_pach}/connlimit
+	}
+
+
+
+}
+
+qos_config_get(){
+ config_get qosv4_enable $1 enable
+ config_get UP $1 UP
+ config_get DOWN $1 DOWN
+ config_get UPLOADR2 $1 UPLOADR2
+ config_get UPLOADC2 $1 UPLOADC2
+ config_get DOWNLOADR2 $1 DOWNLOADR2
+ config_get DOWNLOADC2 $1 DOWNLOADC2
+ config_get qos_scheduler $1 qos_scheduler
+}
+
+qos_limit_ip_get(){
+ config_get qos_limit_enable $1 enable
+ config_get limit_ips $1 limit_ips
+ config_get limit_ipe $1 limit_ipe
+ config_get ip_prio $1 ip_prio
+ config_get UPLOADC $1 UPLOADC
+ config_get DOWNLOADC $1 DOWNLOADC
+ config_get UPLOADR $1 UPLOADR
+ config_get DOWNLOADR $1 DOWNLOADR
+ config_get tcplimit $1 tcplimit
+ config_get udplimit $1 udplimit
+
+ limit_ip=$limit_ips-$limit_ipe
+# echo "line 353 enable=$enable limit_ips=$limit_ips  limit_ipe=$limit_ipe ip_prio=$ip_prio UPLOADC=$UPLOADC DOWNLOADC=$DOWNLOADC"
+ [ "$qos_limit_enable" == "1" ]&&qos_ip_limit $limit_ip $DOWNLOADR $DOWNLOADC $UPLOADR $UPLOADC $ip_prio $tcplimit $udplimit
+
+}
+
+qos_nolimit_ip_get(){
+ config_get enable $1 enable
+ config_get nolimit_ip $1 nolimit_ip
+ config_get nolimit_mac $1 nolimit_mac
+  [ "$enable" == "1" ]&&printf "|grep -v  $nolimit_mac " >>${qosv4_tmp_pach}/qosv4_nolimit_mac
+}
+
+
+
+lan_net
+config_load qosv4
+case $1 in
+    start) 
+	qos_stop >/dev/null 2>&1
+	qos_stop >/dev/null 2>&1
+	echo "start qos v4........"
+
+        
+	 rm -rf ${qosv4_tmp_pach}/qosv4_nolimit_mac
+	config_foreach qos_config_get qos_settings
+		echo "qosv4 enable=$qosv4_enable " 
+	if [ "$qosv4_enable" == "1" ];then
+	  [ -f ${qosv4_tmp_pach}/insmod ] || load_modules >/dev/null 2>&1
+	  qos_start
+	  config_foreach qos_limit_ip_get qos_ip
+	  qos_ip_limit_2
+	  config_foreach qos_nolimit_ip_get qos_nolimit_ip
+	  config_foreach qos_transmission_limit transmission_limit
+		
+	else
+	 qos_stop >/dev/null 2>&1
+	 qos_stop >/dev/null 2>&1 
+ 	fi
+	echo "qos_scheduler = $qos_scheduler"
+. /lib/cron/common.sh
+	if [ "$qosv4_enable" == "1" -a "$qos_scheduler" == "1" ];then
+
+delete_task qos_scheduler
+add_task qos_scheduler "sh ${qosv4_tmp_pach}/qos_scheduler" 5
+	echo "qos_scheduler start....."	
+	qos_scheduler
+	else
+	delete_task qos_scheduler
+	fi
+/etc/init.d/cron restart
+echo 0 >${qosv4_tmp_pach}/qos_state
+
+
+       
+   		 ;;
+    	stop)
+    	 qos_stop >/dev/null 2>&1 
+    	 qos_stop >/dev/null 2>&1 
+  		  ;;
+	esac
+

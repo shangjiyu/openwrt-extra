@@ -1,0 +1,3 @@
+#!/bin/sh
+uci delete ucitrack.@qosv4[-1] >/dev/null 2>&1
+uci commit ucitrack

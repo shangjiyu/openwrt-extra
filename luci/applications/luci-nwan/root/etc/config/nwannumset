@@ -1,0 +1,20 @@
+
+config 'macvlan_numset'
+	option 'macvlan_num' '3'
+	option 'wan_start_idx' '0'
+	option 'enable' '0'
+	option 'macvlan_switch' '1'
+
+config 'switch_numset'
+	option 'route_modle' '71xx'
+	option 'enable' '0'
+	option 'line_num' '1'
+
+config 'wireless_numset'
+	option 'ssid' 'OpenWRT'
+	option 'key' '123456'
+	option 'device' 'radio0'
+	option 'encryption' 'none'
+	option 'mode' 'ap'
+	option 'enable' '0'
+

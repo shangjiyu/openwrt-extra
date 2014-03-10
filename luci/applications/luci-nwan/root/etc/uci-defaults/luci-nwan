@@ -1,0 +1,13 @@
+#!/bin/sh 
+
+uci -q batch <<-EOF >/dev/null
+          delete ucitrack.@nwan[-1]
+          add ucitrack nwan
+          set ucitrack.@nwan[-1].init=nwan
+          delete ucitrack.@nwannumset[-1]
+          add ucitrack nwannumset
+          set ucitrack.@nwannumset[-1].init=nwannumset          
+          commit ucitrack
+EOF
+rm -f /tmp/luci-indexcache
+exit 0

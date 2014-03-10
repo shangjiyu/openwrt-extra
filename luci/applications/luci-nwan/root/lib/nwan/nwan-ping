@@ -1,0 +1,105 @@
+#!/bin/sh
+# load-balance(N-WAN) Script VER 0.10a for openwrt  by QQ GROUP 120752328
+. /etc/functions.sh
+
+from_internet_get_route()
+{
+cd /tmp
+mkdir routes
+cd /tmp/routes
+wget -qO- -T 3 -t 1 http://www.tcp5.com/routingtable/mobile.rsc|grep lookup| awk -F "=" '{print $5}'| awk -F " " '{print $1}' > mobile.rsc
+wget -qO- -T 3 -t 1 http://www.tcp5.com/routingtable/other.rsc |grep lookup| awk -F "=" '{print $5}'| awk -F " " '{print $1}' > other.rsc  
+wget -qO- -T 3 -t 1 http://www.tcp5.com/routingtable/telecom.rsc|grep lookup| awk -F "=" '{print $5}'| awk -F " " '{print $1}'> telecom.rsc  
+wget -qO- -T 3 -t 1 http://www.tcp5.com/routingtable/unicom.rsc|grep lookup| awk -F "=" '{print $5}'| awk -F " " '{print $1}' > unicom.rsc  
+cp mobile.rsc /lib/nwan/
+cp other.rsc /lib/nwan/
+cp telecom.rsc /lib/nwan/
+cp unicom.rsc /lib/nwan/
+rm -f /tmp/routes
+}
+	
+
+
+ping_iface ( )
+{
+	
+device=$(uci -P /var/state get nwan.${ifc}.device)
+gateway=$(uci -P /var/state get nwan.${ifc}.gateway)
+proto=$(uci -P /var/state get network.${ifc}.proto)
+ifname=$(uci -P /var/state get network.${ifc}.ifname)
+dns=$(uci -P /var/state get network.${ifc}.dns)
+ipaddr=$(uci -P /var/state get network.${ifc}.ipaddr)
+	
+	cps=1
+  gwp=1
+	sleep 1 
+	
+local RUN="ping -W $TIMEOUT -I $device -c 2 $TESTIP" > /dev/null  2>&1
+[ "$log_record" = "5" ]&&echo $RUN >> `echo $logpath`
+ eval $RUN  > /dev/null  2>&1
+	cps=$?
+ local RUN="ping -W $TIMEOUT -I $device -c 2 $gateway" > /dev/null  2>&1
+[ "$log_record" = "5" ]&&echo $RUN >> `echo $logpath`
+eval $RUN  > /dev/null  2>&1
+	gwp=$?
+if [ "$cps" = 1 -a  "$gwp" = 1 ] ; 
+then  
+[ "$log_record" = "5" ]&&echo "$ifc 接口 $device 已经掉线需要重启 $ifc upupupupupupupupupupupupupupupup"  >> `echo $logpath`
+     if [ "$FORCE_ALL_WAN_UP" = "1" ];
+        then
+       # ifup ${ifc}&
+ 	sh /lib/nwan/pppoeup &
+	else
+	ifup ${ifc}&
+        fi
+else  
+[ "$log_record" = "5" ]&&echo "$ifc 接口 $device ip=$ipaddr line on okokokokokokokokokokokokokokokokokokokok"  >> `echo $logpath`
+
+ 
+fi
+	
+}	
+
+gwping () {
+j=1
+
+if [ "$FORCE_ALL_WAN_UP" = "1" ];
+then
+WAN_LIST=$(uci show  network |grep interface|grep -v loopback|grep -v lan|cut -d"=" -f1 | awk -F . '{print ""$2""}')
+else
+WAN_LIST=$(uci show -P /var/state/ nwan |grep gateway= |cut -d"." -f2 | cut -d"." -f1) 
+fi
+
+	while : ; do
+[ "$log_record" = "5" ]&&echo "************************************************************"  >> `echo $logpath`
+[ "$log_record" = "5" ]&&echo testip=$TESTIP >> `echo $logpath`
+mess=`date` 
+[ "$log_record" = "5" ]&&echo $mess 第$j次 >> `echo $logpath`
+for ifc in $WAN_LIST; do
+ ping_iface
+		done
+ let j="$j+1"
+	sleep $SLEEPTIME
+	done
+}
+
+load_settings () {
+
+	ENABLE=$(uci get nwan.@settings[0].enable)
+  log_record=$(uci get nwan.@settings[0].debug)
+	SLEEPTIME=$(uci get nwan.@settings[0].sleeptime)
+ let SLEEPTIME="$SLEEPTIME*1"
+	TESTIP=$(uci get nwan.@settings[0].testip)
+	TIMEOUT=$(uci get nwan.@settings[0].timeout)
+	DL_ROUTE_TABLE=$(uci get nwan.@settings[0].dl_route_table)
+  FORCE_ALL_WAN_UP=$(uci get nwan.@settings[0].force_all_wan_up)
+
+}
+
+load_settings 
+logpath=/tmp/line_check_log
+[ "$DL_ROUTE_TABLE" = "1" ]&&[ ! `date +%w` = "1" ]&& echo 1 > /lib/nwan/flag
+[ "$DL_ROUTE_TABLE" = "1" ]&&[ `date +%w` = "1" ]&&[ "`cat /lib/nwan/flag`" = "1" ]&&from_internet_get_route&& echo 2 > /lib/nwan/flag
+gwping 
+
+

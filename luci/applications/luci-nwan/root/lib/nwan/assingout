@@ -1,0 +1,103 @@
+#!/bin/sh
+# load-balance(N-WAN) Script VER 1.1i 2011.4.4 for openwrt  by QQ GROUP 120752328
+
+. /etc/functions.sh
+log_record=5
+
+add_ASSIGNOUT() {
+
+    if [ "$dst" == "all" ]; then
+      dst=$NULL
+    fi
+      echo "line 11 dst=$dst"
+local RUN="iptables -t mangle -A ASSIGNOUT \
+                        ${proto:+-p $proto} \
+                        ${src:+-s $src} \
+                        ${dst:+-d $dst} \
+                        ${ports:+--dport $ports} \
+                      -j MARK --set-mark $wanrule"
+[ "$log_record" = "5" ]&&echo add iptables:$RUN 
+eval $RUN
+
+
+}
+
+
+mwanrule_get() {
+
+#config 'mwanfw'
+#option 'src' '192.168.3.1'
+#option 'dst' 'www.baidu.com'
+#option 'proto' 'udp'
+#option 'wanrule' 'wan3'
+#option 'ports' '476'
+
+
+config_get dst $1 dst
+config_get proto $1 proto
+config_get ports $1 ports
+config_get wanrule $1 wanrule
+config_get enable $1 enable
+config_get src $1 src
+echo "rule start..."
+ports_first=${ports%-*} > /dev/null  2>&1
+ports_last=${ports#*-} > /dev/null  2>&1
+[ $enable ==  "1" ]&&{
+	
+wanstate=$(uci -P /var/state get nwan.${wanrule}.status)
+   if [ -z "$wanstate" ]; then
+         return
+   fi
+    
+    if [ -n "$wanrule" ]; then
+        num=`echo $wanrule | tr -d "wan"`
+        if [ -z $num ] ; then num=0; fi  
+        wanrule=$((($num+1)*10)) 
+    fi
+
+
+   if [ "$src" == "all" ]; then
+          src=$NULL 
+    fi
+
+    if [ "$ports" == "all" ]; then
+        ports=$NULL 
+    fi
+
+    if [ "$ports_first" -ne "$ports_last" ]; then
+        ports="$ports_first:$ports_last" 
+    fi
+  
+  [ "$proto" == "tcp_udp" -o "$proto" == "tcp" -o "$proto" == "udp" ] || ports=$NULL 
+
+ if [ "$proto" == "tcp_udp" ]; then
+               proto=tcp
+               add_ASSIGNOUT 
+               proto=udp
+               add_ASSIGNOUT 
+ else
+ 
+ add_ASSIGNOUT 
+ fi
+} 
+}
+
+
+
+assingout_start()
+{
+
+iptables -t mangle -N ASSIGNOUT 
+iptables -t mangle -F ASSIGNOUT 
+[ -z "$(iptables -t mangle -nxvL PREROUTING |grep ASSIGNOUT)" ]&&iptables -t mangle -I PREROUTING -j ASSIGNOUT 
+iptables -A ASSIGNOUT -t mangle -m state --state ESTABLISHED,RELATED -j RETURN 
+
+}
+
+assingout_start
+config_load nwan
+config_foreach mwanrule_get mwanfw
+
+
+
+

@@ -1,0 +1,133 @@
+#!/bin/sh
+# syncpppoe up Script VER 0.10a for openwrt  by feixiang<feixiang@openwrt.org.cn>
+
+. $IPKG_INSTROOT/etc/functions.sh
+
+start_pppd() {
+	local cfg="$1"; shift
+
+	# unique link identifier
+	local link="${proto:-ppp}-$cfg"
+
+	local device
+	config_get device "$cfg" device
+
+	local username
+	config_get username "$cfg" username
+
+	local password
+	config_get password "$cfg" password
+
+	local keepalive
+	config_get keepalive "$cfg" keepalive
+
+	local connect
+	config_get connect "$cfg" connect
+
+	local disconnect
+	config_get disconnect "$cfg" disconnect
+
+	local pppd_options
+	config_get pppd_options "$cfg" pppd_options
+
+
+	local interval="${keepalive##*[, ]}"
+	[ "$interval" != "$keepalive" ] || interval=5
+
+	local dns
+	config_get dns "$config" dns
+
+	local proto
+	config_get proto "$cfg" proto
+
+echo "start-stop-daemon -S -b -x /usr/sbin/pppd -m -p /var/run/ppp-$link.pid -- "$@" \
+${keepalive:+lcp-echo-interval $interval lcp-echo-failure ${keepalive%%[, ]*}} \
+$demandargs \
+$peerdns \
+$defaultroute \
+${username:+user "$username" password "$password"} \
+ipparam "$cfg" \
+ifname "$link" \
+${connect:+connect "$connect"} \
+${disconnect:+disconnect "$disconnect"} \
+${ipv6} \
+${pppd_options} \
+nodetach &" >> /tmp/pppoeallup
+
+
+}
+
+
+config_wan_load_syncpppoeup() {
+	local iface="$1"
+	local config="$1"
+local cfg="$1"
+eval "echo $cfg|grep -q wan"
+	local proto
+	config_get proto "$cfg" proto
+# if wan ifdown interface 
+[ "$?" = 0  -a $proto = "pppoe" ] && {
+
+config_get mtu $cfg mtu
+config_get ifname $cfg ifname
+mtu=${mtu:-1492}
+start_pppd "$config" \
+plugin rp-pppoe.so syncppp \
+mtu $mtu mru $mtu \
+"nic-$ifname"
+}
+}
+
+
+
+kill_pppd()
+{
+local otherpids
+local execute
+otherpids=$(ps -a 2>&1 | grep 'pppd' | grep -v $$ | awk -F " " '{print $1}')
+echo "$otherpids" | while read execute
+do
+kill -9 ${execute} 
+done
+}
+
+config_wan_load_ifdown(){
+local cfg="$1"
+eval "echo $cfg|grep -q wan"
+# if wan ifdown interface 
+[ "$?" = 0  ] && {
+
+append ifdown_all_wan "ifdown ${cfg}&"
+echo "wan x start down ${ifdown_all_wan}"
+		wan_num=`expr $wan_num + 1`
+}
+
+}
+
+
+
+start_all_pppoeup(){
+#1 kill all wan and pppd session
+	local ifdown_all_wan=""
+	local wan_num=0
+	config_load network
+	config_foreach config_wan_load_ifdown interface
+	echo "all wan down command: $ifdown_all_wan"
+	eval "$ifdown_all_wan"
+	kill_pppd
+	kill_pppd
+	kill -9 syncpppinit
+	echo "wan_num=$wan_num"
+#2 start  syncup pppoe 
+	config_load network
+	echo "" > /tmp/pppoeallup
+	config_foreach config_wan_load_syncpppoeup interface
+
+  	syncpppinit ${wan_num} &
+	sleep 1
+	sh /tmp/pppoeallup
+
+
+}
+
+start_all_pppoeup

@@ -1,0 +1,50 @@
+#!/bin/ash
+# load-balance(N-WAN) Script VER 1.1i 2011.4.4 for openwrt  by QQ GROUP 120752328
+
+ logpath=/tmp/nwan_log
+ 
+ uci_get() {
+	uci -P /var/state get "$1" 2>/dev/null
+}
+
+	uci_set_state (){
+	
+	uci -P /var/state set "$1" 2>/dev/null
+}
+
+	uci_get_state (){
+	
+	uci -P /var/state get "$1" 2>/dev/null
+}
+
+ 
+case "$ACTION" in
+	ifup)
+	
+	local WAN_INTERFACE=$(echo ${INTERFACE} |grep -c wan)
+	 uci_set_state nwan.${INTERFACE}=interface 
+	 uci_set_state nwan.${INTERFACE}.connect_time=$(sed -ne 's![^0-9].*$!!p' /proc/uptime)
+	 
+ echo ++ `date` +++${INTERFACE}+++start++ >> $logpath
+
+ new_ipaddr=$(uci_get_state network.${INTERFACE}.ipaddr)
+#local new_netmask=$(uci_get_state  network.${INTERFACE}.netmask)
+#new_netmask=${new_netmask:-"255.255.255.0"}
+new_gateway=$(uci_get_state network.${INTERFACE}.lease_gateway)
+new_gateway=${new_gateway:-$(uci_get_state network.${INTERFACE}.gateway)}
+	
+		uci_set_state nwan.${INTERFACE}.device=$DEVICE
+		uci_set_state nwan.${INTERFACE}.proto=$PROTO
+		uci_set_state nwan.${INTERFACE}.ipaddr=$new_ipaddr
+		uci_set_state nwan.${INTERFACE}.gateway=$new_gateway
+	#	uci_set_state nwan.${INTERFACE}.network=$new_network
+		uci_set_state nwan.${INTERFACE}.status="1"
+		
+  echo "WAN_INTERFACE=$WAN_INTERFACE" >>/tmp/nwandebug
+	[  "$WAN_INTERFACE" -ge "1"  ] && sh /lib/nwan/route ifup_start	 
+	 ;;
+	 ifdown)
+	   sh /lib/nwan/route ifdown_start  
+	;;
+esac
+

@@ -1,0 +1,134 @@
+package nwan
+
+config package
+	option title	`nwan'
+
+
+config section
+	option name     'route'
+	option title    'settings'
+	option named    true
+	option required true
+
+
+config variable
+	option name	'enable'
+	option title    'enable'
+	option section  'nwan.settings'
+	option required true
+	
+config variable
+	option name	'ping_ck'
+	option title    'ping_ck'
+	option section  'nwan.settings'
+	option required true
+	
+		
+config variable
+	option name	'assingout'
+	option title    'assingout'
+	option section  'nwan.settings'
+	option required true
+	
+config variable
+	option name	'dl_route_table'
+	option title    'dl_route_table'
+	option section  'nwan.settings'
+	option required true
+	
+
+config variable
+	option name	'debug'
+	option title    'debug'
+	option section  'nwan.settings'
+	option required true
+
+config variable
+	option name	'sleeptime'
+	option title    'sleeptime'
+	option section  'nwan.settings'
+	option required true
+
+config variable
+	option name	'testip'
+	option title    'testip'
+	option section  'nwan.settings'
+	option required true
+
+
+config section
+	option name     'interface'
+	option title    'WAN interface'
+	option named    true
+	option required true
+
+
+config variable
+	option name	'name'
+	option title	'isp name'
+	option section  'nwan.interface'
+	option datatype 'integer'
+	option required true
+	
+
+config variable
+	option name	'route'
+	option title	'wan route method'
+	option section  'nwan.interface'
+	option datatype 'integer'
+	option required true
+	
+config variable
+	option name	'weight'
+	option title    'Load Balancer weight'
+	option section  'nwan.interface'
+	option datatype 'integer'
+	option required true
+
+
+
+config variable
+	option name	'uptime'
+	option title	'wan online time'
+	option section  'nwan.interface'
+	option datatype 'integer'
+	option required flash
+
+
+
+
+
+config section
+	option name     'mwanfw'
+	option title    'N-WAN ASSIGN OUT Rules'
+	option package  'mroute.mwanfw'
+
+config section
+	option name     'src'
+	option title    'Match by Source Address'
+	option section  'dualwan.dualwanfw'
+
+config section
+	option name     'dst'
+	option title    'Match by Destination Address'
+	option section  'dualwan.dualwanfw'
+
+config section
+	option name     'proto'
+	option title    'Match by Protocol'
+	option section  'dualwan.dualwanfw'
+
+config section
+	option name     'ports'
+	option title    'Match by Destination Ports'
+	option section  'dualwan.dualwanfw'
+
+config section
+	option name     'wanrule'
+	option title    'WAN Uplink'
+	option section  'mroute.mwanfw'
+	option required true
+
+
+
+

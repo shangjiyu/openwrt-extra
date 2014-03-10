@@ -1,0 +1,35 @@
+
+
+config 'qos_settings'
+	option 'UP' '100'
+	option 'DOWN' '500'
+	option 'UPLOADR2' '1'
+	option 'UPLOADC2' '5'
+	option 'DOWNLOADR2' '1'
+	option 'DOWNLOADC2' '2'
+	option 'DOWNLOADR' '50'
+	option 'UPLOADR' '20'
+	option 'enable' '0'
+	option 'qos_scheduler' '0'
+
+config 'qos_ip'
+	option 'UPLOADC' '15'
+	option 'DOWNLOADC' '15'
+	option 'ip_prio' '5'
+	option 'limit_ipe' '192.168.1.8'
+	option 'DOWNLOADR' '5'
+	option 'UPLOADR' '5'
+	option 'limit_ips' '192.168.1.2'
+	option 'enable' '0'
+
+config 'qos_nolimit_ip'
+	option 'nolimit_ip' '192.168.1.1'
+	option 'enable' '0'
+	option 'nolimit_mac' '52:54:ab:2e:99:01'
+
+config 'transmission_limit'
+	option 'downlimit' '100'
+	option 'uplimit' '100'
+	option 'enable' '0'
+
+

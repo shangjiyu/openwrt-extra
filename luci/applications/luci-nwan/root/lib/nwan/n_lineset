@@ -1,0 +1,394 @@
+#!/bin/sh 
+# copyrights 
+# (1)load-balance(N-WAN) Script VER 0.10a-1 for openwrt  by QQ GROUP 120752328
+
+. /etc/functions.sh
+
+
+
+
+#route_modle:value("db120", translate("db120","db120"))
+#route_modle:value("rg100a", translate("rg100a","rg100a"))
+#route_modle:value("47xx", translate("47xx","47xx 614v6 7231-4P.."))
+#route_modle:value("71xx", translate("71xx","71xx-TP941N 841N V3.."))
+#route_modle:value("3420", translate("3420","71xx-tp841v7.."))
+# config 'switch_numset'
+#    option 'enable' '0'
+#    option 'route_modle' '1'
+#    option 'line_num' '1'
+
+  HISTORY_DIR="/etc/config/macvlan"
+
+ get_switch_numset() {
+  config_get enable $1 enable
+  config_get route_modle $1 route_modle
+  config_get line_num $1 line_num
+  config_get line_3420 $1 line_3420
+  
+  if [  "$enable" == ""  ]; then
+		enable=0
+		fi
+}
+
+del_network_nwan(){
+ 
+ # line_num=$1
+ 
+  [ "$line_num" == "1" ]&& LINE_list="100 200 300"
+  [ "$line_num" == "2" ]&& LINE_list="200 300"
+  [ "$line_num" == "3" ]&& LINE_list="300"
+  [ "$line_num" == "4" ]&& LINE_list=" "
+ 	for Line_NO in $LINE_list ;do
+
+ 	sh ${HISTORY_DIR}/nwan_macvlan_del${Line_NO} 	
+
+	[ "$nwan_debug" != 0 ] && echo "line 104" >> /tmp/xx_nwan_debug
+	#rm -rf ${HISTORY_DIR}/macvlan_num                                                         
+	#rm -rf ${HISTORY_DIR}/wan_start_idx                                                         
+	rm -rf ${HISTORY_DIR}/nwan_macvlan${Line_NO}                                                         
+	rm -rf ${HISTORY_DIR}/nwan_macvlan${Line_NO}_del
+  #	echo "rm -rf /tmp/luci*" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+  
+ uci delete network.wan${Line_NO}
+ uci delete nwan.wan${Line_NO}
+ uci delete dhcp.wan${Line_NO}
+ done         
+uci delete dhcp.lan4
+uci delete dhcp.lan3
+uci delete dhcp.lan2
+
+}
+
+set_network_nwan(){
+	 # line_num=$1
+	[ "$line_num" == "4" ]&& LINE_list="100 200 300"
+  [ "$line_num" == "3" ]&& LINE_list="100 200"
+  [ "$line_num" == "2" ]&& LINE_list="100"
+  [ "$line_num" == "1" ]&& LINE_list=""
+ 	for Line_NO in $LINE_list ;do
+	        uci set network.wan${Line_NO}=interface 
+          uci set network.wan${Line_NO}.proto=dhcp 
+          uci set network.wan${Line_NO}.defaultroute=0 
+          uci set network.wan${Line_NO}.peerdns=1
+          uci set nwan.wan${Line_NO}=interface 
+		      uci set nwan.wan${Line_NO}.name=telecom
+		      uci set nwan.wan${Line_NO}.route=balance 
+		      uci set nwan.wan${Line_NO}.weight=1 
+		      uci set nwan.wan${Line_NO}.uptime=0day,0hour,0min 
+		echo "uci delete dhcp.wan${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}	
+	done
+}
+
+
+get_vlan_ports() {
+	
+	##modle 1  mean 4wan , such as db120 such as rg100a
+	##modle 2 mean 5wan such as 47xx
+
+	case $route_modle in
+	rg100a) 
+		case $var in
+		 0)
+			[ "$line_num" == "1" ]&& echo "0 1 2 5*"
+  			[ "$line_num" == "2" ]&& echo "0 1 5*"
+  			[ "$line_num" == "3" ]&& echo "0 5*"
+ 			[ "$line_num" == "4" ]&& echo "5*"
+			;;
+		1) echo "3 5*";;
+		2) echo "2 5*";;
+		3) echo "1 5*";;
+		4) echo "";;		
+		esac 	
+		;; 
+	 db120) 
+		case $var in
+		  0) 
+		    [ "$line_num" == "1" ]&& echo "0 1 2 5t"
+	 			[ "$line_num" == "2" ]&& echo "0 1 5t"
+  			[ "$line_num" == "3" ]&& echo "0 5t"
+			;;
+			1) echo "3 5t";;
+			2) echo "2 5t";;
+			3) echo "1 5t";;
+			4) echo "";;	
+		esac 	
+		;; 
+	47xx)
+		case $var in
+		  0)
+				[ "$line_num" == "1" ]&& echo "1 2 3 4 5*"
+  			[ "$line_num" == "2" ]&& echo "2 3 4 5*"
+  			[ "$line_num" == "3" ]&& echo "3 4 5*"
+ 			  [ "$line_num" == "4" ]&& echo "4 5*"
+			;;
+			1) echo "0 5*";;
+			2) echo "1 5*";;
+			3) echo "2 5*";;
+			4) echo "3 5*";;					
+		esac 	
+		;;
+	*)
+	esac
+}
+
+
+set_network_3420 () {
+
+ [ "$line_num" == "2" ]&& {
+n=$line_3420
+Line_NO=100
+
+  HISTORY_DIR="/etc/config/macvlan"
+
+[  -e /etc/config/macvlan ]||mkdir -p /etc/config/macvlan
+
+  mac2=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	mac3=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	mac4=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	mac5=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	sleep 1
+	#mac6=$(echo "" | awk '{srand(); printf("%X\n", rand()*90+16);}')
+	#sleep 1
+	#mac=$(echo 00:${mac2}:${mac3}:${mac4}:${mac5}:01)
+	
+echo "" > ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+	echo "" > ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+
+i=100
+n=$((n+100))
+
+	while [ "$i" -lt "$n" ]
+	do
+    echo "ifdown wan"$i" &" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+		#生成不同的mac
+		
+		mac6=$(printf "%x" ${i})
+		mac6=$(echo ${mac6:0-1:2})
+		mac=$(echo 00:${mac2}:${mac3}:${mac4}:${mac5}:${mac6})
+
+		# add /lib/nwan/nwan_macvlan
+		
+		echo "ip link add link br-lan vth"$i" type macvlan" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		echo "ifconfig vth"$i" hw ether $mac" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		echo "ifconfig vth"$i" up" >> ${HISTORY_DIR}/nwan_macvlan${Line_NO}
+		echo "ip link delete vth"$i" type macvlan" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+   
+		# add /etc/config/network
+		uci set network.wan${i}=interface
+		uci set network.wan${i}.ifname=vth${i}
+		uci set network.wan${i}.proto=pppoe
+		uci set network.wan${i}.username=$pppoe_name
+		uci set network.wan${i}.password=$pppoe_pw
+		uci set network.wan${i}.defaultroute=0
+		uci set network.wan${i}.peerdns=1
+
+		echo "uci delete network.wan${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+		
+		# add /etc/config/nwan
+
+		uci set nwan.wan${i}=interface 
+		uci set nwan.wan${i}.name=telecom 
+		uci set nwan.wan${i}.route=balance 
+		uci set nwan.wan${i}.weight=1 
+		uci set nwan.wan${i}.uptime=0day,0hour,0min
+		echo "uci delete nwan.wan${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}
+		
+	# add /etc/config/dhcp
+
+		uci set dhcp.vth${i}=dhcp 
+		uci set dhcp.vth${i}.interface=wan${i}
+		uci set dhcp.vth${i}.ignore=1 
+		echo "uci delete dhcp.vth${i}" >> ${HISTORY_DIR}/nwan_macvlan_del${Line_NO}	
+		
+		
+  	echo "wan${i} 配置已经完成"
+		i=$((i+1))
+	done
+
+}
+
+}
+
+set_network_switch(){
+	
+	[ "$line_num" == "4" ]&& LINE_list="0 1 2 3 4"
+  [ "$line_num" == "3" ]&& LINE_list="0 1 2 3"
+  [ "$line_num" == "2" ]&& LINE_list="0 1 2"
+  [ "$line_num" == "1" ]&& LINE_list="0 1"
+  
+   uci set network.${if_idx}=switch
+   uci set network.${if_idx}.enable=1  
+   uci set network.${if_idx}.reset=1 
+   uci set network.${if_idx}.enable_vlan=1
+   
+   for var in  $LINE_list ;do       
+          uci set network.${if_idx}_${var}=switch_vlan
+          uci set network.${if_idx}_${var}.device=${if_idx}
+          uci set network.${if_idx}_${var}.vlan=${var}
+          
+         ports=$(get_vlan_ports)
+        echo ports=$ports var=${var}>> /tmp/ports
+          uci set network.${if_idx}_${var}.ports="$ports"
+          echo $get_vlan_ports
+  case $var in
+		  1) 
+		  uci set network.wan.ifname=${if_idx}.${var}
+      [ "$route_modle" == "rg100a" ]&&uci set network.lan.ifname=eth1.0
+		  [ "$route_modle" == "db120" ]&&{
+		  	uci set network.wan.ifname=eth0
+		  	uci set network.lan.ifname=eth1
+		  	ifup wan&
+		  }
+		  ;;		  
+			2) uci set network.wan100.ifname=${if_idx}.${var}
+      [ "$route_modle" == "rg100a" ]&&uci set network.lan.ifname=eth1.0
+	   [ "$route_modle" == "db120" ]&&uci set network.lan.ifname=eth1.0
+	   [ "$route_modle" == "47xx" ]&&uci set network.lan.ifname=eth0.0
+
+	   ifup wan&ifup wan100&
+		  ;;
+			3) uci set network.wan200.ifname=${if_idx}.${var}
+      [ "$route_modle" == "rg100a" ]&&uci set network.lan.ifname=eth1.0
+      [ "$route_modle" == "db120" ]&&uci set network.lan.ifname=eth1.0
+      [ "$route_modle" == "47xx" ]&&uci set network.lan.ifname=eth0.0
+       ifup wan&ifup wan100&ifup wan200&
+		  ;;
+			4) uci set network.wan300.ifname=${if_idx}.${var}
+      [ "$route_modle" == "rg100a" ]&&uci set network.lan.ifname=eth1.0
+      [ "$route_modle" == "db120" ]&&uci set network.lan.ifname=eth1.0
+      [ "$route_modle" == "47xx" ]&&uci set network.lan.ifname=eth0.0
+       ifup wan&ifup wan100&ifup wan200&ifup wan300&
+		  ;;				
+		esac 
+		  
+   done 
+       
+ } 
+         
+del_network_switch(){
+	[ "$line_num" == "4" ]&& LINE_list=""
+  [ "$line_num" == "3" ]&& LINE_list="4"
+  [ "$line_num" == "2" ]&& LINE_list="3 4"
+  [ "$line_num" == "1" ]&& LINE_list="2 3 4"
+	 for var in  $LINE_list;do  
+	  uci delete network.${if_idx}_${var}
+	  done
+	}
+          
+
+
+start_nline()
+{
+
+# route_modle=$1  
+# line_num= $2
+
+case $route_modle in
+
+
+      3420)
+        #71xx 3420 841-v7 300r.. 
+         del_network_nwan 
+         set_network_3420
+        ;;
+      rg100a)
+      if_idx=eth1
+      del_network_nwan
+      set_network_nwan
+      del_network_switch
+      set_network_switch
+      ;;
+     db120)
+      if_idx=eth1
+      del_network_nwan
+      set_network_nwan
+      del_network_switch
+      set_network_switch
+      ;;
+      47xx)
+      if_idx=eth0
+      del_network_nwan
+      set_network_nwan
+      del_network_switch
+      set_network_switch
+       ;;
+
+	    71xx)
+         #71xx-TP941N 841N V3.. 
+         
+         del_network_nwan 
+         set_network_nwan  
+         uci set network.lan.ifname="lan1 lan2 lan3 lan4" 
+         uci set network.wan.ifname=wan 
+
+
+        case $line_num in
+        1)
+        #line 1  复位和删除多余的wan口数据
+          ifup wan&
+        ;;		
+        2)
+          #line 2 lan4 wan 100
+                 
+          uci set network.lan.ifname="lan1 lan2 lan3"
+          uci set network.wan100.ifname=lan4 
+		 uci set dhcp.lan4=dhcp 
+		uci set dhcp.lan4.interface=wan100
+		uci set dhcp.lan4.ignore=1 
+
+          ifup wan&ifup wan100&
+	          ;;		
+         3)
+          #line 3 lan4 wan100 lan3 wan200 
+               
+          uci set network.lan.ifname="lan1 lan2"
+          uci set network.wan100.ifname=lan4 
+          uci set network.wan200.ifname=lan3
+		uci set dhcp.lan4=dhcp 
+		uci set dhcp.lan4.interface=wan100
+		uci set dhcp.lan4.ignore=1 
+		uci set dhcp.lan3=dhcp 
+		uci set dhcp.lan3.interface=wan200
+		uci set dhcp.lan3.ignore=1 
+          ifup wan&ifup wan100&ifup wan200&
+          	;;
+        3)
+          #line 4 lan4 wan100 lan3 wan200 lan2 wan300
+               
+          uci set network.lan.ifname=lan1
+          uci set network.wan100.ifname=lan4 
+          uci set network.wan200.ifname=lan3
+          uci set network.wan300.ifname=lan2
+		uci set dhcp.lan4=dhcp 
+		uci set dhcp.lan4.interface=wan100
+		uci set dhcp.lan4.ignore=1 
+		uci set dhcp.lan3=dhcp 
+		uci set dhcp.lan3.interface=wan200
+		uci set dhcp.lan3.ignore=1 
+		uci set dhcp.lan2=dhcp 
+		uci set dhcp.lan2.interface=wan300
+		uci set dhcp.lan2.ignore=1		
+		  
+          ifup wan&ifup wan100&ifup wan200&ifup wan300&
+          	;;
+           esac
+  	;; 
+        
+ esac
+ 
+}
+
+
+  unset enable
+	unset macvlan_num
+	unset route_modle 
+	unset line_num 
+	config_load nwannumset
+	config_foreach get_switch_numset switch_numset
+  start_nline >/dev/null 2>&1
+
+
+	

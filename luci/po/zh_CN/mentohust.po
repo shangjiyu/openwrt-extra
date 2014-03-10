@@ -1,0 +1,168 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "mentohust"
+msgstr "校园网认证"
+
+msgid "0 means no limit,default to 8"
+msgstr "0表示无限制，默认8"
+
+msgid "0(no)"
+msgstr "0(否)"
+
+msgid "0(no),1-20(yes),default to 5"
+msgstr "0(否),1~20(是),默认5"
+
+msgid "0(not in used)"
+msgstr "0(不使用)"
+
+msgid "0(standard)"
+msgstr "0(标准)"
+
+msgid "1(ruijjie)"
+msgstr "1(锐捷)"
+
+msgid "1(secondary authenticate)"
+msgstr "1(二次认证)"
+
+msgid "1(yes,turn off output)"
+msgstr "1(是，关闭输出)"
+
+msgid "2(post authenticate)"
+msgstr "2(认证前)"
+
+msgid "2(saier)"
+msgstr "2(赛尔)"
+
+msgid "2(yes,persevere output)"
+msgstr "2(是，保留输出)"
+
+msgid "3(pre authenticate)"
+msgstr "3(认证后)"
+
+msgid "3(yes,output to file)"
+msgstr "3(是，输出到文件)"
+
+msgid "A Ruijie and Cernet supplicant on Linux and MacOS from HustMoon Studio."
+msgstr "一个Linux、Mac OS下支持锐捷客户端校验算法的兼容客户端程序（附带支持赛尔认证） 作者：HustMoon Studio 主页：<a href='http://code.google.com/p/mentohust/'>http://code.google.com/p/mentohust/</a>"
+
+msgid "Config mentohust"
+msgstr "配置mentohust"
+
+msgid "MentoHUST"
+msgstr "锐捷认证"
+
+
+msgid "Configure mentohust's start option"
+msgstr "配置mentohust的启动选项"
+
+msgid "DHCP script"
+msgstr "DHCP脚本"
+
+msgid "DHCP type"
+msgstr "DHCP方式"
+
+msgid "DNS"
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "MentoHUST"
+msgstr ""
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Ping host"
+msgstr "Ping主机"
+
+msgid "Start at boot"
+msgstr "开机启动"
+
+msgid "Start mentohust when the route is booting."
+msgstr "随路由器启动mentohust"
+
+msgid "Start option"
+msgstr "启动选项"
+
+msgid "The options below are all of mentohust's arguments."
+msgstr "下面的选项是mentohust的所有参数"
+
+msgid "Username"
+msgstr "用户名"
+
+msgid "authenticate timeout(s)"
+msgstr "认证超时(秒)"
+
+msgid "client version"
+msgstr "客户端版本号"
+
+msgid "customized data file"
+msgstr "自定义数据文件"
+
+msgid "default to 0"
+msgstr "默认0"
+
+msgid "default to 0.0.0.0"
+msgstr "默认0.0.0.0"
+
+msgid "default to 0.0.0.0,i.e. disable this function"
+msgstr "默认0.0.0.0，表示关闭该功能"
+
+msgid "default to 0.00,compatible with xrgsu"
+msgstr "默认0.00，表示兼容xrgs"
+
+msgid "default to 15s"
+msgstr "默认为15秒"
+
+msgid "default to 30s"
+msgstr "默认为30秒"
+
+msgid "default to 8s"
+msgstr "默认为8秒"
+
+msgid "default to localhost's IP"
+msgstr "默认本机IP"
+
+msgid "default to localhost's netmask"
+msgstr "默认本机子网掩码"
+
+msgid "display notification"
+msgstr "是否显示通知"
+
+msgid "MentoHUST_enable"
+msgstr "启用"
+
+msgid "enable or disable mentohust"
+msgstr "启动或停止mentohust"
+
+msgid "gateway"
+msgstr "网关"
+
+msgid "heartbeat timeout(s)"
+msgstr "心跳间隔(秒)"
+
+msgid "max failure times"
+msgstr "允许失败次数"
+
+msgid "mulcast address"
+msgstr "组播地址"
+
+msgid "net card name"
+msgstr "网卡名"
+
+msgid "netmask"
+msgstr "子网掩码"
+
+msgid "not in used by default"
+msgstr "默认不使用"
+
+msgid "run in demon mode"
+msgstr "是否后台运行"
+
+msgid "use dhclient by default"
+msgstr "默认dhclient"
+
+msgid "wait on failure timeout(s)"
+msgstr "失败等待(秒)"

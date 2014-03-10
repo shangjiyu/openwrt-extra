@@ -1,0 +1,309 @@
+#  nwan.po
+#  generated from /tmp/i18n/luasrc/i18n/nwan.en.lua
+
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:1
+#. N-WAN
+msgid "N-WAN"
+msgstr "N-WAN"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:2
+#. N-WAN allows for the use of multiple uplinks for load balancing and failover.
+msgid "nwan_desc"
+msgstr "N-WAN设置可使多条外线进行叠加和负载平衡，附带指定出口功能."
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:3
+#. nwan_route_desc
+msgid "nwan_route_desc"
+msgstr "设置N-WAN路由"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_enable
+msgid "nwan_enable"
+msgstr "是否使用"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_on
+msgid "nwan_on"
+msgstr "打开"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_off
+msgid "nwan_off"
+msgstr "关闭"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_ping_ck
+msgid "nwan_ping_ck"
+msgstr "是否开启Ping检查"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. force_all_wan_up
+msgid "force_all_wan_up"
+msgstr "是否强制所有wan口拨号"
+
+msgid "force_all_wan_up_desc"
+msgstr "并发拨号功能，需要先开启ping检查，根据network配置的wan口来拨号，直到全部拨上。"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_assingout
+msgid "nwan_assingout"
+msgstr "是否开启指定出口"
+
+msgid "nwan_assingout_desc"
+msgstr "具体规则在下面设置"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_debug
+msgid "nwan_debug"
+msgstr "是否开启日志记录"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_dl_route_table
+msgid "nwan_dl_route_table"
+msgstr "是否自动更新路由表"
+
+msgid "nwan_dl_route_table_desc"
+msgstr "当开启智能路由时候，打开此功能，每周一自动更新"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#.nwan mwanfw desc
+msgid "nwan_mwanfw_desc"
+msgstr "指定出口，即：使特定目标的流量走指定外网线路，使用前请开启指定出口功能，支持外网域名和IP。"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_sleeptime
+msgid "nwan_sleeptime"
+msgstr "Ping间隔"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_dl_route_table
+msgid "nwan_testip"
+msgstr "Ping测试目的IP"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. WAN Interfaces
+msgid "nwan_interface"
+msgstr "外网接口"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_isp_name
+msgid "nwan_isp_name"
+msgstr "运营商"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_isp_mobile
+msgid "nwan_isp_mobile"
+msgstr "中国移动"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_isp_other
+msgid "nwan_isp_other"
+msgstr "其他"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_isp_telecom
+msgid "nwan_isp_telecom"
+msgstr "中国电信"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_isp_unicom
+msgid "nwan_isp_unicom"
+msgstr "中国联通"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_route_method
+msgid "nwan_route_method"
+msgstr "路由方式"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_route_method
+msgid "nwan_route_method"
+msgstr "路由方式"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_intelligent_routes
+msgid "nwan_intelligent_routes"
+msgstr "智能选线"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_balance
+msgid "nwan_balance"
+msgstr "负载均衡"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_weight
+msgid "nwan_weight"
+msgstr "路由权重"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_uptime
+msgid "nwan_uptime"
+msgstr "已连接时间"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. N-WAN ASSIGN OUT Rules
+msgid "nwan_mwanfw"
+msgstr "N-WAN 指定出口规则配置"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_src
+msgid "nwan_src"
+msgstr "源IP地址"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_dst
+msgid "nwan_dst"
+msgstr "目的IP地址"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_proto
+msgid "nwan_proto"
+msgstr "协议类型"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_ports
+msgid "nwan_ports"
+msgstr "端口"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_proto
+msgid "nwan_proto"
+msgstr "协议类型"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:4
+#. nwan_proto
+msgid "nwan_proto"
+msgstr "协议类型"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_wanrule
+msgid "nwan_wanrule"
+msgstr "指定出口"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_numset_title
+msgid "nwan_numset_title"
+msgstr "创建N-WAN口"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_numset_title_dsc
+msgid "nwan_numset_title_desc"
+msgstr "本页面可设置多线接入，单线多拨，多线多拨，无线快速切换AP和客户端，所有功能应用后最自动关闭，第二次设置请重新开启，相应的功能"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_numset_desc
+msgid "nwan_numset_desc"
+msgstr "本页设置通过macvlan的方法，可从wan口虚拟出多个WAN口，从而实现单线多拨,多线多拨，保存应用后，然后请到网络--》接口下查看、设置虚拟WAN口的具体参数。注意：当您想删除之前做的所有虚拟wan口设置，那么请设置虚拟wan口的数目为0，然后保存应用，然后重启设备。"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_macvlan_numset
+msgid "nwan_macvlan_numset"
+msgstr "创建N-wan口生成设置"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. virtual_wan_macvlan
+msgid "virtual_wan_macvlan"
+msgstr "使用macvlan生成虚拟wan口"
+
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_macvlan_num
+msgid "nwan_macvlan_num"
+msgstr "虚拟wan口数目"
+
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_macvlan_num_desc
+msgid "nwan_macvlan_num_desc"
+msgstr "在此接口上需要几拨就填几，例如5拨设置5。还原单拨填写1"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. nwan_enable_macvlan
+msgid "nwan_enable_macvlan"
+msgstr "开启"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. menu_set_macvlan
+msgid "menu_set_macvlan"
+msgstr "创建WAN"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. wan_start_idx
+msgid "wan_start_idx"
+msgstr "从哪个WAN接口 生成虚拟wan "
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. wan_start_idx_desc
+msgid "wan_start_idx_desc"
+msgstr "wan即原来的wan口虚拟，使用wan100等先开启多线的配置，生成相应的线数量，wan100为第二条线的接口，wan200为第三条线的接口，wan300为第四条线的接口"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. switch_numset
+msgid "switch_numset"
+msgstr "多线接入的配置"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. switch_numset
+msgid "switch_numset_desc"
+msgstr "设置接入线的数量，适用于多线接入的配置，默认设置单线接入，必须正确设置路由型号，该功能还不是很完善，新手慎用，可能会导致路由无法正常启动，只能刷机，或者ttl修改相应的配置，第二条线接入的位置可能在wan口边上，也可能最远离wan口的，71xx wan100是lan4 wan200是lan3。。。。"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. switch_enable
+msgid "switch_enable"
+msgstr "开启多线接入配置"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. route_modle
+msgid "route_modle"
+msgstr "选择你的路由型号"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. route_modle_desc
+msgid "route_modle_desc"
+msgstr "现有的型号 有rg100a 支持到双线，db120支持到双线 ，bcm 47xx系列，如：h618b 7231-4p等最大支持到4线 ，ar 71xx如941N v2 841N V3 最大支持到4线 ，其它型号功能完善中"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. line_num
+msgid "line_num"
+msgstr "接入线路数量"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. line_num_desc
+msgid "line_num_desc"
+msgstr "接入线路数量不需要多线时，选择1，并开启多线配置后 ，保存应用"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. wireless_sat
+msgid "wireless_sat"
+msgstr "无线客户端设置"
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. wireless_sat_desc
+msgid "wireless_sat_desc"
+msgstr "通过简单的设置，开启快速配置无线客户端模式，进行蹭网。默认内置网卡 wan接口为wan500，usb网卡支持不是很好"
+
+
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. wireles_enable
+msgid "wireles_enable"
+msgstr "开启快速配置无线功能"
+
+#: /tmp/i18n/luasrc/i18n/nwan.en.lua:26
+#. mode_desc
+msgid "mode_desc"
+msgstr "Client 客户端蹭网模式，Access Point 恢复AP模式"
+

@@ -1,0 +1,55 @@
+#!/bin/sh /etc/rc.common
+#Author:tsl0922
+#Email:tsl0922@sina.com
+
+START=55
+STOP=10
+
+start()
+{
+if [ $(uci get mentohust.@option[0].enable) ] ;
+then
+	echo [MentoHUST] > /etc/mentohust.conf
+	echo Username=$(uci get mentohust.@mentohust[0].Username) >> /etc/mentohust.conf
+	echo Password=$(uci get mentohust.@mentohust[0].Password) >> /etc/mentohust.conf
+	echo Nic=$(uci get mentohust.@mentohust[0].Nic) >> /etc/mentohust.conf
+	echo IP=$(uci get mentohust.@mentohust[0].IP) >> /etc/mentohust.conf
+	echo Mask=$(uci get mentohust.@mentohust[0].Mask) >> /etc/mentohust.conf
+	echo Gateway=$(uci get mentohust.@mentohust[0].Gateway) >> /etc/mentohust.conf
+	echo DNS=$(uci get mentohust.@mentohust[0].DNS) >> /etc/mentohust.conf
+	echo PingHost=$(uci get mentohust.@mentohust[0].PingHost) >> /etc/mentohust.conf
+	echo Timeout=$(uci get mentohust.@mentohust[0].Timeout) >> /etc/mentohust.conf
+	echo EchoInterval=$(uci get mentohust.@mentohust[0].EchoInterval) >> /etc/mentohust.conf
+	echo RestartWait=$(uci get mentohust.@mentohust[0].RestartWait) >> /etc/mentohust.conf
+	echo MaxFail=$(uci get mentohust.@mentohust[0].MaxFail) >> /etc/mentohust.conf
+	echo StartMode=$(uci get mentohust.@mentohust[0].StartMode) >> /etc/mentohust.conf
+	echo DhcpMode=$(uci get mentohust.@mentohust[0].DhcpMode) >> /etc/mentohust.conf
+	echo DaemonMode=$(uci get mentohust.@mentohust[0].DaemonMode) >> /etc/mentohust.conf
+	echo ShowNotify=$(uci get mentohust.@mentohust[0].ShowNotify) >> /etc/mentohust.conf
+	echo Version=$(uci get mentohust.@mentohust[0].Version) >> /etc/mentohust.conf
+	echo DataFile=$(uci get mentohust.@mentohust[0].DataFile) >> /etc/mentohust.conf
+	echo dhcpscript=$(uci get mentohust.@mentohust[0].dhcpscript) >> /etc/mentohust.conf
+	mentohust >/dev/null 2>&1
+else
+	stop
+fi
+
+if [ $(uci get mentohust.@option[0].boot) ] ;
+then
+	/etc/init.d/mentohust enable
+else
+	/etc/init.d/mentohust disable
+fi
+}
+
+stop()
+{
+sync
+mentohust -k >/dev/null 2>&1
+}
+
+restart()
+{
+stop
+start
+}
