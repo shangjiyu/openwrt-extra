@@ -72,7 +72,7 @@ $(eval $(call application,mentohust,mentohust configuration module,\
 	 +PACKAGE_luci-app-mentohust:mentohust))
 
 $(eval $(call application,qos_gargoyle,qos_gargoyle configuration module,\
-	 +PACKAGE_luci-app-qos_gargoyle:qos_gargoyle))
+	 +PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
