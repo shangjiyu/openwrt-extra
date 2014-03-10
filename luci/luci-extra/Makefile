@@ -62,6 +62,17 @@ $(eval $(call application,aria2,LuCI Support for Aria2,\
 	+PACKAGE_luci-app-aria2:aria2 \
 	+PACKAGE_luci-app-aria2:yaaw))
 
+$(eval $(call application,nwan,nwan configuration module,\
+	 +PACKAGE_luci-app-nwan:ip +kmod-macvlan +iptables +iptables-mod-conntrack +iptables-mod-conntrack-extra +iptables-mod-ipopt))
+
+$(eval $(call application,qosv4,qosv4 configuration module,\
+	 +PACKAGE_luci-app-qosv4:tc +kmod-sched +iptables +iptables-mod-filter +iptables-mod-ipopt +iptables-mod-conntrack-extra +iptables-mod-imq +iptables-mod-hashlimit +iptables-mod-connlimit))
+	 
+$(eval $(call application,mentohust,mentohust configuration module,\
+	 +PACKAGE_luci-app-mentohust:mentohust))
+
+$(eval $(call application,qos_gargoyle,qos_gargoyle configuration module,\
+	 +PACKAGE_luci-app-qos_gargoyle:qos_gargoyle))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
