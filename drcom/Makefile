@@ -32,7 +32,7 @@ define Build/Prepare
 	$(SED) 's/r = system(s)/r = ""/g' $(PKG_BUILD_DIR)/drcomd/drcomd.c
 	$(SED) 's/CC\ =\ gcc/CONFIG\ +=\ static\nCC\ =\ gcc/g' $(PKG_BUILD_DIR)/drcomd/drcomd.c
 	$(SED) 's/\/etc\/drcom.conf/\/tmp\/drcom.conf/g' $(PKG_BUILD_DIR)/Makefile
-	$(SED) "s,^KERNELDIR ?.*,KERNELDIR ?= $(LINUX_DIR)," $(PKG_BUILD_DIR)/kmod/Makefile
+	$(SED) 's,^KERNELDIR ?.*,KERNELDIR ?= $(LINUX_DIR),' $(PKG_BUILD_DIR)/kmod/Makefile
 	$(SED) 's/.*\modules_install/#/g' $(PKG_BUILD_DIR)/kmod/Makefile
 	$(SED) 's/.*\depmod/#/g' $(PKG_BUILD_DIR)/kmod/Makefile
 endef
