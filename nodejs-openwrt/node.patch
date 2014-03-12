@@ -1,0 +1,12 @@
+diff -ru node-v0.10.13.orig/deps/uv/uv.gyp node-v0.10.13/deps/uv/uv.gyp
+--- node-v0.10.13.orig/deps/uv/uv.gyp	2013-07-24 08:09:21.885545873 -0400
++++ node-v0.10.13/deps/uv/uv.gyp	2013-07-26 07:52:52.385600589 -0400
+@@ -209,7 +209,7 @@
+             'src/unix/linux-syscalls.h',
+           ],
+           'link_settings': {
+-            'libraries': [ '-ldl', '-lrt' ],
++            'libraries': [ '-ldl', '-lrt', '-lc' ],
+           },
+         }],
+         [ 'OS=="solaris"', {
