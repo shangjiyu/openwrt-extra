@@ -73,6 +73,15 @@ $(eval $(call application,mentohust,mentohust configuration module,\
 
 $(eval $(call application,qos_gargoyle,qos_gargoyle configuration module,\
 	 +PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
+	 
+$(eval $(call application,shadowsocks,shadowsocks configuration module,\
+	 +PACKAGE_luci-app-shadowsocks:shadowsocks-libev))
+	 
+$(eval $(call application,redsocks2,redsocks2 configuration module,\
+	 +PACKAGE_luci-app-redsocks2:redsocks2))
+	 
+$(eval $(call application,pdnsd,pdnsd configuration module,\
+	 +PACKAGE_luci-app-pdnsd:pdnsd))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
