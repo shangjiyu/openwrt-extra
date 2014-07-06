@@ -75,7 +75,7 @@ $(eval $(call application,qos_gargoyle,qos_gargoyle configuration module,\
 	 +PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
 	 
 $(eval $(call application,shadowsocks,shadowsocks configuration module,\
-	 +PACKAGE_luci-app-shadowsocks:shadowsocks-libev))
+	 +PACKAGE_luci-app-shadowsocks:shadowsocks-libev-polarssl))
 	 
 $(eval $(call application,redsocks2,redsocks2 configuration module,\
 	 +PACKAGE_luci-app-redsocks2:redsocks2))
