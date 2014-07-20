@@ -13,7 +13,6 @@ static char saveuser[MAXNAMELEN] = {0};
 static char savepwd[MAXSECRETLEN] = {0};
 
 static void getPIN(byte *userName, byte *PIN) {
-    //var
     int i,j;//循环变量
     long timedivbyfive;//时间除以五
     time_t timenow;//当前时间，从time()获得
@@ -100,12 +99,7 @@ static int pap_modifyusername(char *user, char* passwd)
     byte PIN[MAXSECRETLEN] = {0};
     getPIN(saveuser, PIN);
     strcpy(user, PIN);
-    info("sxplugin : username %s",user);
-    if(passwd!=0){
-        info("sxplugin : load passwd ");
-        strcpy(passwd,savepwd);
-    }
-    return 1;
+    info("sxplugin : user is %s",user);
 }
 
 static int check(){
@@ -117,9 +111,8 @@ void plugin_init(void)
     info("sxplugin init");
     strcpy(saveuser,user);
     strcpy(savepwd,passwd);
-    passwd[0]=0;
-    pap_passwd_hook=pap_modifyusername;
-    chap_passwd_hook=pap_modifyusername;
+    pap_modifyusername(user, saveuser);
+    info("sxplugin : passwd loaded");
     pap_check_hook=check;
     chap_check_hook=check;
 }
