@@ -15,6 +15,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSI
 
 PKG_INSTALL:=1
 PKG_FIXUP:=autoreconf
+PKG_USE_MIPS16:=0
 PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
 
@@ -47,29 +48,11 @@ endef
 
 Package/shadowsocks-libev-polarssl/description=$(Package/shadowsocks-libev/description)
 
-define Package/shadowsocks-libev/conffiles
-/etc/shadowsocks.json
-endef
-
 ifeq ($(BUILD_VARIANT),polarssl)
-	CONFIGURE_ARGS += --with-crypto-library=polarssl
+        CONFIGURE_ARGS += --with-crypto-library=polarssl
 endif
 
-TARGET_CFLAGS += \
-	-fdata-sections \
-	-ffunction-sections
-
-TARGET_LDFLAGS += \
-	-Wl,-gc-sections
-
-MAKE_FLAGS += \
-	CFLAGS="$(TARGET_CFLAGS)" \
-	LDFLAGS="$(TARGET_LDFLAGS)"
-
 define Package/shadowsocks-libev/install
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_CONF) ./files/shadowsocks.json $(1)/etc
-	$(INSTALL_BIN) ./files/shadowsocks.init $(1)/etc/init.d/shadowsocks
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-{local,redir,tunnel} $(1)/usr/bin
 endef

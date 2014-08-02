@@ -13,7 +13,7 @@ PKG_NAME:=sanxun
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-PPP_VERSION:=2.4.5
+PPP_VERSION:=2.4.6
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -46,8 +46,8 @@ define Build/Compile
 endef
 
 define Package/sanxun/install
-	$(INSTALL_DIR) $(1)/usr/lib/ppp/$(PPP_VERSION)/
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/sxplugin.so $(1)/usr/lib/ppp/$(PPP_VERSION)/sxplugin.so
+	$(INSTALL_DIR) $(1)/usr/lib/pppd/$(PPP_VERSION)/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/sxplugin.so $(1)/usr/lib/pppd/$(PPP_VERSION)/sxplugin.so
 endef
 
 $(eval $(call BuildPackage,sanxun))
