@@ -3,7 +3,7 @@ OpenWrt-Extra
 
 Some extra packages for OpenWrt
 
-Add "src-git extra git://github.com/nanpuyue/openwrt-extra.git" to feeds.conf.default.
+Add "src-git extra git://github.com/shangjiyu/openwrt-extra.git" to feeds.conf.default.
 
 ```bash
 ./scripts/feeds update -a
@@ -17,3 +17,11 @@ the list of packages:
 * shadowsocks-libev
 * webui-aria2
 * yaaw
+
+added
+* sanxun
+* drcom (do not work again)
+* nodejs (untested)
+* mentohust
+* ChinaDNS-C
+* redsocks
