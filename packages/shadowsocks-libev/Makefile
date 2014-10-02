@@ -66,9 +66,9 @@ Package/shadowsocks-libev-server/description=$(Package/shadowsocks-libev/descrip
 
 Package/shadowsocks-libev-server-polarssl/description=$(Package/shadowsocks-libev/description)
 
-define Package/shadowsocks-libev/conffiles
-/etc/shadowsocks.json
-endef
+#define Package/shadowsocks-libev/conffiles
+#/etc/shadowsocks.json
+#endef
 
 ifeq ($(BUILD_VARIANT),polarssl)
         CONFIGURE_ARGS += --with-crypto-library=polarssl

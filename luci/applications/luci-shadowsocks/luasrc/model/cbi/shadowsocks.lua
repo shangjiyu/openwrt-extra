@@ -29,6 +29,7 @@ password.password = true
 cipher = server:option(ListValue, "cipher", translate("Cipher Method"))
 cipher:value("table")
 cipher:value("rc4")
+cipher:value("rc4-md5")
 cipher:value("aes-128-cfb")
 cipher:value("aes-192-cfb")
 cipher:value("aes-256-cfb")
@@ -41,6 +42,14 @@ cipher:value("camellia-256-cfb")
 cipher:value("idea-cfb")
 cipher:value("rc2-cfb")
 cipher:value("seed-cfb")
+
+dnsforward = m:section(TypedSection, "shadowsocks", translate("DNS Forward"))
+dnsforward.anonymous = true
+dnsforward_enable = dnsforward:option(Flag, "dnsforward_enabled", translate("Enable"))
+dnsforward_type = dnsforward:option(ListValue, "dnsforward_type", translate("Type"))
+dnsforward_type:depends("dnsforward_enabled", 1)
+dnsforward_type:value("self")
+dnsforward_type:value("ChinaDNS-C")
 
 socks5 = m:section(TypedSection, "shadowsocks", translate("SOCKS5 Proxy"))
 socks5.anonymous = true
