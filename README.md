@@ -24,4 +24,5 @@ added
 * nodejs (untested)
 * mentohust
 * ChinaDNS-C
+* shadowVPN
 * redsocks
