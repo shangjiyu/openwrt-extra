@@ -65,7 +65,7 @@ start() {
 				-l /etc/chinadns_iplist.txt \
 				-c /etc/chinadns_chnroute.txt \
 				-p 1053 \
-				-s 114.114.114.114,127.0.0.1:5353 &	
+				-s 114.114.114.114,208.67.222.222:443,127.0.0.1:5353 &	
 			uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#1053
 		else
 			uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#5353
@@ -83,6 +83,7 @@ start() {
 			-k "$pass" \
 			-f "$ss_redir_PID_FILE"
 		
+#		remoteip="`ping -q -w1 $remote | grep PING | sed -e "s/).*//" | sed -e "s/.*(//"`"
 		remoteip="`resolveip -t5 $remote`"
 
 		iptables -t nat -N SHADOWSOCKS
