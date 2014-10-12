@@ -19,7 +19,7 @@ switch.rmempty = false
 
 upstream = s:option(Value, "dns", translate("Upstream DNS Server"))
 upstream.optional = false
-upstream.default = "114.114.114.114,8.8.8.8"
+upstream.default = "114.114.114.114,8.8.4.4"
 
 port = s:option(Value, "port", translate("Port"))
 port.datatype = "range(0,65535)"
