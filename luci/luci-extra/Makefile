@@ -29,6 +29,33 @@ define Package/luci/install/template
 	$(CP) -a $(PKG_BUILD_DIR)/$(2)/ipkg/* $(1)/CONTROL/ 2>/dev/null || true
 endef
 
+### Protocols ###
+define protocol
+  define Package/luci-proto-$(1)
+    SECTION:=luci
+    CATEGORY:=LuCI
+    TITLE:=LuCI - Lua Configuration Interface
+    URL:=https://github.com/ravageralpha/my_openwrt_mod/
+    MAINTAINER:=RA <ravageralpha@gmail.com>
+    SUBMENU:=2. LuCI Protocols
+    TITLE:=$(if $(2),$(2),LuCI $(1) protocol support)
+    DEPENDS:=$(3)
+  endef
+
+  define Package/luci-proto-$(1)/install
+	$(call Package/luci/install/template,$$(1),protocols/$(1))
+  endef
+
+  ifneq ($(CONFIG_PACKAGE_luci-proto-$(1)),)
+    LUCI_SELECTED_MODULES+=protocols/$(1)
+  endif
+
+  LUCI_BUILD_PACKAGES += luci-proto-$(1)
+endef
+
+$(eval $(call protocol,openconnect-ra,Support for OpenConnect VPN,+openconnect))
+$(eval $(call protocol,shadowvpn,Support for ShadowVPN,+ShadowVPN))
+
 ### Applications ###
 define application
   define Package/luci-app-$(1)
@@ -59,29 +86,43 @@ define Package/luci-app-aria2/conffiles
 endef
 
 $(eval $(call application,aria2,LuCI Support for Aria2,\
-	+PACKAGE_luci-app-aria2:aria2 \
-	+PACKAGE_luci-app-aria2:yaaw))
+    +PACKAGE_luci-app-aria2:aria2 \
+    +PACKAGE_luci-app-aria2:yaaw))
 
-$(eval $(call application,nwan,nwan configuration module,\
-	 +PACKAGE_luci-app-nwan:ip +kmod-macvlan +iptables +iptables-mod-conntrack +iptables-mod-conntrack-extra +iptables-mod-ipopt))
+$(eval $(call application,nwan,LuCI Support for NWAN,\
+    +PACKAGE_luci-app-nwan:ip +kmod-macvlan +iptables +iptables-mod-conntrack +iptables-mod-conntrack-extra +iptables-mod-ipopt))
 
-$(eval $(call application,qosv4,qosv4 configuration module,\
-	 +PACKAGE_luci-app-qosv4:tc +kmod-sched +iptables +iptables-mod-filter +iptables-mod-ipopt +iptables-mod-conntrack-extra +iptables-mod-imq +iptables-mod-hashlimit +iptables-mod-connlimit))
+$(eval $(call application,qosv4,LuCI Support for qosv4,\
+    +PACKAGE_luci-app-qosv4:tc +kmod-sched +iptables +iptables-mod-filter +iptables-mod-ipopt +iptables-mod-conntrack-extra +iptables-mod-imq +iptables-mod-hashlimit +iptables-mod-connlimit))
 	 
-$(eval $(call application,mentohust,mentohust configuration module,\
-	 +PACKAGE_luci-app-mentohust:mentohust))
+$(eval $(call application,mentohust,LuCI Support for mentohust,\
+    +PACKAGE_luci-app-mentohust:mentohust))
 
 $(eval $(call application,qos_gargoyle,qos_gargoyle configuration module,\
-	 +PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
+    +PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
 	 
-$(eval $(call application,shadowsocks,shadowsocks configuration module,\
-	 +PACKAGE_luci-app-shadowsocks:shadowsocks-libev-polarssl))
+$(eval $(call application,shadowsocks,LuCI Support for shadowsocks,\
+    +PACKAGE_luci-app-shadowsocks:shadowsocks-libev-polarssl \
+    +PACKAGE_luci-app-shadowsocks:kmod-ipt-nat \
+	+PACKAGE_luci-app-shadowsocks:kmod-ipt-nat-extra \
+	+PACKAGE_luci-app-shadowsocks:kmod-ipt-ipset \
+	+PACKAGE_luci-app-shadowsocks:ipset \
+	+PACKAGE_luci-app-shadowsocks:resolveip \
+	+PACKAGE_luci-app-shadowsocks:ChinaDNS-C))
 	 
-$(eval $(call application,redsocks2,redsocks2 configuration module,\
-	 +PACKAGE_luci-app-redsocks2:redsocks2))
+$(eval $(call application,redsocks2,LuCI Support for redsocks2,\
+	+PACKAGE_luci-app-redsocks2:redsocks2 \
+	+PACKAGE_luci-app-redsocks2:kmod-ipt-nat \
+	+PACKAGE_luci-app-redsocks2:kmod-ipt-nat-extra \
+	+PACKAGE_luci-app-redsocks2:kmod-ipt-ipset \
+	+PACKAGE_luci-app-redsocks2:ipset \
+	+PACKAGE_luci-app-shadowsocks:resolveip))
 	 
 $(eval $(call application,pdnsd,pdnsd configuration module,\
-	 +PACKAGE_luci-app-pdnsd:pdnsd))
+	+PACKAGE_luci-app-pdnsd:pdnsd))
+	
+$(eval $(call application,chinadns,LuCI Support for ChinaDNS-C,\
+	+PACKAGE_luci-app-chinadns:ChinaDNS-C))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))

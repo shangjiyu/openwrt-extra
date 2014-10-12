@@ -13,7 +13,7 @@ PKG_NAME:=sanxun
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-PPP_VERSION:=2.4.6
+PPP_VERSION:=2.4.7
 
 include $(INCLUDE_DIR)/package.mk
 
