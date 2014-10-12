@@ -37,7 +37,7 @@ define protocol
     TITLE:=LuCI - Lua Configuration Interface
     URL:=https://github.com/ravageralpha/my_openwrt_mod/
     MAINTAINER:=RA <ravageralpha@gmail.com>
-    SUBMENU:=2. LuCI Protocols
+    SUBMENU:=6. Protocols
     TITLE:=$(if $(2),$(2),LuCI $(1) protocol support)
     DEPENDS:=$(3)
   endef
