@@ -1,5 +1,4 @@
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=drcom
 PKG_VERSION:=zjut
 PKG_RELEASE:=1
@@ -13,12 +12,11 @@ arch="$(ARCH)"
 include $(INCLUDE_DIR)/package.mk
 
 define Package/drcom
-	SECTION:=net
-	CATEGORY:=Network
-#	DEPENDS:=+libpthread
-	TITLE:=An CERNET client daemon
-	URL:=https://github.com/shangjiyu/drcom/
-	SUBMENU:=CERNET
+    SECTION:=net
+    CATEGORY:=Network
+    TITLE:=An CERNET client daemon
+    URL:=https://github.com/shangjiyu/drcom/
+    SUBMENU:=CERNET
 endef
 
 define Package/drcom/description
@@ -28,7 +26,8 @@ endef
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
-	$(SED) 's/\/etc\/drcom.conf/\/tmp\/drcom.conf/g' $(PKG_BUILD_DIR)/Makefile
+	$(SED) 's/\/usr\/local\/bin/ \/usr\/bin/g' $(PKG_BUILD_DIR)/Makefile
+	$(SED) 's/\/etc\/drcom.conf/ \/tmp\/drcom.conf/g' $(PKG_BUILD_DIR)/Makefile
 endef
 
 define Package/drcom/conffiles
@@ -38,7 +37,6 @@ endef
 define Package/drcom/install
 	$(INSTALL_DIR) $(1)/usr/bin  
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/drcom/drcom $(1)/usr/bin
-	
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/drcom.conf $(1)/etc/
 endef
