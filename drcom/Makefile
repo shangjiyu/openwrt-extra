@@ -1,42 +1,53 @@
+# an CERNET drcom client for ZJUT
+# Copyright (C) 2014 shangjiyu@gmail.com
+#
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See LICENSE for more information.
+#
+
 include $(TOPDIR)/rules.mk
+
 PKG_NAME:=drcom
-PKG_VERSION:=zjut
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz?raw=true
-PKG_SOURCE_URL:=https://github.com/shangjiyu/drcom/blob/master/
-PKG_MD5SUM:=bfa9a38b32122056c6cbf7bf7b447bd6
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
+PPP_VERSION:=zjut
 
-PKG_INSTALL:=1
-arch="$(ARCH)"
 include $(INCLUDE_DIR)/package.mk
 
 define Package/drcom
-    SECTION:=net
-    CATEGORY:=Network
-    TITLE:=An CERNET client daemon
-    URL:=https://github.com/shangjiyu/drcom/
-    SUBMENU:=CERNET
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=an CERNET ZJUT drcom client
+  URL:=https://github.com/shangjiyu/drcom/
+  SUBMENU:=CERNET
 endef
 
 define Package/drcom/description
-An CERNET client daemon
-Most usually used in China collages
+ ZJUT drcom client.
 endef
 
 define Build/Prepare
-	$(call Build/Prepare/Default)
-	$(SED) 's/\/usr\/local\/bin/ \/usr\/bin/g' $(PKG_BUILD_DIR)/Makefile
-	$(SED) 's/\/etc\/drcom.conf/ \/tmp\/drcom.conf/g' $(PKG_BUILD_DIR)/Makefile
+	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
-define Package/drcom/conffiles
-/etc/drcom.conf
+TARGET_CFLAGS += \
+	-I$(PKG_BUILD_DIR) \
+	$(TARGET_CPPFLAGS)
+
+define Build/Compile
+	$(MAKE) -C $(PKG_BUILD_DIR) \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		CC="$(TARGET_CC)" \
+		CFLAGS="$(TARGET_CFLAGS)" \
+		all
 endef
 
 define Package/drcom/install
-	$(INSTALL_DIR) $(1)/usr/bin  
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/drcom/drcom $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/drcom $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/drcom.conf $(1)/etc/
 endef
