@@ -164,7 +164,7 @@ int __parseopt(struct drcom_conf *conf, char *buf, struct _opt_checklist *opts)
     fprintf(stdout, "[challenge]: parse option!\n");
 	int len, optname_len, optval_len, r;
 	unsigned int _mac[6];
-	long sum=0;
+	//long sum=0;
 	char optname[256], optval[256];
 	struct in_addr ip = {0};
 
@@ -272,13 +272,13 @@ int __parseopt(struct drcom_conf *conf, char *buf, struct _opt_checklist *opts)
 			r = sscanf(optval, "%02x:%02x:%02x:%02x:%02x:%02x",
 				 &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]);
 			if (r < 6) { opts->mac = 2; goto err; }
-			/*conf->mac[0] = _mac[0]; conf->mac[1] = _mac[1]; conf->mac[2] = _mac[2];
-			conf->mac[3] = _mac[3]; conf->mac[4] = _mac[4]; conf->mac[5] = _mac[5];*/
-			int i;
+			conf->mac[0] = _mac[0]; conf->mac[1] = _mac[1]; conf->mac[2] = _mac[2];
+			conf->mac[3] = _mac[3]; conf->mac[4] = _mac[4]; conf->mac[5] = _mac[5];
+			/*int i;
 			for(i=0;i<6;i++){
 			    sum += (_mac[6 - i - 1])*power(256, i);
 			  }
-			conf->mac = sum;
+			conf->mac = sum;*/
 			opts->mac = 1; goto ok;
 		}
 	}
@@ -449,15 +449,15 @@ int __fillopts(struct drcom_conf *conf, struct drcom_info *info, struct user_inf
 	}*/
 
 	if (opts->mac == 1)
-		//memcpy(info->mac, conf->mac, 6);
-	    info->mac = conf->mac;
+		memcpy(info->mac, conf->mac, 6);
+//	    info->mac = conf->mac;
 	/*else if (opts->mac0 == 1) {
 		memcpy(info->mac, conf->mac0, 6);
 		memcpy(conf->mac, conf->mac0, 6);
 	}*/
 	else if (opts->mac == 0 || opts->mac == 3)
-		//memset(info->mac, 0, 6);
-	    info->mac = 0;
+		memset(info->mac, 0, 6);
+//	    info->mac = 0;
 	else{
 	    fprintf(stderr, "filloption : mac\n");
 	    return -1;
@@ -607,19 +607,22 @@ int __fillopts(struct drcom_conf *conf, struct drcom_info *info, struct user_inf
 void inflate_user_info(struct user_info_pkt *user_info, struct drcom_conf *conf)
 {
     user_info->username = conf->username;
-    fprintf(stdout, "[inflate user_info]: username: %s!\n", (user_info->username));
+    fprintf(stdout, "[inflate user_info]: username: %s\n", (user_info->username));
     user_info->username_len = strlen(user_info->username);
     user_info->password = conf->password;
-    fprintf(stdout, "[inflate user_info]: password: %s!\n", (user_info->password));
+    fprintf(stdout, "[inflate user_info]: password: %s\n", (user_info->password));
     user_info->password_len = strlen(user_info->password);
     user_info->hostname = conf->hostname;
-    fprintf(stdout, "[inflate user_info]: hostname: %s!\n", (user_info->hostname));
+    fprintf(stdout, "[inflate user_info]: hostname: %s\n", (user_info->hostname));
     user_info->hostname_len = strlen(user_info->hostname);
     user_info->os_name = conf->hostname;
-    fprintf(stdout, "[inflate user_info]: os_name: %s!\n", (user_info->os_name));
+    fprintf(stdout, "[inflate user_info]: os_name: %s\n", (user_info->os_name));
     user_info->os_name_len = strlen(user_info->os_name);
-    user_info->mac_addr = conf->mac;
-    fprintf(stdout, "[inflate user_info]: mac in long: %ld!\n", (user_info->mac_addr));
+    memcpy(user_info->mac, conf->mac, 6);
+    int i;
+    for (i=0; i < 6; i++){
+        fprintf(stdout, "[inflate user_info]: mac[%d]: %x\n", i, (user_info->mac[i]));
+    }
 }
 
 void set_challenge_data(unsigned char *clg_data, int clg_data_len, int clg_try_count)
@@ -698,6 +701,7 @@ void set_login_data(struct user_info_pkt *user_info, unsigned char *login_data, 
     login_data[data_index++] = (unsigned char)(user_info->username_len + 20);
 
     /* md5 0x03 0x01 salt password */
+    fprintf(stdout, "[login_data]: start build first checksum data!\n");
     md5_str_len = 2 + salt_len + user_info->password_len;
     memset(md5_str_tmp, 0x00, md5_str_len);
     md5_str_tmp[0] = 0x03;
@@ -719,7 +723,7 @@ void set_login_data(struct user_info_pkt *user_info, unsigned char *login_data, 
     login_data[data_index++] = 0x01;
 
     /* (data[4:10].encode('hex'),16)^mac */
-    long sum = 0;
+    /*long sum = 0;
     for (i = 0; i < 6; i++) {
         sum = (int)md5_str[i] + sum * 256;
     }
@@ -727,10 +731,15 @@ void set_login_data(struct user_info_pkt *user_info, unsigned char *login_data, 
     for (i = 6; i > 0; i--) {
         login_data[data_index + i - 1] = (unsigned char)(sum % 256);
         sum /= 256;
-    }
+    }*/
+    fprintf(stdout, "[login_data]: start build mac_xor data!\n");
+    memcpy(login_data+data_index, user_info->mac, 6);
+    for (i = 0; i < 6; ++i)
+        login_data[data_index+i] ^= md5_str[i];
     data_index += 6;
 
     /* md5 0x01 pwd salt 0x00 0x00 0x00 0x00 */
+    fprintf(stdout, "[login_data]: start build second checksum data!\n");
     md5_str_len = 1 + user_info->password_len + salt_len + 4;
     memset(md5_str_tmp, 0x00, md5_str_len);
     md5_str_tmp[0] = 0x01;
@@ -747,6 +756,7 @@ void set_login_data(struct user_info_pkt *user_info, unsigned char *login_data, 
     data_index += 16;
 
     /* md5 login_data[0-data_index] 0x14 0x00 0x07 0x0b 8 bytes */
+    fprintf(stdout, "[login_data]: start build third checksum data!\n");
     md5_str_len = data_index + 4;
     memset(md5_str_tmp, 0x00, md5_str_len);
     memcpy(md5_str_tmp, login_data, data_index);
@@ -758,22 +768,24 @@ void set_login_data(struct user_info_pkt *user_info, unsigned char *login_data, 
     memcpy(login_data + data_index, md5_str, 8);
     data_index += 8;
 
-    /* 0x01 0x00*4 */
+    /* ip dog 0x01 and 0x00*4 */
     login_data[data_index++] = 0x01;
     data_index += 4;
 
     /* hostname */
-    i = user_info->hostname_len > 71 ? 71 : user_info->hostname_len;
+    fprintf(stdout, "[login_data]: start build hostname data!\n");
+    i = user_info->hostname_len > 32 ? 32 : user_info->hostname_len;
     memcpy(login_data + data_index, user_info->hostname, i);
-    data_index += 71;
+    data_index += 32;
 
     /* 0x01 ip dog*/
-    login_data[data_index++] = 0x01;
+    //login_data[data_index++] = 0x01;
 
     /* osname */
-    i = user_info->os_name_len > 128 ? 128 : user_info->os_name_len;
+    fprintf(stdout, "[login_data]: start build os_name data!\n");
+    i = user_info->os_name_len > 168 ? 168 : user_info->os_name_len;
     memcpy(login_data + data_index, user_info->os_name, i);
-    data_index += 204;
+    data_index += 168;
 
     /* 0x09 0x00 0x02 0c /len(pass) */
     login_data[data_index++] = 0x09;
@@ -782,17 +794,19 @@ void set_login_data(struct user_info_pkt *user_info, unsigned char *login_data, 
     login_data[data_index++] = 0x0c;/*(unsigned char)(user_info->password_len)*/
 
     memcpy(login_data + data_index, md5_str+10, 4);
-
+	data_index += 4;
 
     /* 0x00 0x00 mac */
     login_data[data_index++] = 0x00;
     login_data[data_index++] = 0x00;
-    long mac = user_info->mac_addr;
-    for (i = 0; i < 6; i++) {
-        login_data[data_index + i - 1] = (unsigned char)(mac % 256);
-        mac /= 256;
-    }
-    data_index += 6;
+    /*login MAC*/
+    fprintf(stdout, "[login_data]: start build mac data @ %d!\n", data_index);
+    memcpy(login_data + data_index, user_info->mac, 6);
+    data_index += 8;
+    fprintf(stdout, "[login_data]: start build fix end  @ %d!\n", data_index);
+    login_data[data_index++] = 0xf9;
+    login_data[data_index++] = 0xf7;
+    fprintf(stdout, "[login_data]: login_data build end @ %d!\n", data_index);
 }
 
 void login(int sock, struct sockaddr_in serv_addr, unsigned char *login_data, int login_data_len, \

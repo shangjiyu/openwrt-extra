@@ -28,6 +28,9 @@ int main(int argc, char **argv)
 	struct sockaddr_in serv_addr;
 	unsigned char send_data[SEND_DATA_SIZE];
 	char recv_data[RECV_DATA_SIZE];
+	//char recv_data_challenge[RECV_DATA_SIZE];
+	//char recv_data_login[RECV_DATA_SIZE];
+	//char recv_data_keepalive[RECV_DATA_SIZE];
 	struct drcom_conf *conf;
 	struct drcom_info *info;
 	struct drcom_host *host;
@@ -59,6 +62,8 @@ int main(int argc, char **argv)
 	serv_addr.sin_port = htons(SERVER_PORT);
 
 	// challenge data length 20
+	//fprintf(stdout, "[login memset]: rev_data len: %d.\n", sizeof(recv_data)/sizeof(recv_data[0]));
+	//memset(recv_data, 0x00, RECV_DATA_SIZE);
 	challenge(sock, serv_addr, send_data, 20, recv_data, RECV_DATA_SIZE);
 
 	//keep information for alive_data
@@ -67,7 +72,9 @@ int main(int argc, char **argv)
 
 	// login data length 338, salt length 4
 	set_login_data(user_info, send_data, 330, (unsigned char *)(recv_data + 4), 4, (unsigned char *)keep_alive_msg);
+	fprintf(stdout, "[login memset]: recv_data_challenge len: %ld.\n", sizeof(recv_data));
 	memset(recv_data, 0x00, RECV_DATA_SIZE);
+	fprintf(stdout, "[login memset]: recv_data_login len: %ld.\n", sizeof(recv_data));
 	login(sock, serv_addr, send_data, 330, recv_data, RECV_DATA_SIZE, keep_alive_authInfo, 16);
 
 	// keep alive alive data length 42 or 40

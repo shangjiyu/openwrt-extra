@@ -43,7 +43,7 @@ struct drcom_conf
   char username[36];
   char password[16];
   char device[IFNAMSIZ];
-  long mac;
+  u_int8_t mac[6];
   u_int8_t mac0[6];
   u_int32_t nic[4];
   u_int32_t dnsp;
@@ -83,7 +83,7 @@ struct drcom_info
   char username[36];
   char password[16];
   char device[IFNAMSIZ];
-  long mac;
+  u_int8_t mac[6];
   u_int32_t nic[4];
   u_int32_t hostip;
   u_int32_t servip;
@@ -98,6 +98,7 @@ struct user_info_pkt {
     char *os_name;
     //long ip_addr;
     long mac_addr;
+    u_int8_t mac[6];
     int username_len;
     int password_len;
     int hostname_len;
