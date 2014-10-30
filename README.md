@@ -20,7 +20,7 @@ the list of packages:
 
 added
 * sanxun
-* drcom (do not work again)
+* drcom (zjut only)
 * nodejs (untested)
 * mentohust
 * ChinaDNS-C

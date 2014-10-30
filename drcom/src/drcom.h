@@ -5,8 +5,6 @@
 #ifndef DRCOMD_H_
 #define DRCOMD_H_
 
-#include <stdint.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +12,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <linux/if.h>
 
 #include <time.h>
 #include "md5.h"
@@ -42,7 +39,7 @@ struct drcom_conf
 {
   char username[36];
   char password[16];
-  char device[IFNAMSIZ];
+  //char device[IFNAMSIZ];
   u_int8_t mac[6];
   u_int8_t mac0[6];
   u_int32_t nic[4];
@@ -82,7 +79,7 @@ struct drcom_info
 {
   char username[36];
   char password[16];
-  char device[IFNAMSIZ];
+  //char device[IFNAMSIZ];
   u_int8_t mac[6];
   u_int32_t nic[4];
   u_int32_t hostip;

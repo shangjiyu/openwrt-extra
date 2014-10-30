@@ -3,7 +3,7 @@ DESTDIR = /usr/local/bin/
 
 export TOPSRCDIR DESTDIR
 
-CC = gcc
+#CC = gcc
 WARN = -Wall
 OPTIMIZE = -g
 CFLAGS = $(WARN) $(OPTIMIZE) 

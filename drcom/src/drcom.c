@@ -441,9 +441,9 @@ int __fillopts(struct drcom_conf *conf, struct drcom_info *info, struct user_inf
 	else
 		return -1;
 
-	if (opts->dev == 1)
+	/*if (opts->dev == 1)
 		memcpy(info->device, conf->device, IFNAMSIZ);
-	/*else {
+	else {
 		fprintf(stderr, "device not specified\n");
 		return -1;
 	}*/
