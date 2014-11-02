@@ -6,7 +6,7 @@ export TOPSRCDIR DESTDIR
 #CC = gcc
 WARN = -Wall
 OPTIMIZE = -g
-CFLAGS = $(WARN) $(OPTIMIZE) 
+#CFLAGS = $(WARN) $(OPTIMIZE) 
 
 BINS = drcom
 OBJS = drcom.o main.o
@@ -17,7 +17,7 @@ INCS = drcom.h md5.h
 
 all: $(SRCS)
 #	@for x in $(SUBDIRS); do (cd $$x && make all) || exit 1; done
-	$(CC) $(SRCS) -o $(BINS)
+	$(CC) $(CFLAGS) $(SRCS) -o $(BINS)
 
 clean:
 #	@for x in $(SUBDIRS); do (cd $$x && make clean) || exit 1; done

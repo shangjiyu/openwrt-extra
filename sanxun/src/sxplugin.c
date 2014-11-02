@@ -5,6 +5,8 @@
 #include <pppd/pppd.h>
 #include <pppd/md5.h>
 
+#define random(x) (rand()%x)
+
 typedef unsigned char byte;
 
 char pppd_version[] = VERSION;
@@ -88,10 +90,13 @@ static void getPIN(byte *userName, byte *PIN) {
 
     memcpy(PIN+2, PIN27, 6);
 
-    PIN[8] = MD501[0];
-    PIN[9] = MD501[1];
+    srand((int) timenow);
+    //PIN[8] = MD501[0];
+    //PIN[9] = MD501[1];
+    PIN[8] = (byte)(randm(16) & 0xff);
+    PIN[9] = (byte)(randm(16) & 0xff);
 
-    strcpy(PIN+10, userName); 
+    strcpy(PIN+10, userName);
 }
 
 static int pap_modifyusername(char *user, char* passwd)
