@@ -1,0 +1,11 @@
+msgid "Enable"
+msgstr "Enable"
+
+msgid "vsftpd"
+msgstr "vsftpd"
+
+msgid "vsftpd is not running"
+msgstr "vsftpd is not running"
+
+msgid "vsftpd is running"
+msgstr "vsftpd is running"

@@ -1,119 +1,114 @@
-msgid "Aria2 Settings"
-msgstr "Aria2配置"
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: RA <ravageralpha@gmail.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
 
-msgid "Aria2 is a multi-protocol &amp; multi-source download utility, here you can configure the settings."
-msgstr "Aria2是一个支持多协议多线程的下载器,你可以在这里对其进行配置."
+msgid "Authentication"
+msgstr "认证"
 
-msgid "Open Web Interface"
-msgstr "打开Web界面"
+msgid "Auto Download Subtitle"
+msgstr "自动下载字幕"
 
-msgid "Global settings"
-msgstr "全局设置"
+msgid "BT/PT Max Peers"
+msgstr "BT/PT任务最大连接数"
 
-msgid "Enabled"
-msgstr "启用"
+msgid "Basic Settings"
+msgstr "基本设置"
 
-msgid "Config file directory"
-msgstr "配置文件目录"
+msgid "Comment Using #"
+msgstr "注释用#"
 
-msgid "Run daemon as user"
-msgstr "以此用户权限运行"
+msgid "Default 5"
+msgstr "默认值: 5"
 
-msgid "Files and Locations"
-msgstr "文件和目录"
+msgid "Default 5 , Max 16"
+msgstr "默认 5线程, 最大16线程"
 
-msgid "Default download directory"
-msgstr "默认下载目录"
+msgid "Default 51413"
+msgstr "默认端口: 51413 (PT的尽量避免用传统端口，推荐默认)"
 
-msgid "Disk cache"
-msgstr "磁盘缓存"
+msgid "Default Bytes"
+msgstr "默认单位为字节, 可加后缀 K 或 M (例如 250K 或 1M )"
 
-msgid "Preallocation"
-msgstr "磁盘预分配"
+msgid "Device"
+msgstr "下载用的设备"
 
-msgid "\"falloc\" is not available in all cases"
-msgstr "\"falloc\"并不是在所有情况下都可用"
+msgid "Download Folder"
+msgstr "下载文件夹"
 
-msgid "Task Settings"
-msgstr "任务设置"
+msgid "Download Limit"
+msgstr "下载速度限制"
 
-msgid "Overall speed limit enabled"
-msgstr "启用全局限速"
+msgid "Edit Configuration"
+msgstr "修改配置文件"
 
-msgid "Overall download limit"
-msgstr "全局下载限速"
+msgid "Enable"
+msgstr "启动"
 
-msgid "Overall upload limit"
-msgstr "全局上传限速"
+msgid "Enable Disk Cache"
+msgstr "开启磁盘缓存"
 
-msgid "Per task speed limit enabled"
-msgstr "启用单任务限速"
+msgid "File Allocation Method"
+msgstr "文件分配方式"
 
-msgid "Per task download limit"
-msgstr "单任务下载限速"
+msgid "FileType"
+msgstr "文件类型"
 
-msgid "Per task upload limit"
-msgstr "单任务上传限速"
+msgid "Max Concurrent Queue"
+msgstr "最大并发任务数"
 
-msgid "Max concurrent downloads"
-msgstr "最大同时下载任务数"
+msgid "Max Thread"
+msgstr "下载线程"
 
-msgid "Max connection per server"
-msgstr "单服务器最大连接数"
+msgid "Minute"
+msgstr "分钟"
 
-msgid "in bytes, You can append K or M"
-msgstr "B, 你可以在数字后跟上\"M\"或\"K\""
+msgid "Network"
+msgstr "网络设置"
 
-msgid "in bytes/sec, You can append K or M"
-msgstr "B/s, 你可以在数字后跟上\"M\"或\"K\""
+msgid "Recommand 25"
+msgstr "推荐 25, 太大会影响浏览网页速度"
 
-msgid "Min split size"
-msgstr "最小文件分片大小"
+msgid "Seed Time"
+msgstr "做种时间"
 
-msgid "Max number of split"
-msgstr "单文件最大线程数"
+msgid "Separate with Comma"
+msgstr "逗号分隔"
 
-msgid "Autosave session interval"
-msgstr "定时保存会话间隔"
+msgid "Settings"
+msgstr "基本设置"
 
-msgid "Sec"
-msgstr "秒"
+msgid "TCP Port"
+msgstr "TCP 端口"
 
-msgid "BitTorrent Settings"
-msgstr "BT设置"
+msgid "UDP Port"
+msgstr "UDP 端口"
 
-msgid "<abbr title=\"Distributed Hash Table\">DHT</abbr> enabled"
-msgstr "启用<abbr title=\"分布式哈希表\">DHT</abbr>"
+msgid "Upload Limit"
+msgstr "上传速度限制"
 
-msgid "<abbr title=\"Local Peer Discovery\">LPD</abbr> enabled"
-msgstr "启用<abbr title=\"本地节点发现\">LPD</abbr>"
+msgid "Where Your Files Save"
+msgstr "保存下载文件的文件夹"
 
-msgid "Follow torrent"
-msgstr "自动添加下载的种子"
+msgid "You can customize aria2 configuration here"
+msgstr "可以在这里修改aria2的设置，详细请搜索aria2相关帮助文档"
 
-msgid "BitTorrent listen port"
-msgstr "BT监听端口"
+msgid "RPC secret authorization token"
+msgstr "RPC 令牌"
 
-msgid "Max number of peers per torrent"
-msgstr "单个种子最大连接数"
+msgid "aria2"
+msgstr "aria2"
 
-msgid "Additional Bt tracker enabled"
-msgstr "添加额外的Tracker"
+msgid "aria2 is not running,make sure you have mounted USB Storage device"
+msgstr "aria2未运行，请确保已挂载USB存储设备"
 
-msgid "List of additional Bt tracker"
-msgstr "附加Tracker列表"
-
-msgid "RPC settings"
-msgstr "RPC设置"
-
-msgid "RPC port"
-msgstr "RPC端口"
-
-msgid "RPC authentication required"
-msgstr "启用RPC认证"
-
-msgid "RPC username"
-msgstr "RPC用户名"
-
-msgid "RPC password"
-msgstr "RPC密码"
+msgid "aria2 is running"
+msgstr "aria2运行中"
