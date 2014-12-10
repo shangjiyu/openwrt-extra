@@ -1,0 +1,11 @@
+server=|SERVER|
+port=|PORT|
+password=|PASSWORD|
+mode=client
+concurrency=1
+mtu=1440
+intf=|INTERFACE|
+up=/etc/shadowvpn/client_up.sh
+down=/etc/shadowvpn/client_down.sh
+pidfile=/var/run/shadowvpn.pid
+logfile=/var/log/shadowvpn.log
