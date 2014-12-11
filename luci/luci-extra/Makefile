@@ -7,7 +7,7 @@ PKG_RELEASE:=1
 
 PKG_BUILD_PARALLEL:=0
 
-PKG_VERSION:=2014-09-04
+PKG_VERSION:=2014-12-12
 
 PKG_BUILD_DEPENDS:=$(if $(STAGING_DIR_ROOT),lua/host)
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -107,8 +107,7 @@ $(eval $(call application,shadowsocks,LuCI Support for shadowsocks,\
 	+PACKAGE_luci-app-shadowsocks:kmod-ipt-nat-extra \
 	+PACKAGE_luci-app-shadowsocks:kmod-ipt-ipset \
 	+PACKAGE_luci-app-shadowsocks:ipset \
-	+PACKAGE_luci-app-shadowsocks:resolveip \
-	+PACKAGE_luci-app-shadowsocks:ChinaDNS-C))
+	+PACKAGE_luci-app-shadowsocks:resolveip))
 	 
 $(eval $(call application,redsocks2,LuCI Support for redsocks2,\
 	+PACKAGE_luci-app-redsocks2:redsocks2 \
