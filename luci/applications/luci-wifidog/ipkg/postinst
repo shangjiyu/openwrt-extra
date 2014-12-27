@@ -1,0 +1,7 @@
+#!/bin/sh
+[ -n "${IPKG_INSTROOT}" ] || {
+	( . /etc/uci-defaults/luci-wifidog ) && rm -f /etc/uci-defaults/luci-wifidog
+	chmod 755 /etc/init.d/wifidog >/dev/null 2>&1
+	/etc/init.d/wifidog enable >/dev/null 2>&1
+	exit 0
+}

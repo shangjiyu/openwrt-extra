@@ -123,6 +123,9 @@ $(eval $(call application,pdnsd,pdnsd configuration module,\
 $(eval $(call application,chinadns,LuCI Support for ChinaDNS-C,\
 	+PACKAGE_luci-app-chinadns:ChinaDNS-C))
 
+$(eval $(call application,wifidog,LuCI Support for the wifidog,\
+        +PACKAGE_luci-app-wifidog:wifidog))
+
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
 
