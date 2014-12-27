@@ -126,6 +126,9 @@ $(eval $(call application,chinadns,LuCI Support for ChinaDNS-C,\
 $(eval $(call application,wifidog,LuCI Support for the wifidog,\
         +PACKAGE_luci-app-wifidog:wifidog))
 
+$(eval $(call application,vsftpd,LuCI Support for vsftpd,\
+	+PACKAGE_luci-app-vsftpd:vsftpd))
+
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
 
