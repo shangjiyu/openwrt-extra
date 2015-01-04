@@ -1,3 +1,0 @@
-#!/bin/sh
-uci delete ucitrack.@luci-qos_gargoyle[-1] >/dev/null 2>&1
-uci commit ucitrack

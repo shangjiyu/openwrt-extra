@@ -98,9 +98,6 @@ $(eval $(call application,qosv4,LuCI Support for qosv4,\
 $(eval $(call application,mentohust,LuCI Support for mentohust,\
     +PACKAGE_luci-app-mentohust:mentohust))
 
-$(eval $(call application,qos_gargoyle,qos_gargoyle configuration module,\
-    +PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
-	 
 $(eval $(call application,shadowsocks,LuCI Support for shadowsocks,\
     +PACKAGE_luci-app-shadowsocks:shadowsocks-libev-polarssl \
     +PACKAGE_luci-app-shadowsocks:kmod-ipt-nat \
@@ -128,6 +125,15 @@ $(eval $(call application,wifidog,LuCI Support for the wifidog,\
 
 $(eval $(call application,vsftpd,LuCI Support for vsftpd,\
 	+PACKAGE_luci-app-vsftpd:vsftpd))
+	
+$(eval $(call application,macvlan,LuCI Support for macvlan,\
+	+PACKAGE_luci-app-macvlan:kmod-macvlan luci-app-mwan3))
+	
+$(eval $(call application,qos_gargoyle,LuCI Support for qos_gargoyle,\
+	+PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
+	
+$(eval $(call application,cpulimit,LuCI Support for CPULIMIT,\
+	+PACKAGE_luci-app-cpulimit:cpulimit-ng))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))

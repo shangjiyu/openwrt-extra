@@ -21,20 +21,19 @@ function index()
 
 	local page
 
-	page = entry({"admin", "network", "qos_gargoyle"}, 
+	page = entry({"admin", "network", "qos_gargoyle"},
 		alias("admin", "network", "qos_gargoyle", "global"),
 		_("Qos_Gargoyle"), 60)
-	
+
 	page = entry({"admin", "network", "qos_gargoyle", "global"},
 		arcombine(cbi("qos_gargoyle/global")),
-		_("global"), 10)
+		_("global"), 20)
 
 	page = entry({"admin", "network", "qos_gargoyle", "upload"},
 		arcombine(cbi("qos_gargoyle/upload")),
-		_("UpLoad Set"), 20)
+		_("UpLoad Set"),30)
 
 	page = entry({"admin", "network", "qos_gargoyle", "download"},
 		arcombine(cbi("qos_gargoyle/download")),
-		_("DownLoad Set"), 30)
-
+		_("DownLoad Set"), 40)
 end

@@ -13,9 +13,6 @@ s.template = "cbi/tblsection"
 
 
 name = s:option(Value, "name", translate("name"))
-name.empty = "false"
-name.default = "my_class"
-name.placeholder = "can not be empty"
 
 pb = s:option(Value, "percent_bandwidth", translate("percent_bandwidth"), translate("percent of total bandwidth to use"))
 
@@ -32,14 +29,12 @@ minRTT.default = "No"
 
 s = m:section(TypedSection, "download_rule", translate("download_rule"))
 s.addremove = true
+--s.sortable = true
 --s.anonymous = true
 s.template = "cbi/tblsection"
 
 class = s:option(Value, "class", translate("class"), translate("<abbr title=\"name of bandwidth class to use if rule matches, this is required in each rule section\">Help</abbr>"))
-c = m.uci:get("qos_gargoyle", "download", "default_class")
-if c then
-	class.default = c
-end
+class.default = "dclass_2"
 for l in io.lines("/etc/config/qos_gargoyle") do
 	local s = l
 	l = string.gsub(l, "config ['\"]*download_class['\"]* ", "")
@@ -48,12 +43,9 @@ for l in io.lines("/etc/config/qos_gargoyle") do
 		l = string.gsub(l, "^\"", "")
 		l = string.gsub(l, "'$", "")
 		l = string.gsub(l, "\"$", "")
-		if m.uci:get("qos_gargoyle", l, "name") then
-			class:value(l, translate(m.uci:get("qos_gargoyle", l, "name")))
-		end
+		class:value(l, translate(m.uci:get("qos_gargoyle", l, "name")))
 	end
 end
-class.placeholder = "don't be empty"
 
 to = s:option(Value, "test_order", translate("test_order"), translate("<abbr title=\"an integer that specifies the order in which the rule should be checked for a match (lower numbers are checked first)\">Help</abbr>"))
 to.rmempty = "true"
@@ -83,10 +75,10 @@ wa.cbi_add_knownips(dip)
 dip.datatype = "and(ipaddr)"
 
 dport = s:option(Value, "dstport", translate("destination port"), translate("<abbr title=\"check that packet has this destination port\">Help</abbr>"))
-
+dport.datatype = "and(uinteger,max(65536),min(1))"
 
 sport = s:option(Value, "srcport", translate("source port"), translate("<abbr title=\"check that packet has this source port\">Help</abbr>"))
-
+sport.datatype = "and(uinteger,max(65536),min(1))"
 
 min_pkt_size = s:option(Value, "min_pkt_size", translate("min_pkt_size"), translate("<abbr title=\"check that packet is at least this size (in bytes)\">Help</abbr>"))
 min_pkt_size.datatype = "and(uinteger,min(1))"
@@ -98,7 +90,6 @@ connbytes_kb = s:option(Value, "connbytes_kb", translate("connbytes_kbyte"), tra
 connbytes_kb.datatype = "and(uinteger,min(0))"
 
 layer7 = s:option(Value, "layer7", translate("layer7"), translate("<abbr title=\"check whether packet matches layer7 specification\">Help</abbr>"))
-layer7:value("all")
 local pats = io.popen("find /etc/l7-protocols/ -type f -name '*.pat'")
 if pats then
 	local l
