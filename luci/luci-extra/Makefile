@@ -133,7 +133,7 @@ $(eval $(call application,qos_gargoyle,LuCI Support for qos_gargoyle,\
 	+PACKAGE_luci-app-qos_gargoyle:qos-gargoyle))
 	
 $(eval $(call application,cpulimit,LuCI Support for CPULIMIT,\
-	+PACKAGE_luci-app-cpulimit:cpulimit-ng))
+	+PACKAGE_luci-app-cpulimit:cpulimit))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))

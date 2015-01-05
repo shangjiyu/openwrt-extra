@@ -19,8 +19,8 @@
 include $(TOPDIR)/rules.mk
 
 # Name and release number of this package
-PKG_NAME:=cpulimit-ng
-PKG_VERSION:=1.2
+PKG_NAME:=cpulimit
+PKG_VERSION:=2.0
 PKG_RELEASE:=1
 
 # This specifies the directory where we're going to build the program.
@@ -32,7 +32,7 @@ include $(INCLUDE_DIR)/package.mk
 
 # Specify package information for this program.
 # The variables defined here should be self explanatory.
-define Package/cpulimit-ng
+define Package/cpulimit
 	SECTION:=utils
 	CATEGORY:=Utilities
 	TITLE:=CPU Usage Limiter for Linux
@@ -63,14 +63,14 @@ endef
 # directory if it does not already exist.  Likewise $(INSTALL_BIN) contains the
 # command to copy the binary file from its current location (in our case the build
 # directory) to the install directory.
-define Package/cpulimit-ng/install
+define Package/cpulimit/install
 	$(INSTALL_DIR) $(1)/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/cpulimit-ng $(1)/bin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/cpulimit $(1)/bin/
 endef
 
 # This line executes the necessary commands to compile our program.
 # The above define directives specify all the information needed, but this
 # line calls BuildPackage which in turn actually uses this information to
 # build a package.
-$(eval $(call BuildPackage,cpulimit-ng))
+$(eval $(call BuildPackage,cpulimit))
 	
