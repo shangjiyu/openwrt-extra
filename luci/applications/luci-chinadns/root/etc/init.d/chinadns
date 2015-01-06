@@ -7,10 +7,11 @@ PIDFILE='/tmp/run/chinadns.pid'
 start()
 {
 	config_load "chinadns"
-	local enabled dns port
+	local enabled dns port delay
 	config_get enabled config enabled
 	config_get dns config dns
 	config_get port config port
+	config_get delay config delay
 
 	[ $enabled = '0' ] && exit 0
 
@@ -23,7 +24,7 @@ start()
 		-l /etc/chinadns_iplist.txt \
 		-c /etc/chinadns_chnroute.txt \
 		-d \
-		-y \
+		-y $delay \
 		-b 0.0.0.0 \
 		-p $port \
 		-s "$dns" &

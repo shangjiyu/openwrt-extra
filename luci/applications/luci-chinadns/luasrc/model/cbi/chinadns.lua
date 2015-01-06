@@ -25,6 +25,11 @@ port = s:option(Value, "port", translate("Port"))
 port.datatype = "range(0,65535)"
 port.optional = false
 
+delay = s:option(Value, "delay", translate("Delay"))
+delay.datatype = "range(0,2)"
+delay.optional = false
+delay.default = 0.3
+
 iplist = s:option(Value, "iplist", translate("IP blacklist"), "")
 iplist.template = "cbi/tvalue"
 iplist.size = 30
