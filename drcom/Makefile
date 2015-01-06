@@ -48,6 +48,7 @@ endef
 define Package/drcom/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/drcom $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/drmonitor.sh $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/drcom.conf $(1)/etc/
 endef
