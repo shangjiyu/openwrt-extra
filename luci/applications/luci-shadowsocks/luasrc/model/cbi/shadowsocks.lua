@@ -42,6 +42,8 @@ cipher:value("camellia-256-cfb")
 cipher:value("idea-cfb")
 cipher:value("rc2-cfb")
 cipher:value("seed-cfb")
+cipher:value("salsa20")
+cipher:value("chacha20")
 
 --[[
 dnsforward = m:section(TypedSection, "shadowsocks", translate("DNS Forward"))
