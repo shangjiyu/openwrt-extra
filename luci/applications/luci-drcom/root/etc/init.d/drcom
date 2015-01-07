@@ -5,7 +5,7 @@ STOP=95
 NAME=drcom
 DESC="ZJUT Dr.com Client"
 
-DAEMON=/usr/sbin/drcom
+DAEMON=/usr/bin/drcom
 drcom_PID_FILE=/var/run/$NAME.pid
 
 start() {
@@ -15,12 +15,12 @@ start() {
 
 	[ $enabled -eq 0 ] &&{
 	stop
-	return 0
+	return 1
 	}
 
 	echo -n "Starting $DESC: $NAME"
 	$DAEMON > /dev/null 2>/tmp/drcom-monitor.log &
-	echo " drcom."
+	echo " ."
 }
 drcom_stop() {
 	killall -9 drcom &> /dev/null
@@ -28,4 +28,11 @@ drcom_stop() {
 
 stop() {
 	drcom_stop
+}
+
+restart() {
+		echo "Restarting $DESC: $NAME... "
+		stop
+		sleep 2
+		start
 }
