@@ -1,0 +1,9 @@
+msgid "Dr.COM客户端"
+msgstr "浙工大Dr.COM客户端"
+
+msgid "Dr.COM is not running"
+msgstr "Dr.COM 未启动"
+
+msgid "Dr.COM is running"
+msgstr "Dr.COM 已启动"
+

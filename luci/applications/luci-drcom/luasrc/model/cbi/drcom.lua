@@ -4,11 +4,11 @@ ZJUT Drcom Cliet Luci configration page. Made By Shangjiyu
 
 local fs = require "nixio.fs"
 
-local drcom =(luci.sys.call("ps | grep "drcom" | grep -v "grep" | awk '{print $5}' > /dev/null") == 0)
+local drcom=(luci.sys.call("pidof drcom > /dev/null") == 0)
 if drcom then	
-	m = Map("drcom", translate("Dr.com"), translate("Dr.com is running"))
+	m = Map("drcom", translate("Dr.COM"), translate("Dr.COM is running"))
 else
-	m = Map("drcom", translate("Dr.com"), translate("Dr.com is not running"))
+	m = Map("drcom", translate("Dr.COM"), translate("Dr.COM is not running"))
 end
 
 s = m:section(TypedSection, "drcom", "")
@@ -34,7 +34,7 @@ function editconf.write(self, section, value)
 		end
 		fs.remove("/tmp/drcom.conf")
 	end
-
+end
 
 return m
 
