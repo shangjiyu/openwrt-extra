@@ -134,6 +134,9 @@ $(eval $(call application,qos_gargoyle,LuCI Support for qos_gargoyle,\
 	
 $(eval $(call application,cpulimit,LuCI Support for CPULIMIT,\
 	+PACKAGE_luci-app-cpulimit:cpulimit))
+	
+$(eval $(call application,drcom,LuCI Support for Dr.com,\
+	+PACKAGE_luci-app-drcom:drcom))
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))

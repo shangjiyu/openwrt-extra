@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@drcom[-1]
+	add ucitrack drcom
+	set ucitrack.@drcom[-1].init=drcom
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

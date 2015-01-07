@@ -1,0 +1,31 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+STOP=95
+NAME=drcom
+DESC="ZJUT Dr.com Client"
+
+DAEMON=/usr/sbin/drcom
+drcom_PID_FILE=/var/run/$NAME.pid
+
+start() {
+	config_load "drcom"
+	local enabled 
+	config_get enabled config enabled
+
+	[ $enabled -eq 0 ] &&{
+	stop
+	return 0
+	}
+
+	echo -n "Starting $DESC: $NAME"
+	$DAEMON > /dev/null 2>/tmp/drcom-monitor.log &
+	echo " drcom."
+}
+drcom_stop() {
+	killall -9 drcom &> /dev/null
+}
+
+stop() {
+	drcom_stop
+}
