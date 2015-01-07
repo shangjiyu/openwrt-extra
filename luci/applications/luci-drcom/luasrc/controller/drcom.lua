@@ -11,7 +11,7 @@ function index()
 	end
 
 	local page
-	page = entry({"admin", "services", "drcom"}, cbi("drcom"), _("drcom"), 45)
+	page = entry({"admin", "services", "drcom"}, cbi("drcom"), _("Dr.COM"), 45)
 	page.i18n = "Dr.COM"
 	page.dependent = true
 end

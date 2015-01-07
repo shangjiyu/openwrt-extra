@@ -2,11 +2,11 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "Dr.COM"
-msgstr "浙工大Dr.COM客户端"
+msgstr "Dr.COM Client for ZJUT"
 
 msgid "Dr.COM is not running"
-msgstr "Dr.COM 未启动"
+msgstr "Dr.COM is not running"
 
 msgid "Dr.COM is running"
-msgstr "Dr.COM 已启动"
+msgstr "Dr.COM is running"
 
