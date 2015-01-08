@@ -9,30 +9,39 @@ DAEMON=/usr/bin/drcom
 drcom_PID_FILE=/var/run/$NAME.pid
 
 start() {
-	config_load "drcom"
-	local enabled 
-	config_get enabled config enabled
+        config_load "drcom"
+        local enabled
+        config_get enabled config enabled
 
-	[ $enabled -eq 0 ] &&{
-	stop
-	return 1
-	}
+        [ $enabled -eq 0 ] &&{
+        stop
+        return 0
+        }
 
-	echo -n "Starting $DESC: $NAME"
-	$DAEMON > /dev/null 2>/tmp/drcom-monitor.log &
-	echo " ."
+        [ -f $drcom_PID_FILE ] && {
+                echo "Already started: $drcom_PID_FILE exists"
+                return 1
+        }
+
+        echo -n -e "Starting $DESC... \n"
+        $DAEMON > /dev/null 2>/tmp/drcom-monitor.log &
+        echo $! > $drcom_PID_FILE
 }
 drcom_stop() {
-	killall -9 drcom &> /dev/null
+        echo "Stopping $DESC... "
+        [ -f $drcom_PID_FILE ] && {
+                kill -9 `cat $drcom_PID_FILE`
+                rm -f $drcom_PID_FILE
+        }
 }
 
 stop() {
-	drcom_stop
+        drcom_stop
 }
 
 restart() {
-		echo "Restarting $DESC: $NAME... "
-		stop
-		sleep 2
-		start
+        echo "Restarting $DESC... "
+        stop
+        sleep 2
+        start
 }
