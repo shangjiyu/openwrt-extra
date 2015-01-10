@@ -34,6 +34,6 @@
 #
 
 config dnscrypt-proxy
-	option enabled '1'
+	option enabled '0'
 	option local_address '127.0.0.1:5300'
 	option max_active_requests '64'

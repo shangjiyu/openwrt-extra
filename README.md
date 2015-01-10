@@ -23,6 +23,6 @@ added
 * drcom (zjut only)
 * nodejs (untested)
 * mentohust
-* ChinaDNS-C
+* ChinaDNS
 * shadowVPN
-* redsocks
+* redsocks2

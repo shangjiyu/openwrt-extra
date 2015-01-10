@@ -62,8 +62,8 @@ define application
     SECTION:=luci
     CATEGORY:=LuCI
     TITLE:=LuCI - Lua Configuration Interface
-    URL:=https://github.com/nanpuyue/openwrt-extra/
-    MAINTAINER:=nanpuyue <nanpuyue@gmail.com>
+    URL:=https://github.com/shangjiyu/openwrt-extra/
+    MAINTAINER:=shangjiyu <shangjiyu@gmail.com>
     PKGARCH:=all
     SUBMENU:=3. Applications
     TITLE:=$(if $(2),$(2),LuCI $(1) application)
@@ -117,8 +117,8 @@ $(eval $(call application,redsocks2,LuCI Support for redsocks2,\
 $(eval $(call application,pdnsd,pdnsd configuration module,\
 	+PACKAGE_luci-app-pdnsd:pdnsd))
 	
-$(eval $(call application,chinadns,LuCI Support for ChinaDNS-C,\
-	+PACKAGE_luci-app-chinadns:ChinaDNS-C))
+$(eval $(call application,chinadns,LuCI Support for ChinaDNS,\
+	+PACKAGE_luci-app-chinadns:ChinaDNS))
 
 $(eval $(call application,wifidog,LuCI Support for the wifidog,\
         +PACKAGE_luci-app-wifidog:wifidog))
