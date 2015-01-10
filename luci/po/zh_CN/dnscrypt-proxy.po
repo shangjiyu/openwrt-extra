@@ -1,0 +1,14 @@
+msgid "DNSCrypt-Proxy"
+msgstr "DNSCrypt-Proxy"
+
+msgid "DNSCrypt-Proxy is not running"
+msgstr "DNSCrypt-Proxy 未启动"
+
+msgid "DNSCrypt-Proxy is running"
+msgstr "DNSCrypt-Proxy 已启动"
+
+msgid "Listenning Address:Port"
+msgstr "本地监听地址和端口"
+
+msgid "Max Active Request"
+msgstr "最大可用请求数"

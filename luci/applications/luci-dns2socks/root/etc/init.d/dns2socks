@@ -1,0 +1,54 @@
+#!/bin/sh /etc/rc.common
+
+START=90
+STOP=15
+PIDFILE='/tmp/run/dns2socks.pid'
+
+start()
+{
+	config_load "dns2socks"
+	local enabled dns_ip dns_port socks5_ip socks5_port local_ip local_port socks5_user socks5_pass
+	config_get enabled config enabled
+	config_get dns_ip config dns_ip
+	config_get dns_port config dns_port
+	config_get socks5_ip config socks5_ip
+	config_get socks5_port config socks5_port
+	config_get local_ip config local_ip
+	config_get local_port config local_port
+	config_get socks5_user config socks5_user
+	config_get socks5_pass config socks5_pass
+
+	[ $enabled = '0' ] && exit 0
+
+	[ -z "$socks5_ip" ] || [ -z "$dns_ip" ] || [ -z "$local_ip" ] \
+	[ -z "$socks5_port" ] || [ -z "$dns_port" ] || [ -z "$local_port" ] && {
+		echo "missing parameters. check config"
+		return 1
+	}
+
+	if [ -f $PIDFILE ];then
+		echo "already started: $PIDFILE exists"
+		return 2
+	fi
+
+	dns2socks \
+		$socks5_ip:$port \
+		$dns_ip:$dns_port \
+		$local_ip:$local_port \
+		/q &
+	echo $! > $PIDFILE
+
+	uci del dhcp.@dnsmasq[-1].server
+	uci set dhcp.@dnsmasq[-1].noresolv=1
+	uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#$local_port
+	uci commit dhcp
+	/etc/init.d/dnsmasq restart
+}
+
+stop()
+{
+	[ -f $PIDFILE ] && {
+		kill -9 `cat $PIDFILE`
+		rm $PIDFILE
+	}
+}

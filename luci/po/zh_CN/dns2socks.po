@@ -1,0 +1,26 @@
+msgid "DNS2SOCKS"
+msgstr "DNS2SOCKS"
+
+msgid "DNS2SOCKS is not running"
+msgstr "DNS2SOCKS 未启动"
+
+msgid "DNS2SOCKS is running"
+msgstr "DNS2SOCKS 已启动"
+
+msgid "Upstream DNS Server"
+msgstr "上游DNS服务器"
+
+msgid "Upstream DNS Port"
+msgstr "上游DNS端口"
+
+msgid "Socks5 Server"
+msgstr "SOCKS5 代理IP"
+
+msgid "Socks5 Port"
+msgstr "SOCKS5 代理端口"
+
+msgid "Listenning Address"
+msgstr "本地监听地址"
+
+msgid "Listenning Port"
+msgstr "本地监听端口"
