@@ -138,10 +138,10 @@ $(eval $(call application,cpulimit,LuCI Support for CPULIMIT,\
 $(eval $(call application,drcom,LuCI Support for Dr.com,\
 	+PACKAGE_luci-app-drcom:drcom))
 	
-$(eval $(call application,dns2sock,LuCI Support for Dr.com,\
+$(eval $(call application,dns2sock,LuCI Support for DNS2SOCKS,\
 	+PACKAGE_luci-app-dns2sock:dns2sock))
 	
-$(eval $(call application,dnscrypt-proxy,LuCI Support for Dr.com,\
+$(eval $(call application,dnscrypt-proxy,LuCI Support for DNSCrypt-Proxy,\
 	+PACKAGE_luci-app-dnscrypt-proxy:dnscrypt-proxy))
 
 ### Compile ###
