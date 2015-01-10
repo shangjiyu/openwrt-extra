@@ -7,7 +7,7 @@ PKG_RELEASE:=1
 
 PKG_BUILD_PARALLEL:=0
 
-PKG_VERSION:=2015-01-06
+PKG_VERSION:=20150110
 
 PKG_BUILD_DEPENDS:=$(if $(STAGING_DIR_ROOT),lua/host)
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -37,7 +37,7 @@ define protocol
     TITLE:=LuCI - Lua Configuration Interface
     URL:=https://github.com/ravageralpha/my_openwrt_mod/
     MAINTAINER:=RA <ravageralpha@gmail.com>
-    SUBMENU:=6. Protocols
+    SUBMENU:=5. Protocols
     TITLE:=$(if $(2),$(2),LuCI $(1) protocol support)
     DEPENDS:=$(3)
   endef
@@ -99,8 +99,8 @@ $(eval $(call application,mentohust,LuCI Support for mentohust,\
     +PACKAGE_luci-app-mentohust:mentohust))
 
 $(eval $(call application,shadowsocks,LuCI Support for shadowsocks,\
-    +PACKAGE_luci-app-shadowsocks:shadowsocks-libev-polarssl \
-    +PACKAGE_luci-app-shadowsocks:kmod-ipt-nat \
+    	+PACKAGE_luci-app-shadowsocks:shadowsocks-libev-polarssl \
+    	+PACKAGE_luci-app-shadowsocks:kmod-ipt-nat \
 	+PACKAGE_luci-app-shadowsocks:kmod-ipt-nat-extra \
 	+PACKAGE_luci-app-shadowsocks:kmod-ipt-ipset \
 	+PACKAGE_luci-app-shadowsocks:ipset \
@@ -112,7 +112,7 @@ $(eval $(call application,redsocks2,LuCI Support for redsocks2,\
 	+PACKAGE_luci-app-redsocks2:kmod-ipt-nat-extra \
 	+PACKAGE_luci-app-redsocks2:kmod-ipt-ipset \
 	+PACKAGE_luci-app-redsocks2:ipset \
-	+PACKAGE_luci-app-shadowsocks:resolveip))
+	+PACKAGE_luci-app-redsocks2:resolveip))
 	 
 $(eval $(call application,pdnsd,pdnsd configuration module,\
 	+PACKAGE_luci-app-pdnsd:pdnsd))
