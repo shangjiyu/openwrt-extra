@@ -21,6 +21,8 @@ trans_args() {
 		'loglevel'		) append_args '-m' "$2";;
 		'max_active_requests'	) append_args '-n' "$2";;
 		'resolver_address'	) append_args '-r' "$2";;
+		'resolver_name'         ) append_args '-R' "$2";;
+        'resolvers_list'        ) append_args '-L' "$2";;
 		'provider_name'		) append_args '-N' "$2";;
 		'user'			) SERVICE_UID="$2";;
 		'tcp_only'		) [ "$2" -eq '1' ] && OPTIONS="$OPTIONS -T";;

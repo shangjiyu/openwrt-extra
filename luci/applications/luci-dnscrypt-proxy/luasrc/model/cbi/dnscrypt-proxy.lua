@@ -14,6 +14,9 @@ end
 s = m:section(TypedSection, "dnscrypt-proxy", "")
 s.anonymous = true
 
+switch = s:option(Flag, "enabled", translate("Enable"))
+switch.rmempty = false
+
 upstream = s:option(Value, "local_address", translate("Listenning Address:Port"))
 upstream.optional = false
 upstream.default = "127.0.0.1:5300"
