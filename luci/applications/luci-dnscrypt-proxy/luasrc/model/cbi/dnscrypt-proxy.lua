@@ -17,6 +17,9 @@ s.anonymous = true
 switch = s:option(Flag, "enabled", translate("Enable"))
 switch.rmempty = false
 
+tcp_only = s:option(Flag, "tcp_only", translate("Tcp_Only"))
+tcp_only.rmempty = false
+
 upstream = s:option(Value, "resolver_name", translate("DNSCrypt-Proxy Server"))
 upstream.optional = false
 upstream.default = "opendns"
