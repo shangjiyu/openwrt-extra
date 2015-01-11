@@ -58,7 +58,11 @@ end
 function chn.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		fs.writefile("/etc/chinadns_chnroute.txt", value)
+		fs.writefile("/tmp/chinadns_chnroute.txt", value)
+               if (fs.access("/etc/chinadns_chnroute.txt") ~= true or luci.sys.call("cmp -s /tmp/chinadns_chnroute.txt /etc/chinadns_chnroute.txt") == 1) then
+                       fs.writefile("/etc/chinadns_chnroute.txt", value)
+               end
+               fs.remove("/tmp/chinadns_chnroute.txt")
 	end
 end
 
