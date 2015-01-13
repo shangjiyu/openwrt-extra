@@ -18,3 +18,6 @@ msgstr "被污染IP"
 
 msgid "CHNroute"
 msgstr "中国路由表"
+
+msgid "DNS compression pointer mutation"
+msgstr "启用DNS压缩指针"

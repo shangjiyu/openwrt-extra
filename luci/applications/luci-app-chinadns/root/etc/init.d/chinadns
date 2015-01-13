@@ -12,6 +12,7 @@ start()
 	config_get dns config dns
 	config_get port config port
 	config_get delay config delay
+	config_get dnscpm config dnscpm
 
 	[ $enabled = '0' ] && exit 0
 
@@ -20,15 +21,28 @@ start()
 		return 1
 	fi
 
-	chinadns \
-		-l /etc/chinadns_iplist.txt \
-		-c /etc/chinadns_chnroute.txt \
-		-d \
-		-y $delay \
-		-b 0.0.0.0 \
-		-p $port \
-		-s "$dns" &
-	echo $! > $PIDFILE
+	[ $dnscpm = '0' ] && {
+		chinadns \
+			-l /etc/chinadns_iplist.txt \
+			-c /etc/chinadns_chnroute.txt \
+			-s "$dns" \
+			-d \
+			-y $delay \
+			-b 0.0.0.0 \
+			-p $port & 
+		echo $! > $PIDFILE
+	}
+	[ $dnscpm = '1' ] && {
+		chinadns \
+			-l /etc/chinadns_iplist.txt \
+			-c /etc/chinadns_chnroute.txt \
+			-s "$dns" &
+			-d \
+			-b 0.0.0.0 \
+			-p $port \
+			-z &
+		echo $! > $PIDFILE
+	}
 
 	uci del dhcp.@dnsmasq[-1].server
 	uci set dhcp.@dnsmasq[-1].noresolv=1

@@ -17,6 +17,9 @@ s.anonymous = true
 switch = s:option(Flag, "enabled", translate("Enable"))
 switch.rmempty = false
 
+dnscpm = s:option(Flag, "dnscpm", translate("DNS compression pointer mutation"))
+dnscpm.rmempty = false
+
 upstream = s:option(Value, "dns", translate("Upstream DNS Server"))
 upstream.optional = false
 upstream.default = "114.114.114.114,8.8.4.4"
