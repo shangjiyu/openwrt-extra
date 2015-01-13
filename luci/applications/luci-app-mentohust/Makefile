@@ -6,8 +6,8 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=Support for ShadowVPN
-LUCI_DEPENDS:=+shadowvpn
+LUCI_TITLE:=LuCI Support for MenToHUST
+LUCI_DEPENDS:=+mentohust
 
 include ../../luci.mk
 

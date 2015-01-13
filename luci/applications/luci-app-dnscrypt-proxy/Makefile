@@ -6,8 +6,8 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=Support for ShadowVPN
-LUCI_DEPENDS:=+shadowvpn
+LUCI_TITLE:=LuCI Support for DNSCrypt-Proxy
+LUCI_DEPENDS:=+dnscrypt-proxy
 
 include ../../luci.mk
 

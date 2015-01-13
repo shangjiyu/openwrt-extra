@@ -6,8 +6,8 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=Support for ShadowVPN
-LUCI_DEPENDS:=+shadowvpn
+LUCI_TITLE:=LuCI Support for aria2
+LUCI_DEPENDS:=+aria2 +curl +wget +openssl-util +yaaw
 
 include ../../luci.mk
 

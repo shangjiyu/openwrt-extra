@@ -6,8 +6,8 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=Support for ShadowVPN
-LUCI_DEPENDS:=+shadowvpn
+LUCI_TITLE:=LuCI Support for NWAN
+LUCI_DEPENDS:=+kmod-ipt-nat +kmod-ipt-nat-extra +kmod-ipt-ipset +ipset +resolveip
 
 include ../../luci.mk
 
