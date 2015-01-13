@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=Support for ShadowVPN
-LUCI_DEPENDS:=+shadowvpn
+LUCI_DEPENDS:=+ShadowVPN
 
 include ../../luci.mk
 
