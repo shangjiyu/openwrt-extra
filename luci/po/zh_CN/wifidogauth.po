@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-12-09 15:58+0200\n"
+"PO-Revision-Date: 2014-12-09 15:58+0200\n"
+"Last-Translator: yuleniwo <xzm2@qq.com>\n"
+"Language-Team: QQ:529698939\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Pootle 2.0.6\n"
+
+msgid "Invalid username or password."
+msgstr "无效的用户名或密码。"
+
+msgid "Invalid parameter."
+msgstr "无效的参数。"
+
+msgid "WIFIDOG Login"
+msgstr "WIFIDOG登录"
+
+msgid "'Username' can't be null."
+msgstr "用户名不能为空。"
+
+msgid "'Password' can't be null."
+msgstr "密码不能为空。"
+
+
+msgid "Login"
+msgstr "登录"
+
+msgid "Username:"
+msgstr "用户名："
+
+msgid "Password:"
+msgstr "密码："
+
+msgid "Reset"
+msgstr "重置"

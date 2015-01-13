@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html>
+	<head>
+		<title><%:WIFIDOG Login%></title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="pragma" content="no-cache"/>
+		<meta http-equiv="cache-control" content="no-cache"/>
+		<meta http-equiv="expires" content="0"/>
+		<link rel="stylesheet" type="text/css" href="<%=resource%>/wifidog/wifidog.css" media="all" />
+<script type="text/javascript" src="<%=resource%>/xhr.js"></script>
+<script language="javascript" type="text/javascript">
+// <!CDATA[
+
+if (((typeof window.HTMLElement) !== "undefined") && ((typeof HTMLElement.prototype.__defineGetter__) !== "undefined")) {
+	HTMLElement.prototype.__defineGetter__("innerText", function () {
+		if (this.textContent) {
+			return this.textContent;
+		} else {
+			var r = this.ownerDocument.createRange();
+			r.selectNodeContents(this);
+			return r.toString();
+		}
+	});
+	HTMLElement.prototype.__defineSetter__("innerText", function (str) {
+		if (this.textContent) {
+			this.textContent = str;
+		} else {
+			this.innerHTML = str.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/\n/g, "<br />\n");
+		}
+	});
+}
+
+function SetCookie(name, value)
+{
+	var Days = 30;
+	var exp  = new Date();
+	exp.setTime(exp.getTime() + Days*24*60*60*1000);
+	document.cookie = name + "="+ escape(value) + ";expires=" + exp.toGMTString();
+}
+
+function GetCookie(name)     
+{
+	var aCookie = document.cookie.split("; ");
+	for (var i=0; i<aCookie.length; i++)
+	{
+		var aCrumb = aCookie[i].split("=");
+		if(aCrumb.length>1 && name==aCrumb[0])
+		{
+			return unescape(aCrumb[1]);
+		}
+	}
+	return null;
+}
+
+function DelCookie(name)
+{
+	var exp = new Date();
+	exp.setTime(exp.getTime() - 1);
+	var cval=getCookie(name);
+	if(cval!=null) document.cookie= name + "="+cval+";expires="+exp.toGMTString();
+}
+
+function OnBtnLoginClick()
+{
+	var frm = document.getElementById("frmLogin");
+	var spanMsg = document.getElementById("spanMsg") ;
+	var obj = {};
+	if(frm.user.value=="")
+	{
+		spanMsg.innerText = "<%:'Username' can't be null.%>" ;
+		frm.user.focus();
+		return false;
+	}
+	obj.user = frm.user.value;
+	if(frm.pwd.value=="")
+	{
+		spanMsg.innerText = "<%:'Password' can't be null.%>";
+		frm.pwd.focus();
+		return false;
+	}
+	obj.pwd = frm.pwd.value;
+	SetCookie("username", frm.user.value) ;
+	var xhr = new XHR();
+	xhr.post(frm.action, obj, function(xhr){
+		var json = null;
+		if (xhr.getResponseHeader("Content-Type") == "application/json") {
+			try {
+				json = eval('(' + xhr.responseText + ')');
+				if(json.url)
+					window.location = json.url;
+				else if(json.error)
+					spanMsg.innerText = json.error;
+			}
+			catch(e) {
+				json = null;
+			}
+		}
+	});
+	return true ;
+}
+
+function htmInit()
+{
+	var frm = document.getElementById("frmLogin");
+	var sUser = GetCookie("username");
+	var q = location.href.indexOf("?");
+	if(q != -1) frm.action += location.href.substring(q);
+	else frm.action += "?error=1";
+	if(sUser != null)
+	{
+		frm.user.value = sUser ;
+		frm.pwd.focus();
+	}
+	else
+		frm.user.focus();
+}
+
+function KeyDown(event)
+{
+	if(event.keyCode!=13) return ;
+	OnBtnLoginClick();
+}
+// ]]>
+</script>
+
+	</head>
+	<body onload="htmInit()" onkeydown="KeyDown(event)">
+		<div class="full-login">
+			<div class="shadow" style="text-align:center">
+				<span style="font-size:16px; font-weight:bold;"><%:WIFIDOG Login%></span>
+				<div class="login-panel">
+					<span style="font-size:14px; font-weight:bold;"><%:Login%></span>
+					<form id="frmLogin" method="post" action="<%=REQUEST_URI%>check">
+						<p>
+							<label for="user" style="display:inline-block;width:70px;text-align:right"><%:Username:%></label>
+							<input type="text" id="user" name="user" tabindex="1" class="input-text"/>
+						</p>
+						<p>
+							<label for="pwd" style="display:inline-block;width:70px;text-align:right"><%:Password:%></label>
+							<input type="password" id="pwd" name="pwd" tabindex="2" class="input-text" />
+						</p>
+
+						<p>
+							<span style="padding-left:26px"></span>
+							<input type="button" id="login" tabindex="3" onclick="return OnBtnLoginClick();" class="input-submit large" value="<%:Login%>"/>
+							<span style="padding-left:15px"></span>
+							<input type="reset" id="reset" tabindex="4" class="input-submit large" value="<%:Reset%>"/>
+						</p>
+
+						<div class="separator"></div>
+						<span id="spanMsg" style="color:red"></span>
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

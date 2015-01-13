@@ -1,0 +1,37 @@
+/*Reset Settings*/
+div,span,p,form,label,input{margin:0;padding:0}
+body{font-size:12px;margin-left:15px;margin-top:15px;}
+table{border-collapse:collapse}
+input.inputtext:focus, textarea:focus, select:focus{
+	-moz-background-clip:border;
+	-moz-background-inline-policy:continuous;
+	-moz-background-origin:padding;
+	background:#FCFCFC none repeat scroll 0 0;
+}
+
+/* Form */
+label{color:#333;cursor:pointer;}
+input,select{vertical-align:middle;font-size:12px}
+.input-text{border:1px solid #bdc7d8;padding:3px;*behavior:expression(function(ele){ele.style.behavior='none';if(ele.disabled)ele.style.backgroundColor='#D4D0C8'}(this))}
+.input-text[disabled]{background-color:#D4D0C8}
+.input-button,.input-submit{background-color:#005eac;border-color:#b8d4e8 #124680 #124680 #b8d4e8;border-style:solid;border-width:1px;color:#fff;cursor:pointer;font-size:12px;padding:2px 15px;text-align:center;_padding:3px 10px;*behavior:expression(function(ele){ele.style.behavior='none';if(ele.disabled){ele.style.backgroundColor='#D4D0C8';ele.style.border="0"}}(this))}
+.input-button[disabled], .input-submit[disabled]{background-color:#D4D0C8;border:0}
+input.gray{border:1px solid;border-color:#fff #848484 #848484 #fff !important;background:#f0f0f0 !important;color:#333 !important}
+input.mini{padding:2px;_padding:1px 2px}
+input.large{padding:3px 15px;font-size:16px;_padding:5px 10px 2px}
+
+/* Login Panel */
+.login-panel{border:1px solid #b8d4e8;background-color:#f0f5f8;padding:20px}
+
+/* Full login page */
+.full-login {width:320px;padding-top:8px; margin:0 auto;}
+.full-login .login-panel .inner{border:1px solid #b8d4e8; padding:20px; background-color:#f0f5f8}
+.full-login .login-panel h2 {margin-bottom:15px;}
+.full-login .login-panel label {color:#333;font-weight:normal;}
+.full-login .login-panel p {margin:10px 0;}
+.full-login .login-panel p.clearfix label {font-size:14px;width:77px;float:left;text-align:right;margin:3px 7px 0 0;}
+.full-login .login-panel p .input-text {width:180px;font-size:14px;}
+.full-login .login-panel p.right {margin-left:85px; margin-right:5px}
+.full-login .login-panel .separator {height:0px;overflow:hidden;border-top:1px solid #ccc;border-bottom:1px solid #fff;margin:18px 0 15px;}
+.full-login .login-panel p.no-account {font-size:14px;text-align:center;}
+.full-login .login-panel p.no-account a {width:86px;height: 25px;margin:10px auto 0;outline:0;}
