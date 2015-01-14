@@ -37,7 +37,7 @@ start()
 			-l /etc/chinadns_iplist.txt \
 			-c /etc/chinadns_chnroute.txt \
 			-d \
-			-s "$dns" &
+			-s "$dns" \
 			-b 0.0.0.0 \
 			-p $port \
 			-z &
