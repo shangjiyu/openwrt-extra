@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014 nanpuyue <nanpuyue@gmail.com>
+# Copyright (C) 2014 shangjiyu <shangjiyu@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -42,10 +42,6 @@ endef
 define Package/ChinaDNS/conffiles
 /etc/chinadns_iplist.txt
 /etc/chinadns_chnroute.txt
-endef
-
-define Package/ChinaDNS/Prepare
-	$(CP) ./patches/chinadns.c $(PKG_BUILD_DIR)/src/chinadns.c
 endef
 
 define Package/ChinaDNS/install
