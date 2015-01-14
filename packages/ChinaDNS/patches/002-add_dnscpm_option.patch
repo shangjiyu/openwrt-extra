@@ -36,7 +36,7 @@
  
  static const char *default_listen_addr = "0.0.0.0";
  static const char *default_listen_port = "53";
-@@ -91,10 +102,13 @@ static int test_ip_in_list(struct in_add
+@@ -91,17 +102,23 @@ static int test_ip_in_list(struct in_add
  
  static int dns_init_sockets();
  static void dns_handle_local();
@@ -48,9 +48,19 @@
  static int should_filter_query(ns_msg msg, struct in_addr dns_addr);
 +static int dnscpm_should_filter_query(ns_msg msg, struct in_addr dns_addr);
  
++static void dnscpm_queue_add(id_addr_t id_addr);
  static void queue_add(id_addr_t id_addr);
++static id_addr_t *dnscpm_queue_lookup(uint16_t id);
  static id_addr_t *queue_lookup(uint16_t id);
-@@ -188,8 +202,13 @@ int main(int argc, char **argv) {
+ 
+ #define ID_ADDR_QUEUE_LEN 128
+ // use a queue instead of hash here since it's not long
+ static id_addr_t id_addr_queue[ID_ADDR_QUEUE_LEN];
++static id_addr_t dnscpm_id_addr_queue[256];
+ static int id_addr_queue_pos = 0;
+ 
+ #define EMPTY_RESULT_DELAY 0.3f
+@@ -188,8 +205,13 @@ int main(int argc, char **argv) {
      return EXIT_FAILURE;
    if (0 != parse_chnroute())
      return EXIT_FAILURE;
@@ -66,7 +76,7 @@
    if (0 != dns_init_sockets())
      return EXIT_FAILURE;
  
-@@ -210,7 +229,9 @@ int main(int argc, char **argv) {
+@@ -210,7 +232,9 @@ int main(int argc, char **argv) {
        ERR("select");
        return EXIT_FAILURE;
      }
@@ -77,7 +87,7 @@
      if (FD_ISSET(local_sock, &errorset)) {
        // TODO getsockopt(..., SO_ERROR, ...);
        VERR("local_sock error\n");
-@@ -222,9 +243,17 @@ int main(int argc, char **argv) {
+@@ -222,9 +246,17 @@ int main(int argc, char **argv) {
        return EXIT_FAILURE;
      }
      if (FD_ISSET(local_sock, &readset))
@@ -97,16 +107,16 @@
    }
    return EXIT_SUCCESS;
  }
-@@ -249,7 +278,7 @@ static int parse_args(int argc, char **a
+@@ -249,7 +281,7 @@ static int parse_args(int argc, char **a
    ip_list_file = strdup(default_ip_list_file);
    listen_addr = strdup(default_listen_addr);
    listen_port = strdup(default_listen_port);
 -  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dv")) != -1) {
-+  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:d:zv")) != -1) {
++  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y::dvz")) != -1) {
      switch (ch) {
      case 'h':
        printf("%s", help_message);
-@@ -275,6 +304,9 @@ static int parse_args(int argc, char **a
+@@ -275,6 +307,9 @@ static int parse_args(int argc, char **a
      case 'd':
        bidirectional = 1;
        break;
@@ -116,7 +126,7 @@
      case 'v':
        verbose = 1;
        break;
-@@ -288,6 +320,60 @@ static int parse_args(int argc, char **a
+@@ -288,6 +323,60 @@ static int parse_args(int argc, char **a
    return 0;
  }
  
@@ -177,7 +187,7 @@
  static int resolve_dns_servers() {
    struct addrinfo hints;
    struct addrinfo *addr_ip;
-@@ -524,6 +610,73 @@ static int dns_init_sockets() {
+@@ -524,6 +613,73 @@ static int dns_init_sockets() {
    return 0;
  }
  
@@ -205,7 +215,7 @@
 +    id_addr.id = query_id;
 +    id_addr.addr = src_addr;
 +    id_addr.addrlen = src_addrlen;
-+    queue_add(id_addr);
++    dnscpm_queue_add(id_addr);
 +    //use compression pointer for foreign dns
 +    if (len > 16){
 +      size_t off = 12;
@@ -251,7 +261,7 @@
  static void dns_handle_local() {
    struct sockaddr *src_addr = malloc(sizeof(struct sockaddr));
    socklen_t src_addrlen = sizeof(struct sockaddr);
-@@ -559,6 +712,53 @@ static void dns_handle_local() {
+@@ -559,6 +715,53 @@ static void dns_handle_local() {
      ERR("recvfrom");
  }
  
@@ -279,7 +289,7 @@
 +          inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
 +          htons(((struct sockaddr_in *)src_addr)->sin_port));
 +    }
-+    id_addr_t *id_addr = queue_lookup(query_id);
++    id_addr_t *id_addr = dnscpm_queue_lookup(query_id);
 +    if (id_addr) {
 +      id_addr->addr->sa_family = AF_INET;
 +      if (!dnscpm_should_filter_query(msg, ((struct sockaddr_in *)src_addr)->sin_addr)) {
@@ -305,7 +315,37 @@
  static void dns_handle_remote() {
    struct sockaddr *src_addr = malloc(sizeof(struct sockaddr));
    socklen_t src_len = sizeof(struct sockaddr);
-@@ -657,6 +857,54 @@ static const char *hostname_from_questio
+@@ -612,6 +815,14 @@ static void dns_handle_remote() {
+     ERR("recvfrom");
+ }
+ 
++static void dnscpm_queue_add(id_addr_t id_addr) {
++  id_addr_queue_pos = (uint8_t)(id_addr.id & 0xff);
++  // free next hole
++  id_addr_t old_id_addr = dnscpm_id_addr_queue[id_addr_queue_pos];
++  free(old_id_addr.addr);
++  dnscpm_id_addr_queue[id_addr_queue_pos] = id_addr;
++}
++
+ static void queue_add(id_addr_t id_addr) {
+   id_addr_queue_pos = (id_addr_queue_pos + 1) % ID_ADDR_QUEUE_LEN;
+   // free next hole
+@@ -620,6 +831,14 @@ static void queue_add(id_addr_t id_addr)
+   id_addr_queue[id_addr_queue_pos] = id_addr;
+ }
+ 
++static id_addr_t *dnscpm_queue_lookup(uint16_t id) {
++  int i;
++  i = (uint8_t)(id & 0xff);
++  if (dnscpm_id_addr_queue[i].id == id)
++  	return dnscpm_id_addr_queue + i;
++  return NULL;
++}
++
+ static id_addr_t *queue_lookup(uint16_t id) {
+   int i;
+   // TODO assign new id instead of using id from clients
+@@ -657,6 +876,54 @@ static const char *hostname_from_questio
    return NULL;
  }
  
