@@ -26,10 +26,9 @@ start()
 			-l /etc/chinadns_iplist.txt \
 			-c /etc/chinadns_chnroute.txt \
 			-d \
-			-s "$dns" \
+			-s"$dns" \
 			-y$delay \
-			-b 0.0.0.0 \
-			-p $port & 
+			-p$port & 
 		echo $! > $PIDFILE
 	}
 	[ $dnscpm = '1' ] && {
@@ -38,9 +37,8 @@ start()
 			-c /etc/chinadns_chnroute.txt \
 			-d \
 			-s "$dns" \
-			-b 0.0.0.0 \
-			-p $port \
-			-z &
+			-p$port \
+			-m &
 		echo $! > $PIDFILE
 	}
 
