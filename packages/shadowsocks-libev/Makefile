@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=shadowsocks-libev
-PKG_VERSION:=2.1.0
+PKG_VERSION:=2.1.2
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/madeye/shadowsocks-libev.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=5e43ae1d421d9a945f6cbcd1f979918106b7bd75
+PKG_SOURCE_VERSION:=f3f6ece4fcff14d9e9a1ef0f2726a1bedadb36f2
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 PKG_MAINTAINER:=Max Lv <max.c.lv@gmail.com>
 
