@@ -1,6 +1,7 @@
 config chinadns config
 	option enabled '0'
 	option dnscpm '0'
+	option bi-directional '0'
 	option dns '172.16.7.10,114.114.114.114,8.8.4.4,208.67.222.222:443,208.67.220.220:5353'
 	option port '1053'
 	option delay '0.3'

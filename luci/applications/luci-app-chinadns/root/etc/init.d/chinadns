@@ -2,56 +2,63 @@
 
 START=90
 STOP=15
-PIDFILE='/tmp/run/chinadns.pid'
+SERVICE_WRITE_PID=1
+SERVICE_DAEMONIZE=1
+SERVICE_UID='nobody'
+
+EXEC="/usr/bin/chinadns"
+OPTIONS=""
+
+config_cb() {
+    [ "$1" -eq "chinadns" ] && {
+    	OPTIONS="$OPTIONS -l /etc/chinadns_iplist.txt -c /etc/chinadns_chnroute.txt"
+    }
+}
+
+append_args() {
+	[ -n "$2" ] && OPTIONS="$OPTIONS $1$2"
+}
+
+trans_args() {
+	case "$1" in
+		'dnscpm'			) [ "$2" -eq '1' ] && OPTIONS="$OPTIONS -m";;
+		'bi-directional'	) [ "$2" -eq '1' ] && OPTIONS="$OPTIONS -d";;
+		'dns'				) append_args '-s' "$2";;
+		'port'				) append_args '-p' "$2";;
+		'delay'				) append_args '-y' "$2";;
+	esac
+}
+
+option_cb() {
+	trans_args "$1" "$2"
+}
+
+section_enabled() {
+	local enabled
+	config_get_bool enabled "$1" 'enabled' 0
+	[ $enabled -eq 1 ]
+}
+
+start_instance() {
+	local port
+	config_get port "$1" 'port' 1053
+	section_enabled "$1" && {
+		service_start $EXEC $OPTIONS
+		uci del dhcp.@dnsmasq[-1].server
+		uci set dhcp.@dnsmasq[-1].noresolv=1
+		uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#$port
+		uci commit dhcp
+		/etc/init.d/dnsmasq restart
+	}
+}
 
 start()
 {
 	config_load "chinadns"
-	local enabled dns port delay
-	config_get enabled config enabled
-	config_get dns config dns
-	config_get port config port
-	config_get delay config delay
-	config_get dnscpm config dnscpm
-
-	[ $enabled = '0' ] && exit 0
-
-	if [ -f $PIDFILE ];then
-		echo "already started: $PIDFILE exists"
-		return 1
-	fi
-
-	[ $dnscpm = '0' ] && {
-		chinadns \
-			-l /etc/chinadns_iplist.txt \
-			-c /etc/chinadns_chnroute.txt \
-			-d \
-			-s"$dns" \
-			-y$delay \
-			-p$port & 
-		echo $! > $PIDFILE
-	}
-	[ $dnscpm = '1' ] && {
-		chinadns \
-			-c /etc/chinadns_chnroute.txt \
-			-d \
-			-s "$dns" \
-			-p$port \
-			-m &
-		echo $! > $PIDFILE
-	}
-
-	uci del dhcp.@dnsmasq[-1].server
-	uci set dhcp.@dnsmasq[-1].noresolv=1
-	uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#$port
-	uci commit dhcp
-	/etc/init.d/dnsmasq restart
+	config_foreach start_instance 'chinadns'
 }
 
 stop()
 {
-	[ -f $PIDFILE ] && {
-		kill -9 `cat $PIDFILE`
-		rm $PIDFILE
-	}
+	service_stop $EXEC
 }

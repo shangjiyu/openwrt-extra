@@ -16,8 +16,11 @@ msgstr "DNS污染延时"
 msgid "IP blacklist"
 msgstr "被污染IP"
 
-msgid "CHNroute"
+msgid "CHNRoute"
 msgstr "中国路由表"
 
 msgid "DNS compression pointer mutation"
 msgstr "启用DNS压缩指针"
+
+msgid "DNS bi-directional CHNRoute filter"
+msgstr "CHNRoute 双向过滤"

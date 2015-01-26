@@ -20,6 +20,9 @@ switch.rmempty = false
 dnscpm = s:option(Flag, "dnscpm", translate("DNS compression pointer mutation"))
 dnscpm.rmempty = false
 
+bi-directional = s:option(Flag, "bi-directional", translate("DNS bi-directional CHNRoute filter"))
+bi-directional.rmempty = false
+
 upstream = s:option(Value, "dns", translate("Upstream DNS Server"))
 upstream.optional = false
 upstream.default = "114.114.114.114,8.8.4.4"
@@ -49,7 +52,7 @@ function iplist.write(self, section, value)
 	end
 end
 
-chn = s:option(Value, "chn", translate("CHNroute"), "")
+chn = s:option(Value, "chn", translate("CHNRoute"), "")
 chn.template = "cbi/tvalue"
 chn.size = 30
 chn.rows = 10
