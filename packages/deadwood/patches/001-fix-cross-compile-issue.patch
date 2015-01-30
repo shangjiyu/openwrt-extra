@@ -1,0 +1,21 @@
+diff -r -u -N -w a/src/Makefile b/src/Makefile
+--- a/src/Makefile	2015-01-24 16:09:04.000000000 +0800
++++ b/src/Makefile	2015-01-29 16:59:02.315429600 +0800
+@@ -5,7 +5,7 @@
+ # compiling.  When cross-compiling, we still need to compile and
+ # run programs on the build machine, so change the next line when
+ # cross-compiling.
+-HOSTCC=$(CC)
++HOSTCC=$(HOSTCC)
+ 
+ OBJS=DwStr.o \
+ 	DwMararc.o \
+@@ -68,7 +68,7 @@
+ 	$(CC) $(FLAGS) -Wall -c -o DwSys.o DwSys.c
+ 
+ RandomPrime:	RandomPrime.c
+-	$(CC) -O3 -o RandomPrime RandomPrime.c
++	$(HOSTCC) -O3 -o RandomPrime RandomPrime.c
+ 
+ DwRandPrime.h: RandomPrime
+ 	if [ -e /dev/urandom ] ; then ./RandomPrime > DwRandPrime.h ; fi
