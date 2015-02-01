@@ -45,6 +45,7 @@ start() {
 	[ "$redir_enabled" = '1' ] && {
 		service_start /usr/bin/ss-redir \
 			-s "$remote" \
+			-b 0.0.0.0 \
 			-p "$rport" \
 			-l "$redir_port" \
 			${cipher:+-m $cipher} \
