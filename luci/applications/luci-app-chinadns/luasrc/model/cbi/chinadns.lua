@@ -20,7 +20,7 @@ switch.rmempty = false
 dnscpm = s:option(Flag, "dnscpm", translate("DNS compression pointer mutation"))
 dnscpm.rmempty = false
 
-bidirectional = s:option(Flag, "bi-directional", translate("DNS bi-directional CHNRoute filter"))
+bidirectional = s:option(Flag, "bidirectional", translate("DNS bi-directional CHNRoute filter"))
 bidirectional.rmempty = false
 
 upstream = s:option(Value, "dns", translate("Upstream DNS Server"))

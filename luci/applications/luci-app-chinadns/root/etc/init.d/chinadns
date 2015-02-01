@@ -10,7 +10,7 @@ EXEC="/usr/bin/chinadns"
 OPTIONS=""
 
 config_cb() {
-    [ "$1" -eq "chinadns" ] && {
+    [ "$1" = "chinadns" ] && {
     	OPTIONS="$OPTIONS -l /etc/chinadns_iplist.txt -c /etc/chinadns_chnroute.txt"
     }
 }
@@ -21,8 +21,8 @@ append_args() {
 
 trans_args() {
 	case "$1" in
-		'dnscpm'			) [ "$2" -eq '1' ] && OPTIONS="$OPTIONS -m";;
-		'bi-directional'	) [ "$2" -eq '1' ] && OPTIONS="$OPTIONS -d";;
+		'dnscpm'			) [ "$2" = '1' ] && OPTIONS="$OPTIONS -m";;
+		'bidirectional'			) [ "$2" = '1' ] && OPTIONS="$OPTIONS -d";;
 		'dns'				) append_args '-s' "$2";;
 		'port'				) append_args '-p' "$2";;
 		'delay'				) append_args '-y' "$2";;
