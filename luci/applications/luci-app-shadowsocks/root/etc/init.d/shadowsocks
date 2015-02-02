@@ -31,9 +31,17 @@ start() {
 		return 1
 	}
 
+#	remoteip="`ping -q -w1 $remote | grep PING | sed -e "s/).*//" | sed -e "s/.*(//"`"
+	remoteip="`resolveip -4 -t10 $remote`"
+	[ -z "$remoteip" ] && {
+		echo "cannot resolve the server hostname"
+		return 1
+	}
+
 	[ "$enabled" = '1' ] && {
 		service_start /usr/bin/ss-local \
-			-s "$remote" \
+			-s "$remoteip" \
+			-b 0.0.0.0 \
 			-p "$rport" \
 			-l "$lport" \
 			${cipher:+-m $cipher} \
@@ -44,7 +52,7 @@ start() {
 
 	[ "$redir_enabled" = '1' ] && {
 		service_start /usr/bin/ss-redir \
-			-s "$remote" \
+			-s "$remoteip" \
 			-b 0.0.0.0 \
 			-p "$rport" \
 			-l "$redir_port" \
@@ -52,9 +60,6 @@ start() {
 			-k "$pass" \
 			-f "$ss_redir_PID_FILE"
 		
-#		remoteip="`ping -q -w1 $remote | grep PING | sed -e "s/).*//" | sed -e "s/.*(//"`"
-		remoteip="`resolveip -t5 $remote`"
-
 		iptables -t nat -N SHADOWSOCKS
 		iptables -t nat -A SHADOWSOCKS -d 0.0.0.0/8 -j RETURN
 		iptables -t nat -A SHADOWSOCKS -d 10.0.0.0/8 -j RETURN
