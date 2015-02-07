@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@adbyby[-1]
+	add ucitrack adbyby
+	set ucitrack.@adbyby[-1].init=adbyby
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

@@ -1,0 +1,24 @@
+msgid "ADBYBY"
+msgstr "广告过滤大师ADBYBY"
+
+msgid "ADBYBY is not running"
+msgstr "ADBYBY 未启动"
+
+msgid "ADBYBY is running"
+msgstr "ADBYBY 已启动"
+
+msgid "Rules"
+msgstr "规则列表"
+
+msgid "User Rules"
+msgstr "自定义规则"
+
+msgid "Comment by !"
+msgstr "用!号注释"
+
+msgid "Path"
+msgstr "路径"
+
+msgid "Basic"
+msgstr "基本设置"
+

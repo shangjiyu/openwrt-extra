@@ -1,0 +1,3 @@
+config adbyby 'config'
+	option enabled '0'
+	option path '/usr/bin/adbyby'

@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=99
+APP='adbyby'
+
+start() {
+	config_load "$APP"
+	local enabled path
+	config_get enabled config enabled
+	config_get path config path '/usr/bin/adbyby'
+	[ "$enabled" = '1' ] && {
+		service_start "$path" & sleep 1
+		iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8118
+	}
+}
+
+stop() {
+	iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8118
+	service_stop /usr/bin/adbyby
+}
