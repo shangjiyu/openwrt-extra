@@ -12,7 +12,6 @@ PKG_NAME:=drcom
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-PPP_VERSION:=zjut
 
 include $(INCLUDE_DIR)/package.mk
 
