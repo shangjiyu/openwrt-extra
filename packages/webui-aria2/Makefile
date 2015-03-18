@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014 nanpuyue <nanpuyue@gmail.com>
+# Copyright (C) 2014 shangjiyu <shangjiyu@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=webui-aria2
-PKG_VERSION:=20150110
+PKG_VERSION:=20150315
 PKG_RELEASE:=1
-PKG_MAINTAINER:=nanpuyue <nanpuyue@gmail.com>
+PKG_MAINTAINER:=shangjiyu <shangjiyu@gmail.com>
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/ziahamza/webui-aria2.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=ba7187db1b
+PKG_SOURCE_VERSION:=c34684ed04dca001f5f018620ba0084e4157dc4e
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
 include $(INCLUDE_DIR)/package.mk
