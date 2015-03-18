@@ -31,7 +31,8 @@ static void getPIN(byte *userName, byte *PIN) {
 
     //code
     info("sxplugin : using zjxinlisx01");
-    strcpy(RADIUS, "zjxinlisx01");
+    //strcpy(RADIUS, "zjxinlisx01");
+    strcpy(RADIUS, "singlenet01");
     timenow = time(NULL);
     timedivbyfive = timenow / 5;
 
@@ -90,11 +91,11 @@ static void getPIN(byte *userName, byte *PIN) {
 
     memcpy(PIN+2, PIN27, 6);
 
-    srand((int) timenow);
-    //PIN[8] = MD501[0];
-    //PIN[9] = MD501[1];
-    PIN[8] = (byte)(randm(16) & 0xff);
-    PIN[9] = (byte)(randm(16) & 0xff);
+    //srand((int) timenow);
+    //PIN[8] = (byte)(randm(16) & 0xff);
+    //PIN[9] = (byte)(randm(16) & 0xff);
+    PIN[8] = MD501[0];
+    PIN[9] = MD501[1];
 
     strcpy(PIN+10, userName);
 }
