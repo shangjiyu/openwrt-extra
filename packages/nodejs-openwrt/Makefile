@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=node
-PKG_VERSION:=v0.10.17
-PKG_RELEASE:=2
+PKG_VERSION:=v0.12.0
+PKG_RELEASE:=3
 
 PKG_SOURCE:=node-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://nodejs.org/dist/${PKG_VERSION}
-PKG_MD5SUM:=a2b05af77e8e3ef3b4c40a68372429f1
+PKG_MD5SUM:=62c8d9c74c8f68193f60e4cba020eb48
 GIT_SOURCE:=https://github.com/brimstone/v8m-rb
 #GIT_SOURCE:=/tmp/v8m-rb
 
