@@ -5,8 +5,6 @@
 #include <pppd/pppd.h>
 #include <pppd/md5.h>
 
-#define random(x) (rand()%x)
-
 typedef unsigned char byte;
 
 char pppd_version[] = VERSION;
@@ -29,34 +27,44 @@ static void getPIN(byte *userName, byte *PIN) {
     byte temp[32]; //第一次转换时所用的临时数组
     byte PIN27[6]; //PIN的2到7位，由系统时间转换
 
-    //code
-    info("sxplugin : using zjxinlisx01");
-    //strcpy(RADIUS, "zjxinlisx01");
+    info("sxplugin : using singlenet01");
     strcpy(RADIUS, "singlenet01");
     timenow = time(NULL);
+    info("-------------------------------------");
+    info("timenow(Hex)=%x\n",timenow);
     timedivbyfive = timenow / 5;
 
     for(i = 0; i < 4; i++) {
         timeByte[i] = (byte)(timedivbyfive >> (8 * (3 - i)) & 0xFF);
     }
-    for(i = 0; i < 4; i++) {
-        beforeMD5[i]= timeByte[i];
-    }
-    for(i = 4; i < 16 && userName[i-4]!='@' ; i++) {
-        beforeMD5[i] = userName[i-4];
-    }
-    j=0;
-    while(RADIUS[j]!='\0')
-        beforeMD5[i++] = RADIUS[j++];
 
+    info("Begin : beforeMD5");
+    /*
+    beforeMD5={time encryption}+{user name}+{RADIUS}+'\0';
+    default length is 31
+    */
+    byte* beforeMD5=malloc(strlen(timeByte)+strlen(userName)+strlen(RADIUS)+1);
+    memcpy(beforeMD5,timeByte,4);
+    info("1.<%s>",beforeMD5);
+
+    memcpy(beforeMD5 + 4, userName, strcspn(userName,"@"));
+    info("2.<%s>",beforeMD5);
+    
+    strcat(beforeMD5,RADIUS);//string_copy
+    info("3.<%s>",beforeMD5);
+    info("4.length=<%d>",strlen(beforeMD5));
+    info("End : beforeMD5");
+
+    info("Begin : afterMD5");
     MD5_Init(&md5);
-    MD5_Update (&md5, beforeMD5, i);
-    printf("%d %s\n",i,beforeMD5);
+    MD5_Update (&md5, beforeMD5, strlen(beforeMD5));
+    free(beforeMD5);
     MD5_Final (afterMD5, &md5);
-
     MD501H[0] = afterMD5[0] >> 4 & 0xF;
     MD501H[1] = afterMD5[0] & 0xF;
-
+    info("1.MD5use_1=<%2x>", MD501H[0]);
+    info("2.MD5use_2=<%2x>", MD501H[1]);
+    info("End : afterMD5");
     sprintf(MD501,"%x%x",MD501H[0],MD501H[1]);
 
     for(i = 0; i < 32; i++) {
@@ -88,16 +96,11 @@ static void getPIN(byte *userName, byte *PIN) {
 
     PIN[0] = '\r';
     PIN[1] = '\n';
-
     memcpy(PIN+2, PIN27, 6);
-
-    //srand((int) timenow);
-    //PIN[8] = (byte)(randm(16) & 0xff);
-    //PIN[9] = (byte)(randm(16) & 0xff);
     PIN[8] = MD501[0];
     PIN[9] = MD501[1];
-
     strcpy(PIN+10, userName);
+    info("-------------------------------------");
 }
 
 static int pap_modifyusername(char *user, char* passwd)
@@ -105,7 +108,7 @@ static int pap_modifyusername(char *user, char* passwd)
     byte PIN[MAXSECRETLEN] = {0};
     getPIN(saveuser, PIN);
     strcpy(user, PIN);
-    info("sxplugin : user is %s",user);
+    info("sxplugin : user is <%s>",user);
 }
 
 static int check(){

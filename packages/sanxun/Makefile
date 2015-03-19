@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 tsl0922@sina.com
+# Copyright (C) 2015 shangjiyu@gmail.com
 #
 # (XXX:请自行在下面修改ppp版本号(PPP_VERSION)以调整插件安装目录)
 #
