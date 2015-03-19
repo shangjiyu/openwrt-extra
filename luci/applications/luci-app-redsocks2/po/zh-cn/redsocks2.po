@@ -23,13 +23,13 @@ msgid "Timeout"
 msgstr "超时值(秒)"
 
 msgid "redsocks2"
-msgstr "redsocks2"
+msgstr "REDSOCKS2"
 
 msgid "redsocks2 is not running"
-msgstr "redsocks2未运行"
+msgstr "REDSOCKS2 未运行"
 
 msgid "redsocks2 is running"
-msgstr "redsocks2运行中"
+msgstr "REDSOCKS2 运行中"
 
 msgid "Bypass IP Whitelist"
 msgstr "IP白名单"

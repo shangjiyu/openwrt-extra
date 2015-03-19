@@ -35,11 +35,11 @@ msgid "Transparent Proxy Local Port"
 msgstr "Transparent Proxy Local Port"
 
 msgid "shadowsocks"
-msgstr "shadowsocks"
+msgstr "Shadowsocks"
 
 msgid "shadowsocks is not running"
-msgstr "shadowsocks is not running"
+msgstr "Shadowsocks is not running"
 
 msgid "shadowsocks is running"
-msgstr "shadowsocks is running"
+msgstr "Shadowsocks is running"
 
