@@ -18,7 +18,7 @@ static void getPIN(byte *userName, byte *PIN) {
     time_t timenow;//当前时间，从time()获得
     byte RADIUS[16];//凑位字符
     byte timeByte[4];//时间 div 5
-    byte beforeMD5[32];//时间 div 5+用户名+凑位
+    byte* beforeMD5;//时间 div 5+用户名+凑位
     MD5_CTX md5;//MD5结构体
     byte afterMD5[16];//MD5输出
     byte MD501H[2]; //MD5前两位
@@ -43,7 +43,7 @@ static void getPIN(byte *userName, byte *PIN) {
     beforeMD5={time encryption}+{user name}+{RADIUS}+'\0';
     default length is 31
     */
-    byte* beforeMD5=malloc(strlen(timeByte)+strlen(userName)+strlen(RADIUS)+1);
+    beforeMD5 = malloc(strlen(timeByte)+strlen(userName)+strlen(RADIUS)+1);
     memcpy(beforeMD5,timeByte,4);
     info("1.<%s>",beforeMD5);
 
