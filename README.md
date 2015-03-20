@@ -12,15 +12,15 @@ Add "src-git extra git://github.com/shangjiyu/openwrt-extra.git" to feeds.conf.d
 
 the list of packages:
 * dnscrypt-proxy
-* libsodium (depended by dnscrypt-proxy, but have no ipk)
+* dns2socks
 * luci-app-aira2
 * shadowsocks-libev
 * webui-aria2
 * yaaw
 
 added
-* sanxun
-* drcom (zjut only)
+* shanxun
+* drcom (ZJUT only)
 * nodejs (untested)
 * mentohust
 * ChinaDNS
