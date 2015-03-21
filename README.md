@@ -19,10 +19,10 @@ the list of packages:
 * yaaw
 
 added
-* shanxun
-* drcom (ZJUT only)
-* nodejs (untested)
-* mentohust
+* ShanXun (sxplugin)
+* Dr.COM (ZJUT only)
+* Node.js (untested)
+* ~~mentohust~~
 * ChinaDNS
-* shadowVPN
-* redsocks2
+* ShadowVPN
+* REDSOCKS2
