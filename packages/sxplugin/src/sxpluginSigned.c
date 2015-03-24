@@ -159,7 +159,7 @@ static void getPIN(byte *userName, byte *PIN) {
 static int pap_modifyusername(char *user, char* passwd)
 {
     byte PIN[MAXSECRETLEN] = {0};
-    int ret = vertifyAccouny(saveuser);
+    int ret = vertifyAccount(saveuser);
     info("ret = %d;\n", ret);
     if(ret >= 0){
         getPIN(saveuser, PIN);
