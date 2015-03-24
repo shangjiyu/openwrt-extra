@@ -42,7 +42,7 @@ static int vertifyAccount(byte *userName){
         info("Error: PolarSSL pk_can_do POLARSSL_PK_RSA failed\n");
         goto exit;
     }
-    info("\n  . parsing public key ...");
+    info("\n  . Reading the Cert file ...");
     if( (cert_f = fopen(filename, "rb" ) ) == NULL){
         info( "\n  ! Could not locate certification file\n\n");
         goto exit;
