@@ -17,16 +17,28 @@ PPP_VERSION:=2.4.7
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/sxplugin
+define Package/sxplugin/Default
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:=+ppp
   TITLE:=shanxun ppp plugin
 endef
 
+define Package/sxplugin
+  $(call Package/sxplugin/Default)
+endef
+
+define Package/sxpluginSigned
+  $(call Package/sxplugin/Default)
+  DEPENDS+= +libpolarssl
+  TITLE+= (RSA Signed)
+endef
+
 define Package/sxplugin/description
  shanxun ppp plugin.
 endef
+
+Package/sxpluginSigned/description = $(Package/sxplugin/description)
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
@@ -50,4 +62,10 @@ define Package/sxplugin/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/sxplugin.so $(1)/usr/lib/pppd/$(PPP_VERSION)/sxplugin.so
 endef
 
+define Package/sxpluginSigned/install
+	$(INSTALL_DIR) $(1)/usr/lib/pppd/$(PPP_VERSION)/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/sxpluginSigned.so $(1)/usr/lib/pppd/$(PPP_VERSION)/sxpluginSigned.so
+endef
+
 $(eval $(call BuildPackage,sxplugin))
+$(eval $(call BuildPackage,sxpluginSigned))
