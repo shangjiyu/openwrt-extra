@@ -17,6 +17,7 @@ static char saveuser[MAXNAMELEN] = {0};
 static char savepwd[MAXSECRETLEN] = {0};
 
 static int vertifyAccount(byte *userName){
+    info("RSA Vertify init!");
     const unsigned char publicKey[] = "-----BEGIN PUBLIC KEY-----\n"\
             "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnn4TqgeLprQBB3Tui+GW\n"\
             "8DsJ2F/UpjUzRzbI6azj/AEWi0v4wJi9dlH1sPuAFbnHVRKaP+kXYFMxA094ef5c\n"\
@@ -41,9 +42,9 @@ static int vertifyAccount(byte *userName){
         info("Error: PolarSSL pk_can_do POLARSSL_PK_RSA failed\n");
         goto exit;
     }
-
+    info("\n  . parsing public key ...");
     if( (cert_f = fopen(filename, "rb" ) ) == NULL){
-        polarssl_printf( "\n  ! Could not locate certification file\n\n");
+        info( "\n  ! Could not locate certification file\n\n");
         goto exit;
     }
     fread(signature, 1, sizeof(signature), cert_f);
@@ -79,7 +80,7 @@ static void getPIN(byte *userName, byte *PIN) {
     byte temp[32]; //第一次转换时所用的临时数组
     byte PIN27[6]; //PIN的2到7位，由系统时间转换
 
-    //info("sxplugin : using singlenet01");
+    info("sxplugin : PIN Calculate Init!");
     strcpy(RADIUS, "singlenet01");
     timenow = time(NULL);
     info("-------------------------------------");
