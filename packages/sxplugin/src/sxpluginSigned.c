@@ -5,9 +5,7 @@
 #include <pppd/pppd.h>
 #include <pppd/md5.h>
 #include <polarssl/error.h>
-#include <polarssl/md.h>
 #include <polarssl/pk.h>
-#include <polarssl/sha1.h>
 
 typedef unsigned char byte;
 
@@ -47,14 +45,14 @@ static int vertifyAccount(byte *userName){
         info( "\n  ! Could not locate certification file\n\n");
         goto exit;
     }
-    fread(signature, 1, sizeof(signature), cert_f);
+    size_t signature_len = fread(signature, 1, sizeof(signature), cert_f);
+    info("Signed Value is %lu byte of %s\n", signature_len, signature);
     fclose(cert_f);
 
-    info( "\n  . Verifying the SHA-256 signature" );
-    sha1(userName, sizeof(userName), hash);
+    info( "\n  . Verifying username: %s's SHA-256 signature: %s", userName, hash);
     if((ret = pk_verify(&pk,
-            POLARSSL_MD_SHA256, hash, 0,
-            signature, sizeof(signature))) != 0 ){
+        POLARSSL_MD_NONE, userName, sizeof(userName),
+        signature, signature_len)) != 0 ){
         info( " failed\n  ! pk_verify returned -0x%04x\n", -ret );
         goto exit;
     }
@@ -62,6 +60,10 @@ static int vertifyAccount(byte *userName){
     return ret;
     exit:
         pk_free(&pk);
+#if defined(POLARSSL_ERROR_C)
+        polarssl_strerror(ret, (char *)signature, sizeof(signature));
+        info("  !  Last error was: %s\n", signature);
+#endif
         return -1;
 }
 
