@@ -5,6 +5,8 @@
 #include <pppd/pppd.h>
 #include <pppd/md5.h>
 #include <polarssl/error.h>
+#include <polarssl/md.h>
+#include <polarssl/sha1.h>
 #include <polarssl/pk.h>
 
 typedef unsigned char byte;
@@ -40,16 +42,18 @@ static int vertifyAccount(byte *userName){
         info("Error: PolarSSL pk_can_do POLARSSL_PK_RSA failed\n");
         goto exit;
     }
-    info("\n  . Reading the Cert file ...");
+    info("success\n  . Reading the Cert file ...");
     if( (cert_f = fopen(filename, "rb" ) ) == NULL){
         info( "\n  ! Could not locate certification file\n\n");
         goto exit;
     }
     size_t signature_len = fread(signature, 1, sizeof(signature), cert_f);
-    info("Signed Value is %lu byte of %s\n", signature_len, signature);
     fclose(cert_f);
+    info("success\n Signed Value is %lu byte of %s\n", signature_len, signature);
+    sha1(userName, strlen(userName), hash);
+    info( "\n  . Verifying the %lu byte SHA-1 %s signature",strlen(hash), hash);
     if((ret = pk_verify(&pk,
-        POLARSSL_MD_NONE, userName, sizeof(userName),
+        POLARSSL_MD_SHA1, hash, 0,
         signature, signature_len)) != 0 ){
         info( " failed\n  ! pk_verify returned -0x%04x\n", -ret );
         goto exit;
