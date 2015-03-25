@@ -48,8 +48,6 @@ static int vertifyAccount(byte *userName){
     size_t signature_len = fread(signature, 1, sizeof(signature), cert_f);
     info("Signed Value is %lu byte of %s\n", signature_len, signature);
     fclose(cert_f);
-
-    info( "\n  . Verifying username: %s's SHA-256 signature: %s", userName, hash);
     if((ret = pk_verify(&pk,
         POLARSSL_MD_NONE, userName, sizeof(userName),
         signature, signature_len)) != 0 ){
