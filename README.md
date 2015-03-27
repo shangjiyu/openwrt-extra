@@ -19,7 +19,7 @@ the list of packages:
 * yaaw
 
 added
-* ShanXun (sxplugin)
+* ShanXun (sxplugin-singleNet)
 * Dr.COM (ZJUT only)
 * Node.js (untested)
 * ~~mentohust~~
