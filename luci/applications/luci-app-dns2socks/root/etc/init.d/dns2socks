@@ -1,6 +1,6 @@
 #!/bin/sh /etc/rc.common
 
-START=90
+START=96
 STOP=15
 PIDFILE='/tmp/run/dns2socks.pid'
 
