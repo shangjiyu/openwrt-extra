@@ -7,7 +7,7 @@ local kosqd = luci.http.formvalue("cbi.apply")
 m = Map("youku", translate("优酷路由宝"), translate("买个优酷路由宝，躺着赚钱就是屌。"))
 s = m:section(TypedSection, "youku", translate("屌宝"))
 s.anonymous = true
-o = s:option(Flag, "enable", translate("是否启用框机")
+o = s:option(Flag, "enable", translate("是否启用框机"))
 o = s:option(Flag, "oksn", translate("是否使用自己的SN"), translate("不勾选则根据mac算出唯一的SN"))
 o = s:option(Value, "opsn", translate("原版SN"))
 o:depends("oksn","1")
