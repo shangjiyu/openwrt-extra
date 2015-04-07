@@ -1,0 +1,56 @@
+#!/bin/sh
+sleep 20
+path=$(uci get -q youku.youku.path)
+sleep 2
+if [ "$(uci get -q youku.youku.enable)" -eq "0"]
+then
+killall -9 ikuacc
+exit 0
+fi
+sleep 2
+if [ -z $path ]
+then
+path=$(df|grep '/mnt/'|awk '{print$6}'|head -n 1)
+if [ -z $path ]
+then
+path=$(df|grep '/mnt/'|awk '{print$5}'|head -n 1)
+if [ -z $path ]
+then
+killall -9 ikuacc
+exit 0
+fi 
+fi
+fi
+mkdir -p $path/youku/meta
+mkdir -p $path/youku/data
+chmod -R 777 $path/youku
+sleep 2
+wksn="2115$(cat /sys/class/net/br-lan/address|tr -d ':'|md5sum |tr -dc [0-9]|cut -c 0-12)"
+sleep 2
+if [ "$(uci get -q youku.youku.oksn)" -eq "1" ]
+then
+wksn="$(uci get -q youku.youku.opsn)"
+fi
+  while true
+do
+sleep 20
+if [ "$(uci get -q youku.youku.cqboot)" -eq "$(date +%H%M)" ]
+then
+sleep 30
+reboot
+fi
+sleep 5
+if [ -z $(pidof ikuacc) ]
+then
+sleep 5
+ikuacc  --device-serial-number="0000$wksn"  --mobile-meta-path="$path/youku/meta" --mobile-data-path="$path/youku/data"  &
+sleep 5
+sdt="1"
+fi
+if [ "$sdt" -eq "1"]
+then
+wget -O - 'http://127.0.0.1:8908/peer/limit/network/set?upload_model='"$(uci get -q youku.youku.wkmod)" > /dev/null 2>&1
+sleep 2
+sdt=0
+fi
+done

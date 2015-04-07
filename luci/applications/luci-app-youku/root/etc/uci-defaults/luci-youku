@@ -1,0 +1,19 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@youku]
+	add ucitrack youku
+	set ucitrack.@youku[-1].init=youku
+	commit ucitrack
+EOF
+
+	uci set firewall.youku="rule"
+	uci set firewall.youku.enabled="1"
+	uci set firewall.youku.target="ACCEPT"
+	uci set firewall.youku.src="wan"
+	uci set firewall.youku.proto="tcp udp"
+	uci set firewall.youku.dest_port="4466"
+	uci set firewall.youku.name="youkusystem"
+	uci commit firewall
+rm -f /tmp/luci-indexcache
+exit 0

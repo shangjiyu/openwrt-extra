@@ -1,0 +1,5 @@
+
+config youku 'youku'
+	option	enable	'1'
+	option	oksn	'0'
+	option	wkmod	'0'
