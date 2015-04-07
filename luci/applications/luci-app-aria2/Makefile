@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI Support for aria2
-LUCI_DEPENDS:=+aria2 +curl +wget +openssl-util +yaaw
+LUCI_DEPENDS:=+aria2
 
 include ../../luci.mk
 
