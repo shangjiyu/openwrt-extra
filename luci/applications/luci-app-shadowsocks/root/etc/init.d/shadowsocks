@@ -9,12 +9,12 @@ ipset_blacklist="/etc/ipset/blacklist"
 ipset_whitelist="/etc/ipset/whitelist"
 
 start() {
-	# HACK fd
-	ulimit -n 4096
-	
+    # HACK fd
+    ulimit -n 4096
+
 	config_load "shadowsocks"
 	local enabled remote rport lport pass redir_enabled redir_port \
-			whitelist_enabled blacklist_enabled 
+        whitelist_enabled blacklist_enabled 
 	config_get enabled config enabled
 	config_get remote config remote_server
 	config_get rport config remote_port
@@ -61,6 +61,7 @@ start() {
 			-f "$ss_redir_PID_FILE"
 		
 		iptables -t nat -N SHADOWSOCKS
+        #iptables -t mangle -N SHADOWSOCKS
 		iptables -t nat -A SHADOWSOCKS -d 0.0.0.0/8 -j RETURN
 		iptables -t nat -A SHADOWSOCKS -d 10.0.0.0/8 -j RETURN
 		iptables -t nat -A SHADOWSOCKS -d 127.0.0.0/8 -j RETURN
@@ -81,27 +82,32 @@ start() {
 			iptables -t nat -A SHADOWSOCKS -p tcp -m set ! --match-set whitelist dst -j REDIRECT --to-ports $redir_port
 		else
 			iptables -t nat -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports $redir_port
-		fi
+        fi
 		iptables -t nat -I zone_lan_prerouting -j SHADOWSOCKS
-	}
+        ##tproxy udprelay
+        #ip rule add fwmark 0x01/0x01 table 100
+        #ip route add local 0.0.0.0/0 dev lo table 100
+        #iptables -t mangle -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port $redir_port -tproxy-mark 0x01/0x01
+        #iptables -t mangle -I zone_lan_prerouting -j SHADOWSOCKS
+    }
 }
 
 ss_local_stop() {
-	service_stop /usr/bin/ss-local && {
-		rm "$ss_local_PID_FILE"
-	}
+    service_stop /usr/bin/ss-local && {
+    rm "$ss_local_PID_FILE"
+    }
 }
 
 ss_redir_stop() {
-	service_stop /usr/bin/ss-redir && {
-		iptables -t nat -D zone_lan_prerouting -j SHADOWSOCKS &> /dev/null
-		iptables -t nat -F SHADOWSOCKS &> /dev/null
-		sleep 1
-		iptables -t nat -X SHADOWSOCKS &> /dev/null
-		ipset destroy whitelist &> /dev/null
-		ipset destroy blacklist &> /dev/null
-		rm "$ss_redir_PID_FILE"
-	}
+    service_stop /usr/bin/ss-redir && {
+        iptables -t nat -D zone_lan_prerouting -j SHADOWSOCKS &> /dev/null
+        iptables -t nat -F SHADOWSOCKS &> /dev/null
+        sleep 1
+        iptables -t nat -X SHADOWSOCKS &> /dev/null
+        ipset destroy whitelist &> /dev/null
+        ipset destroy blacklist &> /dev/null
+        rm "$ss_redir_PID_FILE"
+    }
 }
 
 stop() {
