@@ -1,0 +1,6 @@
+msgid "N2N VPN Server"
+msgstr "N2N 服务器"
+
+msgid "This is N2N VPN Server ."
+msgstr "这是N2N 服务器设置"
+
