@@ -27,6 +27,9 @@ ipaddr.optional = false
 netmask = s:option(Value, "netmask", translate("Interface netmask"))
 netmask.optional = false
 
+mac = s:option(Value, "macaddr", translate("Device MAC address"))
+mac.optional = false
+
 supernode = s:option(Value, "supernode", translate("Supernode IP address"))
 supernode.optional = false
 

@@ -32,6 +32,9 @@ msgstr "接口IP地址"
 msgid "Interface netmask"
 msgstr "接口子网掩码"
 
+msgid "Device MAC address"
+msgstr "指定设备MAC地址"
+
 msgid "Supernode IP address"
 msgstr "Supernode节点IP地址"
 
