@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=drcom
-PKG_RELEASE:=1
+PKG_RELEASE:=20150427
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
