@@ -185,7 +185,7 @@ int main(int argc, char **argv)
         }
 
         //if (alive_count > 1) memcpy(tail, recv_data+16, tail_len);
-        sleep(18);
+        sleep(20);
         fprintf(stdout, "[drcom]: keep alive.\n");
         //alive_count = (alive_count + 1) % 3;
     } while (1);
