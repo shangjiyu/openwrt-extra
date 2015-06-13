@@ -47,7 +47,6 @@ define Build/Compile
 	$(TARGET_CC) \
 	$(TARGET_CFLAGS) \
 	$(TARGET_CPPFLAGS) \
-	$(TARGET_CPPFLAGS) \
 	$(FPIC) \
 	-o $(PKG_BUILD_DIR)/$(PKG_SOURCE_SUBDIR)/$(PKG_NAME) \
 	$(PKG_BUILD_DIR)/$(PKG_SOURCE_SUBDIR)/DNS2SOCKS.c \
@@ -62,6 +61,6 @@ define Package/dns2socks/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(PKG_SOURCE_SUBDIR)/$(PKG_NAME) $(1)/usr/bin/dns2socks
 endef
 
-$(shell $(RM) $(DL_DIR)/$(PKG_SOURCE))
+#$(shell $(RM) $(DL_DIR)/$(PKG_SOURCE))
 
 $(eval $(call BuildPackage,dns2socks))
