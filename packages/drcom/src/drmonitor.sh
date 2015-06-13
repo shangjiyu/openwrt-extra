@@ -7,7 +7,7 @@ if [ -z "$isCurl" ];then
         connected='No CURL Found'
 else
         connected=0
-        for url in www.baidu.com www.so.com ; do
+        for url in www.baidu.com www.haosou.com ; do
                 result=$(curl -o /dev/null -s -m 10 -w %{http_code} $url)
                 for flag in 200 301 404 ; do
                         if [ $flag = $result ];then
