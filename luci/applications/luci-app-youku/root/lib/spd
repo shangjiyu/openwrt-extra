@@ -1,0 +1,16 @@
+#!/bin/sh
+jk="$(uci get -q network.wan.ifname)"
+rx1="$(cat /proc/net/dev|grep "$jk"|awk '{print$2}')"
+tx1="$(cat /proc/net/dev|grep "$jk"|awk '{print$10}')"
+sleep 1
+rx2="$(cat /proc/net/dev|grep "$jk"|awk '{print$2}')"
+tx2="$(cat /proc/net/dev|grep "$jk"|awk '{print$10}')"
+#echo '<br></br>'下行：$(( $(( rx2 - rx1 )) / 1024 ))KB/秒  '<br></br>'    上行：$(( $(( tx2 - tx1 )) / 1024 ))KB/秒
+awk 'BEGIN{printf "<br></br>下行："'date'"%.2f\n""KB/s",'$(( rx2 - rx1 ))'/'1024'}'
+awk 'BEGIN{printf "<br></br>上行：""%.2f\n""KB/s",'$(( tx2 - tx1 ))'/'1024'}'
+ifconfig $jk|grep "RX bytes:"|tr -d '()'|awk '{print"<br></br>总流量：" "<br></br>总下载量："$3$4" 总上传量："$7$8}'
+echo '<br></br>'连接数：$(netstat -apn|grep ikuacc|wc -l)
+df -h|grep 'G'|awk '{print "<br></br>""挂载目录："$6" 总容量："$2"  剩余空间："$4}'
+ifstatus wan|grep '"address":'|awk -F '"' '{print "<br></br>WAN口IP："$4" 外网IP："}'
+wget -qO - ddns.oray.com/checkip|tr -cd [0-9.]
+echo '<br></br>矿工交流群：<a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=ba872a9cb12b8ab01a4fe6b6f588894fb2a2e70676abafc72319194975f42896">【路由宝挖矿心得】</a>'

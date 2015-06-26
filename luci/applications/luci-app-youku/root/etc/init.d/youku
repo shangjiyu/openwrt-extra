@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start(){
+killall -9 ikuacc youkudome
+sleep 1
+/lib/youkudome &
+}
+
+stop(){
+killall -9 ikuacc youkudome
+}
+restart(){
+killall -9 ikuacc youkudome
+sleep 1
+/lib/youkudome &
+}
+
+
+

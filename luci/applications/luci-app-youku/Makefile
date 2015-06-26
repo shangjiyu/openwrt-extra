@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI Support for YouKu
-LUCI_DEPENDS:=+libc +libpthread +libstdcpp +libthread-db +librt
+LUCI_DEPENDS:=+librt +libstdcpp +libthread-db
 
 include ../../luci.mk
 
