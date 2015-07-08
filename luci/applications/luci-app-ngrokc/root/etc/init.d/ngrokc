@@ -1,0 +1,45 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2007 OpenWrt.org
+
+START=99
+
+start_instance() {
+	config_get_bool enabled "$1" 'enabled'
+	config_get host "$1" 'host'
+	config_get port "$1" 'port'
+	config_get atoken "$1" 'atoken'
+	config_get type "$1" 'type'
+	config_get lhost "$1" 'lhost'
+	config_get lport "$1" 'lport'
+	config_get rport "$1" 'rport'
+	config_get sdname "$1" 'sdname'
+	[ ! $lhost ] && lhost='127.0.0.1'
+	if [ "$enabled" = 1 ]; then
+    		PARAMS=" -SER[Shost:${host},Sport:${port}"
+    		[ ! $atoken ] && PARAMS=${PARAMS}"]" || PARAMS=${PARAMS}",Atoken:${atoken}]"
+    		PARAMS=${PARAMS}" -AddTun[Type:${type},Lhost:${lhost},Lport:${lport}"
+		[ ${type} = "tcp" ] && PARAMS=${PARAMS}",Rport:${rport}]" || PARAMS=${PARAMS}",Sdname:${sdname}]"
+		/usr/bin/ngrokc $PARAMS  >/dev/null 2>&1 &
+	fi
+	
+}
+
+start() {
+	mkdir -p /tmp/ngrokc
+	config_load 'ngrokc'
+	[ -f /tmp/ngrokc/ngrokc_running ] || \
+	( config_foreach start_instance 'tunnels' ; touch /tmp/ngrokc/ngrokc_running )
+}
+
+stop() {
+	kill -2 `pidof ngrokc|sed "s/$$//g"` >/dev/null 2>&1
+	rm -f /tmp/ngrokc/*
+	sleep 2
+}
+
+
+
+boot() {
+	sleep 10
+	start
+}

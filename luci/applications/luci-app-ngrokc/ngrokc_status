@@ -1,0 +1,20 @@
+#!/bin/sh
+FPIPE="["
+TMPFILE=/tmp/$$_ngrokc_status.json
+touch $TMPFILE
+netstat -apn|grep ESTABLISHED|grep -oP '\d+(?=/ngrokc)'|sort -u|while read pid
+do
+	FPIPE=${FPIPE}'{"pid":"'${pid}'",'
+	cmdline=`cat /proc/${pid}/cmdline`
+	type=`echo ${cmdline}|grep -aoP '(?<=Type:)[a-z]+'`
+	host=`echo ${cmdline}|grep -aoP '[A-Za-z0-9-]+\.[A-Za-z0-9-]+(?=,Sport:)'`
+	lport=`echo ${cmdline}|grep -aoP '(?<=Lport:)\d+'`
+	rport=`echo ${cmdline}|grep -aoP '(?<=Rport:)\d+'`
+	sdname=`echo ${cmdline}|grep -aoP '(?<=Sdname:)[A-Za-z0-9-]+'`
+	[ ${type} = "tcp" ] && url='tcp://'${host}':'${rport} || url=${type}'://'${sdname}'.'${host}
+	FPIPE=${FPIPE}'"type":"'${type}'","lport":"'${lport}'","url":"'$url'"},'
+	echo $FPIPE > $TMPFILE
+done
+sed -i 's/,$/]/' $TMPFILE
+cat $TMPFILE
+rm $TMPFILE

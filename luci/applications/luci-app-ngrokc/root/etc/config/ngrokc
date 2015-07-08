@@ -1,0 +1,9 @@
+
+config tunnels 'tunnel1'
+	option host 'tunnel.mobi'
+	option port '44433'
+	option type 'http'
+	option lport '80'
+	option sdname 'openwrt'
+	option enabled '0'
+

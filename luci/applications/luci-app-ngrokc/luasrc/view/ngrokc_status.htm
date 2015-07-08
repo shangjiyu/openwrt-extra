@@ -1,0 +1,62 @@
+<script type="text/javascript">//<![CDATA[
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "ngrokc", "status")%>', null,
+	function(x, st)
+	{
+		var tb = document.getElementById('ngrokc_status_table');
+		if (st && tb)
+		{
+			/* clear all rows */
+			while( tb.rows.length > 1 )
+			tb.deleteRow(1);
+				for( var i = 0; i < st.length; i++ )
+				{
+          			var tr = tb.insertRow(-1);
+					tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
+
+					tr.insertCell(-1).innerHTML = st[i].pid;
+					tr.insertCell(-1).innerHTML = st[i].type;
+					tr.insertCell(-1).innerHTML = st[i].lport;
+					tr.insertCell(-1).innerHTML = st[i].url;
+				}
+		}
+
+
+		//if( tb.rows.length == 1 )
+		if( document.getElementById("collecting-data-tip") )
+		{
+			cbi_apply=document.getElementById("cbi-apply-ngrokc")
+			if( ( ! cbi_apply ) || (cbi_apply.style.display!="") )
+			{
+				tb.deleteRow(1);
+				var tr = tb.insertRow(-1);
+				tr.className = 'cbi-section-table-row';
+				var td = tr.insertCell(-1);
+				td.colSpan = 4;
+				td.innerHTML = '<em><br /><%:There are no active Ngrok connections.%></em>';
+			}
+		}
+
+
+
+	}
+);
+//]]></script>
+
+
+<fieldset class="cbi-section">
+	<legend><%:Active Ngrok Connections%></legend>
+	<table class="cbi-section-table" id="ngrokc_status_table">
+		<tr class="cbi-section-table-titles">
+			<th class="cbi-section-table-cell"><%:PID%></th>
+			<th class="cbi-section-table-cell"><%:Protocol%></th>
+			<th class="cbi-section-table-cell"><%:Local Port%></th>
+			<th class="cbi-section-table-cell"><%:URL%></th>
+		</tr>
+		<tr class="cbi-section-table-row">
+			<td colspan="4" id="collecting-data-tip"><em><br /><%:Collecting data...%></em></td>
+			<td colspan="4"><em></em></td>
+		</tr>
+	</table>
+</fieldset>
+
+
