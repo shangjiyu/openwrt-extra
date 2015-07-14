@@ -75,11 +75,11 @@ dip = s:option(Value, "destination", translate("destination ip"), translate("<ab
 wa.cbi_add_knownips(dip)
 dip.datatype = "and(ipaddr)"
 
---dport = s:option(Value, "dstport", translate("destination port"), translate("<abbr title=\"check that packet has this destination port\">Help</abbr>"))
-dport.datatype = "and(uinteger,max(65536),min(1))"
+dport = s:option(Value, "dstport", translate("destination port"), translate("<abbr title=\"check that packet has this destination port\">Help</abbr>"))
+--dport.datatype = "and(uinteger,max(65536),min(1))"
 
---sport = s:option(Value, "srcport", translate("source port"), translate("<abbr title=\"check that packet has this source port\">Help</abbr>"))
-sport.datatype = "and(uinteger,max(65536),min(1))"
+sport = s:option(Value, "srcport", translate("source port"), translate("<abbr title=\"check that packet has this source port\">Help</abbr>"))
+--sport.datatype = "and(uinteger,max(65536),min(1))"
 
 min_pkt_size = s:option(Value, "min_pkt_size", translate("min_pkt_size"), translate("<abbr title=\"check that packet is at least this size (in bytes)\">Help</abbr>"))
 min_pkt_size.datatype = "and(uinteger,min(1))"
