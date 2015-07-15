@@ -36,21 +36,21 @@ delay.datatype = "range(0,2)"
 delay.optional = false
 delay.default = 0.3
 
-iplist = s:option(Value, "iplist", translate("IP blacklist"), "")
-iplist.template = "cbi/tvalue"
-iplist.size = 30
-iplist.rows = 10
-iplist.wrap = "off"
+--iplist = s:option(Value, "iplist", translate("IP blacklist"), "")
+--iplist.template = "cbi/tvalue"
+--iplist.size = 30
+--iplist.rows = 10
+--iplist.wrap = "off"
 
-function iplist.cfgvalue(self, section)
-	return fs.readfile("/etc/chinadns_iplist.txt") or ""
-end
-function iplist.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		fs.writefile("/etc/chinadns_iplist.txt", value)
-	end
-end
+--function iplist.cfgvalue(self, section)
+--	return fs.readfile("/etc/chinadns_iplist.txt") or ""
+--end
+--function iplist.write(self, section, value)
+--	if value then
+--		value = value:gsub("\r\n?", "\n")
+--		fs.writefile("/etc/chinadns_iplist.txt", value)
+--	end
+--end
 
 chn = s:option(Value, "chn", translate("CHNRoute"), "")
 chn.template = "cbi/tvalue"

@@ -11,7 +11,7 @@ OPTIONS=""
 
 config_cb() {
     [ "$1" = "chinadns" ] && {
-    	OPTIONS="$OPTIONS -l /etc/chinadns_iplist.txt -c /etc/chinadns_chnroute.txt"
+    OPTIONS="$OPTIONS -c /etc/chinadns_chnroute.txt"
     }
 }
 
