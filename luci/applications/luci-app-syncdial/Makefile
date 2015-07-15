@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI Support for a diag hack
-LUCI_DEPENDS:=+kmod-macvlan +luci-app-mwan3
+LUCI_DEPENDS:=+kmod-macvlan +luci-app-mwan3 +shellsync
 
 include ../../luci.mk
 
