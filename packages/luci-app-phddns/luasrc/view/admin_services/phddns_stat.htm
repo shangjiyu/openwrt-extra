@@ -1,0 +1,24 @@
+<fieldset class="cbi-section">
+	<legend><%:Running status%></legend>
+	<table class="cbi-section-table" style="margin:10px; empty-cells:hide">
+		<tr class="cbi-section-table-row">
+			<th width="160"><%:Link status%>:</th>
+			<td id="state-phddns-status"></td>
+		</tr>
+		<tr class="cbi-section-table-row">
+			<th><%:Registered Domains%>:</th>
+			<td id="state-phddns-domain"></td>
+		</tr>
+	</table>
+</fieldset>
+<script language="javascript">
+XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "phddns_status")%>', null,
+	function(x, rv)
+	{
+		var s = document.getElementById("state-phddns-status"),
+			d = document.getElementById("state-phddns-domain");
+		s.innerHTML = rv.stat;
+		d.innerHTML = rv.domain;
+	}
+)
+</script>

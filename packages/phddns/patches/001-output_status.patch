@@ -1,0 +1,252 @@
+diff -uNr a/src/main.c b/src/main.c
+--- a/src/main.c	2014-04-09 10:15:25.000000000 +0800
++++ b/src/main.c	2015-01-19 21:54:21.414173886 +0800
+@@ -9,18 +9,17 @@
+ #include "log.h"
+ #include "phkey.h"
+ 
+-static void create_pidfile()
++static void create_pidfile(PHGlobal * gl)
+ {
+     FILE *pidfile;
+-    char pidfilename[128];
+-    sprintf(pidfilename, "%s", "/var/run/phddns.pid");
++    sprintf(gl->pidfilename, "%s", "/var/run/phddns.pid");
+ 	
+-    if ((pidfile = fopen(pidfilename, "w")) != NULL) {
++    if ((pidfile = fopen(gl->pidfilename, "w")) != NULL) {
+ 		fprintf(pidfile, "%d\n", getpid());
+ 		(void) fclose(pidfile);
+     } else {
+-		printf("Failed to create pid file %s: %m", pidfilename);
+-		pidfilename[0] = 0;
++		printf("Failed to create pid file %s: %m", gl->pidfilename);
++		gl->pidfilename[0] = 0;
+     }
+ }
+ #endif
+@@ -124,6 +123,9 @@
+ 	global.cbOnUserInfo = myOnUserInfo;
+ 	global.cbOnAccountDomainInfo = myOnAccountDomainInfo;
+ 
++#ifndef WIN32
++	create_pidfile(&global);
++#endif
+ 	set_default_callback(&global);
+ 	#ifdef OFFICIAL_CLIENT
+ 	#include "official/official_key.c"
+diff -uNr a/src/phglobal.c b/src/phglobal.c
+--- a/src/phglobal.c	2013-12-02 12:26:45.000000000 +0800
++++ b/src/phglobal.c	2015-01-19 22:08:09.548027232 +0800
+@@ -12,80 +12,108 @@
+ 
+ #include <time.h>
+ 
++
++static const char * pstr = "";
++static PHGlobal * m_global = NULL;
++
++static void write_status_file(char * status)
++{
++	FILE * fp = fopen("/var/phddns.stat","wb+");
++	int i=0;
++	if(NULL != fp)
++	{
++		fprintf(fp,"%s", status);
++		if(m_global->szActiveDomains[0][0] != '.')
++		{
++			fprintf(fp,"|");
++			while(1)
++			{
++				fprintf(fp,"%s%s" , 
++						m_global->szActiveDomains[i],
++						m_global->szActiveDomains[i+1][0] != '.'?",":""
++				);
++				i++;
++				if(m_global->szActiveDomains[i][0] == '.')
++					break;
++			}
++		}
++		fclose(fp);
++	}
++}
++
+ const char *convert_status_code(int nCode)
+ {
+-	const char* p = "";
+ 	switch (nCode)
+ 	{
+ 	case okConnecting:
+-		p = "okConnecting";
++		pstr = "okConnecting";
+ 		break;
+ 	case okConnected:
+-		p = "okConnected";
++		pstr = "okConnected";
+ 		break;
+ 	case okAuthpassed:
+-		p = "okAuthpassed";
++		pstr = "okAuthpassed";
+ 		break;
+ 	case okDomainListed:
+-		p = "okDomainListed";
++		pstr = "okDomainListed";
+ 		break;
+ 	case okDomainsRegistered:
+-		p = "okDomainsRegistered";
++		pstr = "okDomainsRegistered";
+ 		break;
+ 	case okKeepAliveRecved:
+-		p = "okKeepAliveRecved";
++		pstr = "okKeepAliveRecved";
+ 		break;
+ 	case okRetrievingMisc:
+-		p = "okRetrievingMisc";
++		pstr = "okRetrievingMisc";
+ 		break;
+ 	case errorConnectFailed:
+-		p = "errorConnectFailed";
++		pstr = "errorConnectFailed";
+ 		break;
+ 	case errorSocketInitialFailed:
+-		p = "errorSocketInitialFailed";
++		pstr = "errorSocketInitialFailed";
+ 		break;
+ 	case errorAuthFailed:
+-		p = "errorAuthFailed";
++		pstr = "errorAuthFailed";
+ 		break;
+ 	case errorDomainListFailed:
+-		p = "errorDomainListFailed";
++		pstr = "errorDomainListFailed";
+ 		break;
+ 	case errorDomainRegisterFailed:
+-		p = "errorDomainRegisterFailed";
++		pstr = "errorDomainRegisterFailed";
+ 		break;
+ 	case errorUpdateTimeout:
+-		p = "errorUpdateTimeout";
++		pstr = "errorUpdateTimeout";
+ 		break;
+ 	case errorKeepAliveError:
+-		p = "errorKeepAliveError";
++		pstr = "errorKeepAliveError";
+ 		break;
+ 	case errorRetrying:
+-		p = "errorRetrying";
++		pstr = "errorRetrying";
+ 		break;
+ 	case okNormal:
+-		p = "okNormal";
++		pstr = "okNormal";
+ 		break;
+ 	case okNoData:
+-		p = "okNoData";
++		pstr = "okNoData";
+ 		break;
+ 	case okServerER:
+-		p = "okServerER";
++		pstr = "okServerER";
+ 		break;
+ 	case errorOccupyReconnect:
+-		p = "errorOccupyReconnect";
++		pstr = "errorOccupyReconnect";
+ 		break;
+ 	case okRedirecting:
+-		p = "okRedirecting";
++		pstr = "okRedirecting";
+ 		break;
+ 	case errorAuthBusy:
+-		p = "errorAuthBusy";
++		pstr = "errorAuthBusy";
+ 		break;
+ 	case errorStatDetailInfoFailed:
+-		p = "errorAuthBusy";
++		pstr = "errorAuthBusy";
+ 		break;
+ 	}
+ 
+-	return p;
++	return pstr;
+ }
+ 
+ 
+@@ -149,7 +177,9 @@
+ 
+ static void defOnStatusChanged(PHGlobal* global, int status, int data)
+ {
+-	printf("defOnStatusChanged %s", convert_status_code(status));
++	//printf("defOnStatusChanged %s", convert_status_code(status));
++	char * status_str = convert_status_code(status);
++	printf("defOnStatusChanged %s", status_str);
+ 	if (status == okKeepAliveRecved)
+ 	{
+ 		printf(", IP: %d", data);
+@@ -158,6 +188,7 @@
+ 	{
+ 		printf(", UserType: %d", data);
+ 	}
++	write_status_file(status_str);
+ 	printf("\n");
+ }
+ 
+@@ -180,6 +211,9 @@
+ {
+ 	int x = 1;
+ 	char *p = (char *)&x;
++
++	m_global = global;
++
+ 	if (*p) global->bBigEndian = FALSE;
+ 	else global->bBigEndian = TRUE;
+ 
+@@ -189,6 +223,7 @@
+ 	strcpy(global->szBindAddress,"");
+ 	global->nUserType = 0;
+ 	global->nPort = 6060;
++	global->pidfilename[0]='\0';
+ 
+ 	global->bTcpUpdateSuccessed = FALSE;
+ 	strcpy(global->szChallenge,"");
+@@ -216,6 +251,14 @@
+ 	global->cbOnAccountDomainInfo = NULL;
+ }
+ 
++void free_global(PHGlobal *global)
++{
++	puts("free global ......");
++	if('\0' != global->pidfilename[0])
++		unlink(global->pidfilename);
++	unlink("/tmp/phddns.stat");
++}
++
+ void set_default_callback(PHGlobal *global)
+ {
+ 	global->cbOnStatusChanged = defOnStatusChanged;
+diff -uNr a/src/phglobal.h b/src/phglobal.h
+--- a/src/phglobal.h	2013-12-02 12:26:45.000000000 +0800
++++ b/src/phglobal.h	2015-01-19 22:00:51.609171046 +0800
+@@ -164,6 +164,7 @@
+ 	int nAddressIndex;
+ 	char szTcpConnectAddress[32];
+ 
++	char pidfilename[128];
+ 	int cLastResult;
+ 	int ip;
+ 
+@@ -192,4 +193,5 @@
+ void init_global(PHGlobal *global);
+ void set_default_callback(PHGlobal *global);
+ 
++void free_global(PHGlobal *global);
+ #endif
+diff -uNr a/src/phupdate.c b/src/phupdate.c
+--- a/src/phupdate.c	2013-12-02 12:26:45.000000000 +0800
++++ b/src/phupdate.c	2015-01-19 22:01:39.513109945 +0800
+@@ -602,4 +602,6 @@
+ 	phglobal->tmLastSend = time(0);
+ 	sleep(1); //ensure data sent
+ 	DestroySockets(phglobal);
++	
++	free_global(phglobal);
+ }

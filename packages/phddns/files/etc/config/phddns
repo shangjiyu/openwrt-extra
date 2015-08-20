@@ -1,0 +1,5 @@
+config phddns
+	option enabled	'1'
+	option username	'gqlhome'
+	option password	'z2x5y8'
+	

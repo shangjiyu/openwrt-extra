@@ -1,0 +1,66 @@
+#!/bin/sh  /etc/rc.common
+
+START=92
+BIN_FILE=/usr/sbin/phddns
+PID_FILE=/var/run/phddns.pid
+CFG_FILE=/var/phddns.cfg
+
+. /lib/functions.sh
+
+local username
+local password
+local enabled
+local ifname=`cat /var/state/network | awk ' BEGIN{FS="="} $1=="network.lan.ifname" {print $2}'`
+
+config_load "phddns"
+
+parse_account()
+{
+	config_get username "$section" "username"
+	config_get password "$section" "password"
+	config_get enabled "$section" "enabled"
+}
+
+config_foreach parse_account 'phddns'
+
+start()
+{
+	if [ "1" = "$enabled" ] || [ "on" = "$enabled" ] || [ "true" = "$enabled" ]; then
+		cat > $CFG_FILE <<EOF
+[settings] 
+szHost = PhLinux3.Oray.Net 
+szUserID = $username 
+szUserPWD = $password 
+nicName = $ifname 
+szLog = /var/log/phddns.log
+EOF
+		if [ -f "$PID_FILE" ]; then
+			echo "phddns is running"
+		else
+			$BIN_FILE -d -c $CFG_FILE
+		fi
+	else
+		echo "phddns is disabled."
+	fi
+}
+
+stop()
+{
+	if [ -f "$PID_FILE" ]; then
+	    local PID=`cat $PID_FILE`
+		kill -s 15 $PID
+		rm -f "$PID_FILE" "$CFG_FILE" "/tmp/phddns.stat"
+		sleep 1s
+	fi
+}
+
+boot ()
+{
+	start "$@"
+}
+
+shutdown()
+{
+	stop
+}
+

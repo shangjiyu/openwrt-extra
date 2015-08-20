@@ -1,0 +1,69 @@
+msgid "Oray DDNS"
+msgstr "花生壳动态域名"
+
+msgid "Oray account"
+msgstr "花生壳账户配置"
+
+msgid "This page allows you to set Oray DDNS."
+msgstr "这个页面允许您设置花生壳动态域名配置信息."
+
+msgid "Subversion"
+msgstr "SVN版本仓库"
+
+msgid "Subversion Server"
+msgstr "SVN服务器"
+
+msgid "This page allows you to set Subversion Server."
+msgstr "这个页面允许您设置SVN服务器配置信息."
+
+msgid "Svn Root"
+msgstr "仓库根路径:"
+
+msgid "Listen Address"
+msgstr "监听地址:"
+
+msgid "Listen Port"
+msgstr "监听端口:"
+
+msgid "Cache Size"
+msgstr "缓存尺寸:"
+
+msgid "KMS Server"
+msgstr "KMS 服务器"
+
+msgid "okConnecting"
+msgstr "正在连接..."
+
+msgid "okConnected"
+msgstr "连接成功"
+
+msgid "okAuthpassed"
+msgstr "认证通过"
+
+msgid "okDomainListed"
+msgstr "域名列表已获取"
+
+msgid "okDomainsRegistered"
+msgstr "域名已经注册"
+
+msgid "okKeepAliveRecved"
+msgstr "保持连接"
+
+msgid "errorConnectFailed"
+msgstr "错误:连接失败"
+
+msgid "errorSocketInitialFailed"
+msgstr "错误:socket初始化失败"
+
+msgid "errorAuthFailed"
+msgstr "错误:认证失败"
+
+msgid "Running status"
+msgstr "运行状态"
+
+msgid "Link status"
+msgstr "连接状态"
+
+msgid "Registered Domains"
+msgstr "注册域名"
+
