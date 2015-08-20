@@ -1,0 +1,70 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2014-2999 extgui.com
+# Author bywayboy<bywayboy@qq.com>
+# Last Update: 2014-09-23
+
+. /lib/functions.sh
+
+START=93
+
+EXECUTEBIN="/usr/sbin/vlmcsd"
+PIDFILE="/var/run/vlmcsd.pid"
+INIFILE="/etc/vlmcsd.ini"
+CONFIGFILE=""
+LISTENPORT=1688
+ENABLED='1'
+USEEPIDFILE='0'
+
+config_load "vlmcsd"
+
+parse_vlmcsd()
+{
+	config_get LISTENPORT "$section" "port"
+	config_get ENABLED "$section" "enabled"
+	config_get USEEPIDFILE "$section" "useepifile"
+}
+config_foreach parse_vlmcsd 'vlmcsd'
+
+start ()
+{
+	if [ "1" = "$ENABLED" ] || [ "on" = "$ENABLED" ] || [ "true" = "$ENABLED" ]; then
+		if [ ! -f $PIDFILE ]; then 
+			if [ "1" = "$USEEPIDFILE" ] || [ "on" = "$USEEPIDFILE" ] || [ "true" = "$USEEPIDFILE" ]; then
+				$EXECUTEBIN -d -i $INIFILE -p $PIDFILE -P $LISTENPORT -l syslog
+			else
+				$EXECUTEBIN -d -p $PIDFILE -P $LISTENPORT -l syslog
+			fi
+		else
+			PID=`cat $PIDFILE`
+			kill -s 0 $PID
+			RESULT=$?
+			if [ -f $PIDFILE ] && [ $RESULT -eq 0 ]; then
+				echo "KMS Server is already running"
+				exit 2
+			else
+				echo "Please check pid file or use forcestart to overwrite pid"
+			fi
+		fi
+	else
+		echo "vlmcsd is disabled!"
+	fi
+}
+
+stop ()
+{
+	if [ -f $PIDFILE ]; then
+		PID=`cat $PIDFILE`
+		kill $PID
+		echo "KMS Has been stopped"
+	else
+		echo "KMS is not running"
+	fi
+}
+
+restart ()
+{
+	stop
+	sleep 1s;
+	start
+	
+}
