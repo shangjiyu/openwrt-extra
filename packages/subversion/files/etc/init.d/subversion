@@ -1,0 +1,69 @@
+#!/bin/sh  /etc/rc.common
+
+. /lib/functions.sh
+
+START=92
+PID_FILE=/var/run/svnserve.pid
+
+config_load "subversion"
+
+local svnroot
+local svnport
+local svnaddr
+local memcache
+local enabled
+
+parse_server()
+{
+	local section="$1"         
+	local _value;
+	config_get svnroot "$section" "root"
+	config_get svnport "$section" "port"
+	config_get svnaddr "$section" "addr"
+	config_get memcache "$section" 'memcache'
+	config_get enabled "$section" "enabled"            
+}
+
+config_foreach parse_server 'server'
+
+start()
+{
+	if [ "1" = "$enabled" ] || [ "on" = "$enabled" ] || [ "true" = "$enabled" ]; then
+		if [ -f "$PID_FILE" ]; then
+			local pid=`cat $PID_FILE`
+			kill "$pid"
+			rm -f "$PID_FILE"
+		fi
+		/usr/bin/svnserve \
+			-d \
+			--log-file syslog \
+			--pid-file $PID_FILE \
+			--listen-host $svnaddr \
+			--listen-port $svnport \
+			--root $svnroot \
+			--memory-cache-size $memcache \
+			>/dev/null
+	else
+		echo "svnserv is disabled!"
+	fi
+}
+
+stop()
+{
+	if [ -f "$PID_FILE" ]; then
+		local pid=`cat $PID_FILE`
+		kill $pid
+		rm -f "$PID_FILE"
+	fi
+}
+
+boot ()
+{
+	start "$@"
+}
+
+shutdown()
+{
+	stop
+}
+
