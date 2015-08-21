@@ -7,5 +7,5 @@ msgstr "Concurrency"
 msgid "Output Interface"
 msgstr "Output Interface"
 
-msgsid "User Token"
+msgid "User Token"
 msgstr "User Token"
