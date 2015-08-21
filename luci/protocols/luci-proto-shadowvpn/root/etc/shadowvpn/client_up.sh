@@ -4,7 +4,7 @@
 LOCAL_ADDR="${net%???}"
 MASK="$(echo $net | tail -c3)"
 REMOTE_ADDR="${LOCAL_ADDR%?}1"
-DEFAULT_GATEWAY="`netstat -r -n | awk '/:/ { next; } /^(default|0\.0\.0\.0)/ { print $8; }'`"
+DEFAULT_GATEWAY="$(ip route show 0/0 | sort -k 7 | head -n 1 | sed -e 's/.* via \([^ ]*\).*/\1/')"
 
 echo $DEFAULT_GATEWAY_IP > /var/etc/shadowvpn_defaultgw_ip
 
