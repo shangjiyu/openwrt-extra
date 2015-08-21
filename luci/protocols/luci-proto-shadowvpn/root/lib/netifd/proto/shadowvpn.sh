@@ -17,7 +17,7 @@ proto_shadowvpn_init_config() {
 proto_shadowvpn_setup() {
 	local config="$1"
 
-	json_get_vars server port password mtu concurrency interface
+	json_get_vars server port password mtu concurrency interface usertoken localnet
 
 	grep -q tun /proc/modules || insmod tun
 
@@ -35,17 +35,19 @@ proto_shadowvpn_setup() {
 		exit 1
 	}
 
-
 	mkdir -p /var/etc
 	sed -e "s#|SERVER|#$server#g" \
 		-e "s#|PORT|#$port#g" \
 		-e "s#|PASSWORD|#$password#g" \
+		-e "s#|NET|#$localnet#g" \
 		-e "s#|INTERFACE|#vpn-$config#g" \
 		-e "s#|MTU|#$mtu#g" \
 		-e "s#|CONCURRENCY|#$concurrency#g" \
 		/etc/shadowvpn/client.conf.template > /var/etc/shadowvpnclient.conf
 
-	echo "$config" > /var/etc/shadowvpn_intf
+	if [[ -n $usertoken ]]; then
+		echo "user_token=$usertoken" >> /var/etc/shadowvpnclient.conf
+	fi
 
 	proto_export INTERFACE="$config"
 	logger -t shadowvpn "executing ShadowVPN"
@@ -58,7 +60,7 @@ proto_shadowvpn_teardown() {
 	local config="$1"
 	logger -t shadowvpn "bringing down ShadowVPN"
 	proto_kill_command "$config"
-	rm /var/etc/shadowvpnclient.conf /var/etc/shadowvpn_intf
+	rm -f /var/etc/shadowvpnclient.conf
 }
 
 add_protocol shadowvpn
