@@ -1,0 +1,17 @@
+if PACKAGE_shadowsocks-libev || PACKAGE_shadowsocks-libev-server
+
+comment "SSL support"
+
+choice
+	prompt "Selected SSL library"
+	default SHADOWSOCKS_LIBEV_POLARSSL
+
+	config SHADOWSOCKS_LIBEV_POLARSSL
+		bool "PolarSSL"
+
+	config SHADOWSOCKS_LIBEV_OPENSSL
+		bool "OpenSSL"
+
+endchoice
+
+endif

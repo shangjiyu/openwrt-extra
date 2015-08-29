@@ -6,8 +6,8 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI Support for ShadowSocks
-LUCI_DEPENDS:=+shadowsocks-libev-polarssl +kmod-ipt-nat +kmod-ipt-nat-extra +kmod-ipt-ipset +ipset +resolveip
+LUCI_TITLE:=LuCI Support for Shadowsocks
+LUCI_DEPENDS:=+shadowsocks-libev +kmod-ipt-nat +kmod-ipt-nat-extra +kmod-ipt-ipset +ipset +resolveip
 
 include ../../luci.mk
 
