@@ -51,6 +51,9 @@ define Package/shadowsocks-libev-server/config
   source "$(SOURCE)/Config.in"
 endef
 
+CONFIGURE_ARGS += \
+	$(if $(CONFIG_SHADOWSOCKS_LIBEV_POLARSSL),--with-crypto-library=polarssl,)
+
 define Package/shadowsocks-libev/description
 Shadowsocks-libev is a lightweight secured scoks5 proxy for embedded devices and low end boxes.
 endef
