@@ -32,8 +32,8 @@ PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)
 include $(INCLUDE_DIR)/package.mk
 
 define Package/oscam
-  SECTION:=custom
-  CATEGORY:=Custom packages
+  SECTION:=stream
+  CATEGORY:=Multimedia
   DEPENDS:=+libopenssl +libpthread +libusb-1.0
   TITLE:=Open Source Conditional Access Module software
   URL:=http://streamboard.gmc.to/oscam/
