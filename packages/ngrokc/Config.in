@@ -1,0 +1,11 @@
+choice
+	prompt "Selected SSL library"
+	default NGROKC_POLARSSL
+
+	config NGROKC_POLARSSL
+		bool "PolarSSL"
+
+	config NGROKC_OPENSSL
+		bool "OpenSSL"
+
+endchoice
