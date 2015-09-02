@@ -1,0 +1,20 @@
+#
+#	Project:	rr
+#	Author:		Aaron
+#	Time:		20130927
+#
+
+RR_MODULE_NAME	=	advkill-gcc
+RR_MODULE_OBJ	=	$(RR_MODULE_NAME).o
+RR_MODULE_OBJS	=	advkill.o strcmd.o pkgoper.o advproc.o advhash.o advconfparse.o
+
+obj-m := $(RR_MODULE_OBJ)
+$(RR_MODULE_NAME)-objs := $(RR_MODULE_OBJS)
+
+KERNELBUILD := /lib/modules/`uname -r`/build
+
+default:
+	make -C $(KERNELBUILD) M=$(shell pwd) modules
+	
+clean:
+	rm -rf *.ko *.ko.unsigned *.mod.c *.mod.o *.o *.order *.symvers *.markers
