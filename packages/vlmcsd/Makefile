@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vlmcsd
-PKG_VERSION:=svn796
+PKG_VERSION:=svn812
 PKG_REV:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
@@ -22,7 +22,7 @@ define Package/vlmcsd
 endef
 
 define Package/vlmcsd/description
- A KMS server for openwrt svn498
+A KMS server for OpenWrt
 endef
 
 #编译准备工作,复制源码到目标目录

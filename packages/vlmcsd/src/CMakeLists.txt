@@ -22,7 +22,7 @@ SET(SOURCES
 	helpers.c
 	dns_srv.c
 	ns_name.c
-	ns_parser.c
+    ns_parse.c
 )
 
 ADD_EXECUTABLE(vlmcsd ${SOURCES})

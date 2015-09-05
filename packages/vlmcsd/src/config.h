@@ -97,7 +97,7 @@
 /*
  * Uncomment the following #define if you are compiling for a platform that does
  * not correctly handle the SA_NOCLDWAIT flag when ignoring SIGCHLD, i.e. forked
- * processes remain as "zombies" after dying. This option will add SIGCHLD handler that
+ * processes remain as "zombies" after dying. This option will add a SIGCHLD handler that
  * "waits" for a child that has terminated. This is only required for a few
  * unixoid OSses.
  */
@@ -335,6 +335,25 @@
 //#define _OPENSSL_SOFTWARE
 
 #endif // _OPENSSL_SOFTWARE
+
+
+
+
+/*
+ * ------------------------------------------------------------------------------------------
+ * Extra features not compiled by default because they are rarely needed
+ * ------------------------------------------------------------------------------------------
+ */
+
+
+#ifndef INCLUDE_BETAS
+/*
+ * Uncomment the following #define if you want obsolete beta/preview SKUs
+ * to be included in the extended product list.
+ */
+
+//#define INCLUDE_BETAS
+#endif
 
 
 

@@ -432,13 +432,13 @@ static BOOL getIniFileArgumentBool(int_fast8_t *result, const char *const argume
 }
 
 
-static BOOL getIniFileArgumentInt(int *result, const char *const argument, const int min, const int max)
+static BOOL getIniFileArgumentInt(unsigned int *result, const char *const argument, const unsigned int min, const unsigned int max)
 {
-	int tempResult;
+	unsigned int tempResult;
 
 	if (!stringToInt(argument, min, max, &tempResult))
 	{
-		snprintf(IniFileErrorBuffer, INIFILE_ERROR_BUFFERSIZE, "Must be integer between %i and %i", min, max);
+		snprintf(IniFileErrorBuffer, INIFILE_ERROR_BUFFERSIZE, "Must be integer between %u and %u", min, max);
 		IniFileErrorMessage = IniFileErrorBuffer;
 		return FALSE;
 	}
@@ -458,7 +458,7 @@ static char* allocateStringArgument(const char *const argument)
 
 static BOOL setIniFileParameter(uint_fast8_t id, const char *const iniarg)
 {
-	int result;
+	unsigned int result;
 	BOOL success = TRUE;
 
 	switch(id)
@@ -1177,9 +1177,6 @@ static void parseGeneralArguments() {
 
 		#ifndef _WIN32
 		case 'I': // Backward compatibility with svn681 and earlier
-			#ifdef _PEDANTIC
-			printerrorf("Warning: Ignoring option -I which is for backward compatibility with svn681 and earlier only.\n");
-			#endif // _PEDANTIC
 			break;
 		#endif // _WIN32
 

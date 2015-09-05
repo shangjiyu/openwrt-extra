@@ -13,8 +13,8 @@
 #define GUID_BE 1
 #define GUID_SWAP 2
 
-BOOL stringToInt(const char *const szValue, const int min, const int max, int *const value);
-int getOptionArgumentInt(const char o, const int min, const int max);
+BOOL stringToInt(const char *const szValue, const unsigned int min, const unsigned int max, unsigned int *const value);
+unsigned int getOptionArgumentInt(const char o, const unsigned int min, const unsigned int max);
 void optReset(void);
 char* win_strerror(const int message);
 int ucs2_to_utf8_char (const WCHAR ucs2_le, char *utf8);

@@ -23,24 +23,8 @@
 #define FRIENDLY_NAME_OFFICE2010 "Office 2010"
 #define FRIENDLY_NAME_OFFICE2013 "Office"
 
-/*#ifndef EPID_WINDOWS
-#define EPID_WINDOWS "06401-00206-271-392041-03-1033-9600.0000-3622014"
-#endif
-
-#ifndef EPID_OFFICE2010
-#define EPID_OFFICE2010 "06401-00096-199-496023-03-1033-9600.0000-3622014"
-#endif
-
-#ifndef EPID_OFFICE2013
-#define EPID_OFFICE2013 "06401-00206-234-409313-03-1033-9600.0000-3622014"
-#endif
-
-#ifndef HWID
-#define HWID 0x36, 0x4F, 0x46, 0x3A, 0x88, 0x63, 0xD3, 0x5F
-#endif*/
-
 #ifndef NO_BASIC_PRODUCT_LIST
-// Do not change the order of this list. Append items as necessary //58e2134f-8e11-4d17-9cb2-91069c151148
+// Do not change the order of this list. Append items as necessary
 const KmsIdList ProductList[] = {
 	/* 000 */ { { 0x212a64dc, 0x43b1, 0x4d3d, { 0xa3, 0x0c, 0x2f, 0xc6, 0x9d, 0x20, 0x95, 0xc6 } } /*"212a64dc-43b1-4d3d-a30c-2fc69d2095c6"*/, "Vista",                    EPID_WINDOWS,    4, 25 },
 	/* 001 */ { { 0x7fde5219, 0xfbfa, 0x484a, { 0x82, 0xc9, 0x34, 0xd1, 0xad, 0x53, 0xe8, 0x56 } } /*"7fde5219-fbfa-484a-82c9-34d1ad53e856"*/, "Windows 7",                EPID_WINDOWS,    4, 25 },

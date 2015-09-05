@@ -148,7 +148,7 @@ BOOL ucs2_to_utf8(const WCHAR* const ucs2_le, char* utf8, size_t maxucs2, size_t
 
 
 // Checks, whether a string is a valid integer number between min and max. Returns TRUE or FALSE. Puts int value in *value
-BOOL stringToInt(const char *const szValue, const int min, const int max, int *const value)
+BOOL stringToInt(const char *const szValue, const unsigned int min, const unsigned int max, unsigned int *const value)
 {
 	char *nextchar;
 
@@ -160,7 +160,7 @@ BOOL stringToInt(const char *const szValue, const int min, const int max, int *c
 		return FALSE;
 	}
 
-	*value = (int)result;
+	*value = (unsigned int)result;
 	return TRUE;
 }
 
@@ -213,13 +213,13 @@ void LEGUID(GUID *const restrict out, const GUID* const restrict in)
 
 
 //Checks a command line argument if it is numeric and between min and max. Returns the numeric value or exits on error
-__pure int getOptionArgumentInt(const char o, const int min, const int max)
+__pure unsigned int getOptionArgumentInt(const char o, const unsigned int min, const unsigned int max)
 {
-	int result;
+	unsigned int result;
 
 	if (!stringToInt(optarg, min, max, &result))
 	{
-		printerrorf("Fatal: Option \"-%c\" must be numeric between %i and %i.\n", o, min, max);
+		printerrorf("Fatal: Option \"-%c\" must be numeric between %u and %u.\n", o, min, max);
 		exit(!0);
 	}
 

@@ -36,9 +36,9 @@ DWORD ServerTimeout = 30;
 
 #if !defined(NO_LIMIT) && !defined (NO_SOCKETS) && !__minix__
 #ifdef USE_MSRPC
-int32_t MaxTasks = RPC_C_LISTEN_MAX_CALLS_DEFAULT;
+uint32_t MaxTasks = RPC_C_LISTEN_MAX_CALLS_DEFAULT;
 #else // !USE_MSRPC
-int32_t MaxTasks = SEM_VALUE_MAX;
+uint32_t MaxTasks = SEM_VALUE_MAX;
 #endif // !USE_MSRPC
 #endif // !defined(NO_LIMIT) && !defined (NO_SOCKETS) && !__minix__
 

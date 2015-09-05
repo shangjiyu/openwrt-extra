@@ -393,7 +393,7 @@ static BOOL findLicensePackByName(const char* const name, LicensePack* const lp)
 	// search extended product list
 
     uint8_t items = getExtendedProductListSize();
-    int index;
+    unsigned int index;
 
     if (stringToInt(name, 1, items, &index))
     {

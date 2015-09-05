@@ -105,7 +105,7 @@ extern DWORD ServerTimeout;
 #endif // !defined(NO_TIMEOUT) && !__minix__
 
 #if !defined(NO_LIMIT) && !defined (NO_SOCKETS) && !__minix__
-extern int32_t MaxTasks;
+extern uint32_t MaxTasks;
 #endif // !defined(NO_LIMIT) && !defined (NO_SOCKETS) && !__minix__
 
 #ifndef NO_LOG
