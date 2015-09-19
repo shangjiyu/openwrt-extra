@@ -20,25 +20,25 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/xsocks/Default
   SECTION:=net
-    CATEGORY:=Network
-	  TITLE:=A secure and fast proxy for protect your network traffic
-	    URL:=https://github.com/lparam/xsocks
-		endef
+  CATEGORY:=Network
+  TITLE:=A secure and fast proxy for protect your network traffic
+  URL:=https://github.com/lparam/xsocks
+endef
 
 define Package/xsocks
   $(call Package/xsocks/Default)
-    DEPENDS:=+libpthread +librt
-	endef
+  DEPENDS:=+libpthread +librt
+endef
 
 define Package/xsocks/description
   xsocks is a secure and fast proxy for protect your network traffic
-  endef
+endef
 
 define Package/xsocks/install
 	$(INSTALL_DIR) $(1)/etc/init.d
-		$(INSTALL_BIN) ./files/xsocks.init $(1)/etc/init.d/xsocks
-			$(INSTALL_DIR) $(1)/usr/bin
-				$(INSTALL_BIN) $(PKG_BUILD_DIR)/x{socks,tproxy,forwarder,tunnel} $(1)/usr/bin
-				endef
+	$(INSTALL_BIN) ./files/xsocks.init $(1)/etc/init.d/xsocks
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/x{socks,tproxy,forwarder,tunnel} $(1)/usr/bin
+endef
 
 $(eval $(call BuildPackage,xsocks))
