@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2012 OpenWrt.org
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+
+START=80
+
+start() {
+	logger "Starting TV Headend"
+	[ -d /media/video ] || mkdir -p /media/video
+	[ -d /etc/config/tvheadend ] || mkdir -p /etc/config/tvheadend
+	service_start /usr/bin/tvheadend -f -c /etc/config/tvheadend -u root -C
+}
+
+stop() {
+	logger "Shutting down TV Headend"
+	service_stop /usr/bin/tvheadend
+}
+

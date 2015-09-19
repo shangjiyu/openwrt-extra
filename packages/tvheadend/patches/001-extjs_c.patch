@@ -1,0 +1,11 @@
+--- a/src/webui/extjs.c	2012-10-13 19:23:06.000000000 +0200
++++ b/src/webui/extjs.c	2012-10-13 19:26:37.964130477 +0200
+@@ -207,7 +207,7 @@
+                  "<center>"
+                    "<div class=\"about-title\">HTS Tvheadend %s</div>"
+                    "<p>&copy; 2006 - 2015 Andreas \303\226man, et al.</p>"
+-                   "<p><img src=\"docresources/tvheadendlogo.png\"></p>"
++                   "<p><img src=\"static/img/tvheadendlogo.png\"></p>"
+                    "<p><a href=\"https://tvheadend.org\">https://tvheadend.org</a></p>"
+                    "<p>Based on software from "
+                      "<a target=\"_blank\" href=\"http://www.extjs.com/\">ExtJS</a>. "
