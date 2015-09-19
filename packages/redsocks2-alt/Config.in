@@ -1,0 +1,11 @@
+choice
+	prompt "Selected SSL library"
+	default REDSOCKS2_POLARSSL
+
+	config REDSOCKS2_POLARSSL
+		bool "PolarSSL"
+
+	config REDSOCKS2_OPENSSL
+		bool "OpenSSL"
+
+endchoice
