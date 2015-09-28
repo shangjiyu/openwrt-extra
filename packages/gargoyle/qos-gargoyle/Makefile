@@ -42,7 +42,7 @@ define Build/Compile
 		BUILD_DIR="$(BUILD_DIR)" \
 		all
 
-	$(call Build/Compile/Default,BUILD_DIR="(BUILD_DIR)" all)
+	$(call Build/Compile/Default,BUILD_DIR="$(BUILD_DIR)" all)
 
 endef
 
