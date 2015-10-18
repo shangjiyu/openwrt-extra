@@ -1,14 +1,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ShadowVPN
-PKG_VERSION:=0.2.0
-PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
-PKG_SOURCE_URL:=https://github.com/rains31/ShadowVPN/releases/download/$(PKG_VERSION)
-PKG_SOURCE:=shadowvpn-$(PKG_VERSION).tar.gz
+PKG_VERSION:=84135b1098
+PKG_RELEASE=0.2.0-1
+PKG_REV=84135b1098b3141513cbcd08ab98c7aaaf858d62
+
+PKG_SOURCE_URL:=https://github.com/rains31/ShadowVPN.git
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_MAINTAINER:=clowwindy <clowwindy42@gmail.com>
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)/shadowvpn-$(PKG_VERSION)
 
 PKG_INSTALL:=1
 PKG_FIXUP:=autoreconf
