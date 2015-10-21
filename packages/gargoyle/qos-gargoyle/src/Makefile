@@ -1,5 +1,5 @@
 BINDIR = /usr/sbin
-TCDIR:=$(BUILD_DIR)/iproute2-full/ip*
+TCDIR:=$(BUILD_DIR)/iproute2*/ip*
 
 #The ncurses library only needed if we remove the ONLYBG switch
 #below.  Mostly for debug
@@ -21,7 +21,7 @@ qosmon: qosmon.o
 	$(CC) $(LDFLAGS) $^ $(TCOBJS) -o $@ $(LDLIBS)
 
 qosmon.o: qosmon.c
-	$(CC) -D ONLYBG -D_GNU_SOURCE $(CFLAGS) -I $(TCDIR)/include -I $(TCDIR)/tc -c $^ -o $@
+	$(CC) -D ONLYBG $(CFLAGS) -I $(TCDIR)/include -I $(TCDIR)/tc -c $^ -o $@
 
 install: all uninstall
 	-mkdir -p $(BINDIR)
