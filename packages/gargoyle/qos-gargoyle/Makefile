@@ -5,7 +5,7 @@ PKG_VERSION:=$(GARGOYLE_VERSION)
 ifeq ($(GARGOYLE_VERSION),)
      PKG_VERSION:=1.0.0
 endif
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
@@ -15,7 +15,7 @@ define Package/qos-gargoyle
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=A set of QoS scripts designed for use with Gargoyle Web Interface
-	DEPENDS:=+tc +ip-full +kmod-sched +iptables-mod-filter +iptables-mod-ipopt +iptables-mod-imq +gargoyle-firewall-util
+	DEPENDS:=+tc +ip +kmod-sched +iptables-mod-filter +iptables-mod-ipopt +iptables-mod-imq +gargoyle-firewall-util
 	MAINTAINER:=Eric Bishop <eric@gargoyle-router.com>
 endef
 
@@ -26,6 +26,7 @@ endef
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(call Build/Prepare/Default)
 endef
 
 
@@ -34,12 +35,13 @@ endef
 
 define Build/Compile
 	-$(MAKE) -C $(PKG_BUILD_DIR) clean
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+#	$(MAKE) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS) -I $(STAGING_DIR)/usr/include" \
 		LDFLAGS="$(TARGET_LDFLAGS) -L $(STAGING_DIR)/usr/lib" \
 		BUILD_DIR="$(BUILD_DIR)" \
 		all
+	$(call Build/Compile/Default,BUILD_DIR="$(BUILD_DIR)" all)
 
 
 endef
