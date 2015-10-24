@@ -1,0 +1,71 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2015 wongsyrone
+
+. /lib/functions.sh
+
+START=95
+
+EXTRA_COMMANDS=flush
+EXTRA_HELP="	flush	Flush DNS cache of Pcap_DNSProxy and system (dnsmasq's cache in OP)"
+
+SERVICE_USE_PID=1
+SERVICE_WRITE_PID=1
+SERVICE_DAEMONIZE=1
+
+PROG="/usr/sbin/Pcap_DNSProxy"
+
+CONFDIR="/etc/pcap-dnsproxy"
+PIDFILE="/var/run/Pcap_DNSProxy.pid"
+
+config_load "pcap-dnsproxy"
+
+parse_pcap_dnsproxy()
+{
+	config_get ENABLED "$section" "enabled"
+}
+
+config_foreach parse_pcap_dnsproxy 'pcap-dnsproxy'
+
+# MUST set Config.conf before 'enable' this service
+# do NOT use daemon code inside pcap-dnsproxy, use start-stop-daemon instead.
+
+start() {
+	if [ "1" = "$ENABLED" ] || [ "on" = "$ENABLED" ] || [ "true" = "$ENABLED" ]; then
+		service_start $PROG -c $CONFDIR --disable-daemon
+		RESULT=$?
+		[ $RESULT -eq 0 ] && {
+			echo "Pcap_DNSProxy started successfully"
+		}
+		[ -f $PIDFILE ] && {
+			echo "Pcap_DNSProxy is already running"
+			exit 1
+		}
+	else
+		echo "Pcap_DNSProxy is disabled"
+	fi
+}
+
+stop() {
+	# If you cant stop, use 'killall' instead.
+	# e.g. killall -SIGTERM Pcap_DNSProxy
+	if [ -f $PIDFILE ]; then
+		service_stop $PROG
+		RESULT=$?
+		[ $RESULT -eq 0 ] && {
+			echo "Pcap_DNSProxy terminated successfully"
+		}
+		rm -f "$PIDFILE"
+	else
+		echo "Pcap_DNSProxy is not running"
+	fi
+}
+
+restart() {
+	stop
+	sleep 2s
+	start
+}
+
+flush() {
+	$PROG --flush-dns
+}
