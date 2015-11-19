@@ -43,12 +43,12 @@ start_instance() {
 	local port
 	config_get port "$1" 'port' 1053
 	section_enabled "$1" && {
-		service_start $EXEC $OPTIONS
-		uci del dhcp.@dnsmasq[-1].server
-		uci set dhcp.@dnsmasq[-1].noresolv=1
-		uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#$port
-		uci commit dhcp
-		/etc/init.d/dnsmasq restart
+	service_start $EXEC $OPTIONS
+	uci del dhcp.@dnsmasq[-1].server
+	uci set dhcp.@dnsmasq[-1].noresolv=1
+	uci add_list dhcp.@dnsmasq[-1].server=127.0.0.1#$port
+	uci commit dhcp
+	/etc/init.d/dnsmasq restart
 	}
 }
 
@@ -61,4 +61,8 @@ start()
 stop()
 {
 	service_stop $EXEC
+        uci set dhcp.@dnsmasq[-1].noresolv=0
+        uci del dhcp.@dnsmasq[-1].server
+        uci commit dhcp
+        /etc/init.d/dnsmasq restart
 }
