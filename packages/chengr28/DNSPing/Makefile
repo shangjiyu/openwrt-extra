@@ -29,6 +29,7 @@ include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
 TARGET_CFLAGS += $(FPIC)
+
 CMAKE_SOURCE_DIR:=Source/DNSPing
 
 CMAKE_OPTIONS += \
@@ -45,10 +46,27 @@ define Package/DNSPing
 		@GCC_VERSION_4_6:BROKEN @GCC_VERSION_4_8:BROKEN
 endef
 
+define Package/DNSPing/config
+	if PACKAGE_DNSPing
+	config PACKAGE_DNSPing_advancedoptions
+		bool "Use advanced compile options, see Makefile for details."
+		default n
+	endif
+endef
 
 define Package/DNSPing/description
 A network util can ping with DNS request.
 endef
+
+# Some advanced compile flags for expert
+ifneq ($(CONFIG_PACKAGE_DNSPing_advancedoptions),)
+	# Try to reduce binary size
+	TARGET_CFLAGS += -ffunction-sections -fdata-sections
+	TARGET_LDFLAGS += -Wl,--gc-sections
+	# Use Link time optimization
+	TARGET_CFLAGS += -flto
+	TARGET_LDFLAGS += -Wl,-flto
+endif
 
 define Package/DNSPing/install
 	$(INSTALL_DIR) $(1)/usr/sbin
