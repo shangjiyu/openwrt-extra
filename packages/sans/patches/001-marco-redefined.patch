@@ -1,0 +1,14 @@
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -35,8 +35,9 @@
+ #  include "win.h"
+ #endif
+ 
+-
+-#define LINE_MAX 1024
++#ifndef LINE_MAX
++#  define LINE_MAX 1024
++#endif
+ 
+ 
+ /*

@@ -1,0 +1,30 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2015 wongsyrone
+
+START=95
+
+SERVICE_USE_PID=1
+SERVICE_WRITE_PID=1
+SERVICE_DAEMONIZE=1
+
+CONFIG=/etc/sans.conf
+
+config_load "sans"
+
+parse_sans() {
+	config_get ENABLED "$section" "enabled"
+}
+
+config_foreach parse_sans 'sans'
+
+start() {
+	if [ "1" = "$ENABLED" ] || [ "on" = "$ENABLED" ] || [ "true" = "$ENABLED" ]; then
+		service_start /usr/bin/sans -c $CONFIG --logfile /var/log/sans.log
+	else
+		echo "sans is disabled"
+	fi
+}
+
+stop() {
+	service_stop /usr/bin/sans
+}
