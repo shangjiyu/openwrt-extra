@@ -6,7 +6,8 @@ local fs = require "nixio.fs"
 
 local sslocal =(luci.sys.call("pidof ss-local > /dev/null") == 0)
 local ssredir =(luci.sys.call("pidof ss-redir > /dev/null") == 0)
-if sslocal or ssredir then	
+local sstunnel =(luci.sys.call("pidof ss-tunnel > /dev/null") == 0)
+if sslocal or ssredir or sstunnel then	
 	m = Map("shadowsocks", translate("shadowsocks"), translate("shadowsocks is running"))
 else
 	m = Map("shadowsocks", translate("shadowsocks"), translate("shadowsocks is not running"))
@@ -27,7 +28,7 @@ password = server:option(Value, "password", translate("Password"))
 password.password = true
 
 ota = server:option(Flag, "ota_enabled", translate("OneTime Authentication"))
-ota.rmempty = false
+ota.rmempty = true
 ota.default =  false
 
 cipher = server:option(ListValue, "cipher", translate("Cipher Method"))

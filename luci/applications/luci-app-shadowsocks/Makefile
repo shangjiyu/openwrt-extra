@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI Support for Shadowsocks
-LUCI_DEPENDS:=+shadowsocks-libev +kmod-ipt-nat +kmod-mod-nat-extra +kmod-ipt-ipset +kmod-mod-tproxy +ip +ipset +iptables-mod-tproxy
+LUCI_DEPENDS:=+shadowsocks-libev +kmod-ipt-nat +kmod-mod-nat-extra +kmod-ipt-ipset +kmod-mod-tproxy +ip +ipset +iptables-mod-tproxy +resolveip
 
 include ../../luci.mk
 

@@ -31,8 +31,18 @@ start() {
 	config_get tunnel_forward config tunnel_forward
 	config_get ota_enabled config ota_enabled
 
+	[ "$ota_enabled" = 0 ] && {
+                unset ota_enabled
+        }
+
 	[ -z "$remote_server" ] || [ -z "$remote_port" ] || [ -z "$local_port" ] || [ -z "$password" ] && {
 		echo "missing parameters. check config"
+		return 1
+	}
+
+	remote_server="`resolveip -4 -t10 $remote_server`"
+	[ -z "$remote_server" ] && {
+		echo "cannot resolve the server hostname"
 		return 1
 	}
 
