@@ -31,17 +31,14 @@ msgstr "SOCKS5 Proxy"
 msgid "Transparent Proxy"
 msgstr "Transparent Proxy"
 
-msgid "Transparent Proxy Local Port"
-msgstr "Transparent Proxy Local Port"
-
 msgid "shadowsocks"
-msgstr "ShadowSocks"
+msgstr "shadowsocks"
 
 msgid "shadowsocks is not running"
-msgstr "Shadowsocks is not running"
+msgstr "shadowsocks is not running"
 
 msgid "shadowsocks is running"
-msgstr "Shadowsocks is running"
+msgstr "shadowsocks is running"
 
 msgid "UDP Traffic"
 msgstr "UDP Traffic"
@@ -56,5 +53,31 @@ msgid "Forwarding Port"
 msgstr "Forwarding Port"
 
 msgid "OneTime Authentication"
-msgstr "OneTime Authentication" 
+msgstr "OneTime Authentication"
 
+msgid "Timeout"
+msgstr "Timeout"
+
+msgid "Alternate Server For UDP Traffic"
+msgstr "Alternate Server For UDP Traffic"
+
+msgid "Alternate Server Address"
+msgstr "Alternate Server Address"
+
+msgid "Alternate Port"
+msgstr "Alternate Port"
+
+msgid "Alternate Password"
+msgstr "Alternate Password"
+
+msgid "Alternate Cipher Method"
+msgstr "Alternate Cipher Method"
+
+msgid "Alternate Timeout"
+msgstr "Alternate Timeout"
+
+msgid "Alternate Local Port"
+msgstr "Alternate Local Port"
+
+msgid "Alternate OneTime Authentication"
+msgstr "Alternate OneTime Authentication"
