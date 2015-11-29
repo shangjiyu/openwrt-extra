@@ -36,7 +36,22 @@ start() {
 	config_get alt_ota_enabled config alt_ota_enabled
 	config_get alt_redir_port config alt_redir_port
 
+	remote_server="`resolveip -4 -t10 $remote_server`"
+	[ -z "$remote_server" ] && {
+		echo "cannot resolve the server hostname"
+		return 1
+	}
+
+	[ "alt_enabled" = '1' ] && {
+		alt_server="`resolveip -4 -t10 $alt_server`"
+		[ -z "$alt_server" ] && {
+		        echo "cannot resolve the alternative server hostname"
+		        return 1
+		}
+	}
+
 	[ "$ota_enabled" != '1' ] && unset ota_enabled
+	[ "$alt_ota_enabled" != '1' ] && unset alt_ota_enabled
 
 	[ "$enabled" = '1' ] && {
 		/usr/bin/ss-local \
@@ -48,34 +63,28 @@ start() {
 			-k "$password" \
 			-t "$timeout" \
 			${ota_enabled:+-A} \
-			-u & 1> /dev/null
+			-u &
 	}
 
 	[ "$tunnel_enabled" = '1' ] && {
 
+		ARGS="-b "0.0.0.0" \
+			  -s "${alt_server:-$remote_server}" \
+			  -p "${alt_port:-$remote_port}" \
+			  -l "$tunnel_port" \
+			  -L "$tunnel_forward" \
+			  -m "${alt_cipher:-$cipher}" \
+			  -k "${alt_passwd:-$password}" \
+			  -t "${alt_timeout:-$timeout}""
+
+
 		if [ "$alt_enabled" = '0' ];then
-			ARGS="-b "0.0.0.0" \
-				  -s "$remote_server" \
-				  -p "$remote_port" \
-				  -l "$tunnel_port" \
-				  -L "$tunnel_forward" \
-				  -m "$cipher" \
-				  -k "$password" \
-				  -t "$timeout" \
-				  -u ${ota_enabled:+-A}"
+			ARGS="$ARGS -u ${ota_enabled:+-A}"
 		else
-			ARGS="-b "0.0.0.0" \
-				  -s "$alt_server" \
-				  -p "$alt_port" \
-				  -l "$tunnel_port" \
-				  -L "$tunnel_forward" \
-				  -m "$alt_cipher" \
-				  -k "$alt_passwd" \
-				  -t "$alt_timeout" \
-				  -u ${alt_ota_enabled:+-A}"
+			ARGS="$ARGS -U ${alt_ota_enabled:+-A}"
 		fi
 
-		/usr/bin/ss-tunnel $ARGS & 1> /dev/null
+		/usr/bin/ss-tunnel $ARGS &
 	}
 
 	[ "$redir_enabled" = '1' ] && {
@@ -159,7 +168,7 @@ stop() {
 		iptables -t nat -D zone_lan_prerouting -j SHADOWSOCKS 2> /dev/null &&
 		iptables -t mangle -D PREROUTING -p udp -j SS_UDP 2> /dev/null &&
 		iptables -t nat -F SHADOWSOCKS 2> /dev/null &&
-		iptables -t nat -X SHADOWSOCKS 2> /dev/null
+		iptables -t nat -X SHADOWSOCKS 2> /dev/null &&
 		iptables -t mangle -F SS_UDP 2> /dev/null &&
 		iptables -t mangle -X SS_UDP 2> /dev/null &&
 		ip rule del fwmark 0x01/0x01 table 100 2>/dev/null &&
