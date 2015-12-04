@@ -165,15 +165,15 @@ stop() {
 	killall -q -9 ss-local
 	killall -q -9 ss-tunnel
 	killall -q -9 ss-redir && {
-		iptables -t nat -D zone_lan_prerouting -j SHADOWSOCKS 2> /dev/null &&
-		iptables -t mangle -D PREROUTING -p udp -j SS_UDP 2> /dev/null &&
-		iptables -t nat -F SHADOWSOCKS 2> /dev/null &&
-		iptables -t nat -X SHADOWSOCKS 2> /dev/null &&
-		iptables -t mangle -F SS_UDP 2> /dev/null &&
-		iptables -t mangle -X SS_UDP 2> /dev/null &&
-		ip rule del fwmark 0x01/0x01 table 100 2>/dev/null &&
-		ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null &&
-		ipset destroy whitelist 2> /dev/null &&
+		iptables -t nat -D zone_lan_prerouting -j SHADOWSOCKS 2> /dev/null
+		iptables -t nat -F SHADOWSOCKS 2> /dev/null
+		iptables -t nat -X SHADOWSOCKS 2> /dev/null
+		iptables -t mangle -D PREROUTING -p udp -j SS_UDP 2> /dev/null
+		iptables -t mangle -F SS_UDP 2> /dev/null
+		iptables -t mangle -X SS_UDP 2> /dev/null
+		ip rule del fwmark 0x01/0x01 table 100 2>/dev/null
+		ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null
+		ipset destroy whitelist 2> /dev/null
 		ipset destroy blacklist 2> /dev/null
 	}
 }

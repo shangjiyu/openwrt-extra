@@ -32,13 +32,13 @@ msgid "Transparent Proxy"
 msgstr "Transparent Proxy"
 
 msgid "shadowsocks"
-msgstr "shadowsocks"
+msgstr "Shadowsocks"
 
 msgid "shadowsocks is not running"
-msgstr "shadowsocks is not running"
+msgstr "Shadowsocks is NOT Running"
 
 msgid "shadowsocks is running"
-msgstr "shadowsocks is running"
+msgstr "Shadowsocks is Running"
 
 msgid "UDP Traffic"
 msgstr "UDP Traffic"

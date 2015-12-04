@@ -32,13 +32,13 @@ msgid "Transparent Proxy"
 msgstr "透明代理"
 
 msgid "shadowsocks"
-msgstr "shadowsocks"
+msgstr "影梭"
 
 msgid "shadowsocks is not running"
-msgstr "shadowsocks 未运行"
+msgstr "影梭 未运行"
 
 msgid "shadowsocks is running"
-msgstr "shadowsocks 运行中"
+msgstr "影梭 运行中"
 
 msgid "UDP Traffic"
 msgstr "转发 UDP 流量"
