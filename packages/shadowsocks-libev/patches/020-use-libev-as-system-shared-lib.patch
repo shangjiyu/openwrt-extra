@@ -1,0 +1,32 @@
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,5 +1,5 @@
+ if USE_SYSTEM_SHARED_LIB
+-SUBDIRS = libcork libipset libudns libev src
++SUBDIRS = libcork libipset libudns src
+ else
+ SUBDIRS = libsodium libcork libipset libudns libev src
+ endif
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -4,18 +4,17 @@ AM_CFLAGS = -g -O2 -Wall -Werror -Wno-de
+ AM_CFLAGS += $(PTHREAD_CFLAGS)
+ if !USE_SYSTEM_SHARED_LIB
+ AM_CFLAGS += -I$(top_srcdir)/libsodium/src/libsodium/include
++AM_CFLAGS += -I$(top_srcdir)/libev
+ endif
+ AM_CFLAGS += -I$(top_srcdir)/libipset/include
+ AM_CFLAGS += -I$(top_srcdir)/libudns
+-AM_CFLAGS += -I$(top_srcdir)/libev
+ AM_CFLAGS += -I$(top_srcdir)/libcork/include
+ 
+ SS_COMMON_LIBS = $(top_builddir)/libipset/libipset.la \
+                  $(top_builddir)/libcork/libcork.la \
+-                 $(top_builddir)/libev/libev.la \
+                  $(INET_NTOP_LIB)
+ if USE_SYSTEM_SHARED_LIB
+-SS_COMMON_LIBS += -lsodium -lm
++SS_COMMON_LIBS += -lev -lsodium -lm
+ else
+ SS_COMMON_LIBS += $(top_builddir)/libsodium/src/libsodium/libsodium.la
+ endif

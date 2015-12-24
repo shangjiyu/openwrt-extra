@@ -1,0 +1,2336 @@
+From c0eac74b9bc19e1b62d145de2a3795d5dfb0e77f Mon Sep 17 00:00:00 2001
+From: Syrone Wong <wong.syrone@gmail.com>
+Date: Wed, 23 Dec 2015 12:39:43 +0800
+Subject: [PATCH] update libcork to 0.15.0
+
+Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
+---
+ libcork/core/allocator.c                  | 388 +++++++++++++++++++++++++----
+ libcork/core/error.c                      |   4 +-
+ libcork/core/gc.c                         |   7 +-
+ libcork/core/ip-address.c                 |   7 +
+ libcork/core/mempool.c                    |  33 ++-
+ libcork/ds/array.c                        |  16 +-
+ libcork/ds/bitset.c                       |   6 +-
+ libcork/ds/buffer.c                       |  20 +-
+ libcork/ds/file-stream.c                  |   9 +-
+ libcork/ds/hash-table.c                   |  20 +-
+ libcork/ds/managed-buffer.c               |  13 +-
+ libcork/ds/ring-buffer.c                  |   9 +-
+ libcork/include/libcork/config/config.h   |  20 +-
+ libcork/include/libcork/config/gcc.h      |   4 +-
+ libcork/include/libcork/config/version.h  |  25 ++
+ libcork/include/libcork/core/allocator.h  | 398 +++++++++++++++++++++++++++---
+ libcork/include/libcork/core/api.h        |  37 ++-
+ libcork/include/libcork/core/callbacks.h  |   5 +-
+ libcork/include/libcork/core/mempool.h    |  14 +-
+ libcork/include/libcork/os/subprocess.h   |   9 +-
+ libcork/include/libcork/threads/atomics.h |   5 +
+ libcork/include/libcork/threads/basics.h  |  53 ++--
+ libcork/posix/env.c                       |   9 +-
+ libcork/posix/exec.c                      |   7 +-
+ libcork/posix/files.c                     |  18 +-
+ libcork/posix/process.c                   |  55 +++--
+ libcork/posix/subprocess.c                |  68 ++---
+ libcork/pthreads/thread.c                 |  51 +++-
+ 28 files changed, 1030 insertions(+), 280 deletions(-)
+ create mode 100644 libcork/include/libcork/config/version.h
+
+diff --git a/libcork/core/allocator.c b/libcork/core/allocator.c
+index 9bfb15d..9a2ad05 100644
+--- a/libcork/core/allocator.c
++++ b/libcork/core/allocator.c
+@@ -1,13 +1,13 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
++#include <assert.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
+@@ -16,23 +16,198 @@
+ #include "libcork/core/attributes.h"
+ #include "libcork/core/error.h"
+ #include "libcork/core/types.h"
++#include "libcork/os/process.h"
+ 
+ 
+ /*-----------------------------------------------------------------------
+- * reallocf
++ * Allocator interface
+  */
+ 
+-#if !CORK_HAVE_REALLOCF
+-void *
+-cork_xrealloc(void *ptr, size_t new_size)
++struct cork_alloc_priv {
++    struct cork_alloc  public;
++    struct cork_alloc_priv  *next;
++};
++
++static void *
++cork_alloc__default_calloc(const struct cork_alloc *alloc,
++                           size_t count, size_t size)
+ {
+-    void  *result = realloc(ptr, new_size);
+-    if (result == NULL) {
+-        free(ptr);
++    void  *result = cork_alloc_xcalloc(alloc, count, size);
++    if (CORK_UNLIKELY(result == NULL)) {
++        abort();
++    }
++    return result;
++}
++
++static void *
++cork_alloc__default_malloc(const struct cork_alloc *alloc, size_t size)
++{
++    void  *result = cork_alloc_xmalloc(alloc, size);
++    if (CORK_UNLIKELY(result == NULL)) {
++        abort();
+     }
+     return result;
+ }
+-#endif
++
++static void *
++cork_alloc__default_realloc(const struct cork_alloc *alloc, void *ptr,
++                            size_t old_size, size_t new_size)
++{
++    void  *result = cork_alloc_xrealloc(alloc, ptr, old_size, new_size);
++    if (CORK_UNLIKELY(result == NULL)) {
++        abort();
++    }
++    return result;
++}
++
++static void *
++cork_alloc__default_xcalloc(const struct cork_alloc *alloc,
++                            size_t count, size_t size)
++{
++    void  *result;
++    assert(count < (SIZE_MAX / size));
++    result = cork_alloc_xmalloc(alloc, count * size);
++    if (result != NULL) {
++        memset(result, 0, count * size);
++    }
++    return result;
++}
++
++static void *
++cork_alloc__default_xmalloc(const struct cork_alloc *alloc, size_t size)
++{
++    cork_abort("%s isn't defined", "cork_alloc:xmalloc");
++}
++
++static void *
++cork_alloc__default_xrealloc(const struct cork_alloc *alloc, void *ptr,
++                             size_t old_size, size_t new_size)
++{
++    void  *result = cork_alloc_xmalloc(alloc, new_size);
++    if (CORK_LIKELY(result != NULL) && ptr != NULL) {
++        size_t  min_size = (new_size < old_size)? new_size: old_size;
++        memcpy(result, ptr, min_size);
++        cork_alloc_free(alloc, ptr, old_size);
++    }
++    return result;
++}
++
++static void
++cork_alloc__default_free(const struct cork_alloc *alloc, void *ptr, size_t size)
++{
++    cork_abort("%s isn't defined", "cork_alloc:free");
++}
++
++static bool  cleanup_registered = false;
++static struct cork_alloc_priv  *all_allocs = NULL;
++
++static void
++cork_alloc_free_alloc(struct cork_alloc_priv *alloc)
++{
++    cork_free_user_data(&alloc->public);
++    cork_alloc_delete(alloc->public.parent, struct cork_alloc_priv, alloc);
++}
++
++static void
++cork_alloc_free_all(void)
++{
++    struct cork_alloc_priv  *curr;
++    struct cork_alloc_priv  *next;
++    for (curr = all_allocs; curr != NULL; curr = next) {
++        next = curr->next;
++        cork_alloc_free_alloc(curr);
++    }
++}
++
++static void
++cork_alloc_register_cleanup(void)
++{
++    if (CORK_UNLIKELY(!cleanup_registered)) {
++        /* We don't use cork_cleanup because that requires the allocators to
++         * have already been set up!  (atexit calls its functions in reverse
++         * order, and this one will be registered before cork_cleanup's, which
++         * makes it safe for cork_cleanup functions to still use the allocator,
++         * since the allocator atexit function will be called last.) */
++        atexit(cork_alloc_free_all);
++        cleanup_registered = true;
++    }
++}
++
++struct cork_alloc *
++cork_alloc_new_alloc(const struct cork_alloc *parent)
++{
++    struct cork_alloc_priv  *alloc =
++        cork_alloc_new(parent, struct cork_alloc_priv);
++    alloc->public.parent = parent;
++    alloc->public.user_data = NULL;
++    alloc->public.free_user_data = NULL;
++    alloc->public.calloc = cork_alloc__default_calloc;
++    alloc->public.malloc = cork_alloc__default_malloc;
++    alloc->public.realloc = cork_alloc__default_realloc;
++    alloc->public.xcalloc = cork_alloc__default_xcalloc;
++    alloc->public.xmalloc = cork_alloc__default_xmalloc;
++    alloc->public.xrealloc = cork_alloc__default_xrealloc;
++    alloc->public.free = cork_alloc__default_free;
++
++    cork_alloc_register_cleanup();
++    alloc->next = all_allocs;
++    all_allocs = alloc;
++
++    return &alloc->public;
++}
++
++
++void
++cork_alloc_set_user_data(struct cork_alloc *alloc,
++                         void *user_data, cork_free_f free_user_data)
++{
++    cork_free_user_data(alloc);
++    alloc->user_data = user_data;
++    alloc->free_user_data = free_user_data;
++}
++
++void
++cork_alloc_set_calloc(struct cork_alloc *alloc, cork_alloc_calloc_f calloc)
++{
++    alloc->calloc = calloc;
++}
++
++void
++cork_alloc_set_malloc(struct cork_alloc *alloc, cork_alloc_malloc_f malloc)
++{
++    alloc->malloc = malloc;
++}
++
++void
++cork_alloc_set_realloc(struct cork_alloc *alloc, cork_alloc_realloc_f realloc)
++{
++    alloc->realloc = realloc;
++}
++
++void
++cork_alloc_set_xcalloc(struct cork_alloc *alloc, cork_alloc_calloc_f xcalloc)
++{
++    alloc->xcalloc = xcalloc;
++}
++
++void
++cork_alloc_set_xmalloc(struct cork_alloc *alloc, cork_alloc_malloc_f xmalloc)
++{
++    alloc->xmalloc = xmalloc;
++}
++
++void
++cork_alloc_set_xrealloc(struct cork_alloc *alloc,
++                        cork_alloc_realloc_f xrealloc)
++{
++    alloc->xrealloc = xrealloc;
++}
++
++void
++cork_alloc_set_free(struct cork_alloc *alloc, cork_alloc_free_f free)
++{
++    alloc->free = free;
++}
+ 
+ 
+ /*-----------------------------------------------------------------------
+@@ -40,92 +215,207 @@ cork_xrealloc(void *ptr, size_t new_size)
+  */
+ 
+ static inline const char *
+-strndup_internal(const char *str, size_t len)
++strndup_internal(const struct cork_alloc *alloc,
++                 const char *str, size_t len)
+ {
++    char  *dest;
+     size_t  allocated_size = len + sizeof(size_t) + 1;
+-    size_t  *new_str = malloc(allocated_size);
+-    if (new_str == NULL) {
+-        return NULL;
+-    }
+-
++    size_t  *new_str = cork_alloc_malloc(alloc, allocated_size);
+     *new_str = allocated_size;
+-    char  *dest = (char *) (void *) (new_str + 1);
+-    strncpy(dest, str, len);
++    dest = (char *) (void *) (new_str + 1);
++    memcpy(dest, str, len);
+     dest[len] = '\0';
+     return dest;
+ }
+ 
+ const char *
+-cork_xstrndup(const char *str, size_t len)
++cork_alloc_strdup(const struct cork_alloc *alloc, const char *str)
++{
++    return strndup_internal(alloc, str, strlen(str));
++}
++
++const char *
++cork_alloc_strndup(const struct cork_alloc *alloc,
++                   const char *str, size_t size)
++{
++    return strndup_internal(alloc, str, size);
++}
++
++static inline const char *
++xstrndup_internal(const struct cork_alloc *alloc,
++                  const char *str, size_t len)
+ {
+-    return strndup_internal(str, len);
++    size_t  allocated_size = len + sizeof(size_t) + 1;
++    size_t  *new_str = cork_alloc_xmalloc(alloc, allocated_size);
++    if (CORK_UNLIKELY(new_str == NULL)) {
++        return NULL;
++    } else {
++        char  *dest;
++        *new_str = allocated_size;
++        dest = (char *) (void *) (new_str + 1);
++        memcpy(dest, str, len);
++        dest[len] = '\0';
++        return dest;
++    }
+ }
+ 
+ const char *
+-cork_xstrdup(const char *str)
++cork_alloc_xstrdup(const struct cork_alloc *alloc, const char *str)
+ {
+-    return strndup_internal(str, strlen(str));
++    return xstrndup_internal(alloc, str, strlen(str));
+ }
+ 
++const char *
++cork_alloc_xstrndup(const struct cork_alloc *alloc,
++                    const char *str, size_t size)
++{
++    return xstrndup_internal(alloc, str, size);
++}
+ 
+ void
+-cork_strfree(const char *str)
++cork_alloc_strfree(const struct cork_alloc *alloc, const char *str)
+ {
+     size_t  *base = ((size_t *) str) - 1;
+-    free(base);
++    cork_alloc_free(alloc, base, *base);
+ }
+ 
+ 
+ /*-----------------------------------------------------------------------
+- * Abort on failure
++ * stdlib allocator
+  */
+ 
+-void *
+-cork_malloc(size_t size)
++static void *
++cork_stdlib_alloc__calloc(const struct cork_alloc *alloc,
++                          size_t count, size_t size)
+ {
+-    void  *result = cork_xmalloc(size);
++    void  *result = calloc(count, size);
+     if (CORK_UNLIKELY(result == NULL)) {
+         abort();
+     }
+     return result;
+ }
+ 
+-void *
+-cork_calloc(size_t count, size_t size)
++static void *
++cork_stdlib_alloc__malloc(const struct cork_alloc *alloc, size_t size)
+ {
+-    void  *result = cork_xcalloc(count, size);
++    void  *result = malloc(size);
+     if (CORK_UNLIKELY(result == NULL)) {
+         abort();
+     }
+     return result;
+ }
+ 
+-void *
+-cork_realloc(void *ptr, size_t new_size)
++static void *
++cork_stdlib_alloc__realloc(const struct cork_alloc *alloc, void *ptr,
++                           size_t old_size, size_t new_size)
+ {
+-    void  *result = cork_xrealloc(ptr, new_size);
+-    if (CORK_UNLIKELY(result == NULL)) {
++    /* Technically we don't really need to free `ptr` if the reallocation fails,
++     * since we'll abort the process immediately after.  But my sense of
++     * cleanliness makes me do it anyway. */
++
++#if CORK_HAVE_REALLOCF
++    void  *result = reallocf(ptr, new_size);
++    if (result == NULL) {
+         abort();
+     }
+     return result;
+-}
+-
+-const char *
+-cork_strdup(const char *src)
+-{
+-    const char  *result = cork_xstrdup(src);
+-    if (CORK_UNLIKELY(result == NULL)) {
++#else
++    void  *result = realloc(ptr, new_size);
++    if (result == NULL) {
++        free(ptr);
+         abort();
+     }
+     return result;
++#endif
+ }
+ 
+-const char *
+-cork_strndup(const char *src, size_t size)
++static void *
++cork_stdlib_alloc__xcalloc(const struct cork_alloc *alloc,
++                           size_t count, size_t size)
+ {
+-    const char  *result = cork_xstrndup(src, size);
+-    if (CORK_UNLIKELY(result == NULL)) {
+-        abort();
++    return calloc(count, size);
++}
++
++static void *
++cork_stdlib_alloc__xmalloc(const struct cork_alloc *alloc, size_t size)
++{
++    return malloc(size);
++}
++
++static void *
++cork_stdlib_alloc__xrealloc(const struct cork_alloc *alloc, void *ptr,
++                            size_t old_size, size_t new_size)
++{
++    return realloc(ptr, new_size);
++}
++
++static void
++cork_stdlib_alloc__free(const struct cork_alloc *alloc, void *ptr, size_t size)
++{
++    free(ptr);
++}
++
++
++static const struct cork_alloc  default_allocator = {
++    NULL,
++    NULL,
++    NULL,
++    cork_stdlib_alloc__calloc,
++    cork_stdlib_alloc__malloc,
++    cork_stdlib_alloc__realloc,
++    cork_stdlib_alloc__xcalloc,
++    cork_stdlib_alloc__xmalloc,
++    cork_stdlib_alloc__xrealloc,
++    cork_stdlib_alloc__free
++};
++
++
++/*-----------------------------------------------------------------------
++ * Customizing libcork's allocator
++ */
++
++const struct cork_alloc  *cork_allocator = &default_allocator;
++
++void
++cork_set_allocator(const struct cork_alloc *alloc)
++{
++    cork_allocator = alloc;
++}
++
++
++/*-----------------------------------------------------------------------
++ * Debugging allocator
++ */
++
++static void *
++cork_debug_alloc__xmalloc(const struct cork_alloc *alloc, size_t size)
++{
++    size_t  real_size = size + sizeof(size_t);
++    size_t  *base = cork_alloc_xmalloc(alloc->parent, real_size);
++    *base = size;
++    return base + 1;
++}
++
++static void
++cork_debug_alloc__free(const struct cork_alloc *alloc, void *ptr,
++                       size_t expected_size)
++{
++    size_t  *base = ((size_t *) ptr) - 1;
++    size_t  actual_size = *base;
++    size_t  real_size = actual_size + sizeof(size_t);
++    if (CORK_UNLIKELY(actual_size != expected_size)) {
++        cork_abort
++            ("Incorrect size when freeing pointer (got %zu, expected %zu)",
++             expected_size, actual_size);
+     }
+-    return result;
++    cork_alloc_free(alloc->parent, base, real_size);
++}
++
++struct cork_alloc *
++cork_debug_alloc_new(const struct cork_alloc *parent)
++{
++    struct cork_alloc  *debug = cork_alloc_new_alloc(parent);
++    cork_alloc_set_xmalloc(debug, cork_debug_alloc__xmalloc);
++    cork_alloc_set_free(debug, cork_debug_alloc__free);
++    return debug;
+ }
+diff --git a/libcork/core/error.c b/libcork/core/error.c
+index 323d28f..114a090 100644
+--- a/libcork/core/error.c
++++ b/libcork/core/error.c
+@@ -1,6 +1,6 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011-2013, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+@@ -50,7 +50,7 @@ cork_error_free(struct cork_error *error)
+ {
+     cork_buffer_done(&error->buf1);
+     cork_buffer_done(&error->buf2);
+-    free(error);
++    cork_delete(struct cork_error, error);
+ }
+ 
+ 
+diff --git a/libcork/core/gc.c b/libcork/core/gc.c
+index 4230685..d16562d 100644
+--- a/libcork/core/gc.c
++++ b/libcork/core/gc.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -120,7 +119,7 @@ struct cork_gc_header {
+         if ((hdr)->iface->free != NULL) { \
+             (hdr)->iface->free(cork_gc_get_object((hdr))); \
+         } \
+-        free((hdr)); \
++        cork_free((hdr), (hdr)->allocated_size); \
+     } while (0)
+ 
+ #define cork_gc_recurse(gc, hdr, recurser) \
+diff --git a/libcork/core/ip-address.c b/libcork/core/ip-address.c
+index 2e3930b..6ad95fb 100644
+--- a/libcork/core/ip-address.c
++++ b/libcork/core/ip-address.c
+@@ -286,6 +286,13 @@ cork_ipv6_init(struct cork_ipv6 *addr, const char *str)
+      * final parse. */
+     DEBUG("%2u:\t", (unsigned int) (ch-str));
+     if (CORK_LIKELY(digits_seen > 0)) {
++        /* If there are trailing digits that would form a ninth hextet
++         * (regardless of the placement of a double-colon), then we have a parse
++         * error. */
++        if (CORK_UNLIKELY(hextets_seen == 8)) {
++            goto parse_error;
++        }
++
+         DEBUG("hextet %u = %04x\n\t", hextets_seen, digit);
+         *(dest++) = CORK_UINT16_HOST_TO_BIG(digit);
+         hextets_seen++;
+diff --git a/libcork/core/mempool.c b/libcork/core/mempool.c
+index 38f5d0c..1937d35 100644
+--- a/libcork/core/mempool.c
++++ b/libcork/core/mempool.c
+@@ -1,6 +1,6 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012-2013, RedJack, LLC.
++ * Copyright © 2012-2015, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+@@ -96,30 +96,49 @@ cork_mempool_free(struct cork_mempool *mp)
+ 
+     for (curr = mp->blocks; curr != NULL; ) {
+         struct cork_mempool_block  *next = curr->next_block;
+-        free(curr);
++        cork_free(curr, mp->block_size);
+         /* Do this here instead of in the for statement to avoid
+          * accessing the just-freed block. */
+         curr = next;
+     }
+ 
+     cork_free_user_data(mp);
+-    free(mp);
++    cork_delete(struct cork_mempool, mp);
+ }
+ 
+ 
+ void
+-cork_mempool_set_callbacks(struct cork_mempool *mp,
+-                           void *user_data, cork_free_f free_user_data,
+-                           cork_init_f init_object,
+-                           cork_done_f done_object)
++cork_mempool_set_user_data(struct cork_mempool *mp,
++                           void *user_data, cork_free_f free_user_data)
+ {
+     cork_free_user_data(mp);
+     mp->user_data = user_data;
+     mp->free_user_data = free_user_data;
++}
++
++void
++cork_mempool_set_init_object(struct cork_mempool *mp, cork_init_f init_object)
++{
+     mp->init_object = init_object;
++}
++
++void
++cork_mempool_set_done_object(struct cork_mempool *mp, cork_done_f done_object)
++{
+     mp->done_object = done_object;
+ }
+ 
++void
++cork_mempool_set_callbacks(struct cork_mempool *mp,
++                           void *user_data, cork_free_f free_user_data,
++                           cork_init_f init_object,
++                           cork_done_f done_object)
++{
++    cork_mempool_set_user_data(mp, user_data, free_user_data);
++    cork_mempool_set_init_object(mp, init_object);
++    cork_mempool_set_done_object(mp, done_object);
++}
++
+ 
+ /* If this function succeeds, then we guarantee that there will be at
+  * least one object in mp->free_list. */
+diff --git a/libcork/ds/array.c b/libcork/ds/array.c
+index 8fa09b6..378b1a0 100644
+--- a/libcork/ds/array.c
++++ b/libcork/ds/array.c
+@@ -78,10 +78,10 @@ cork_raw_array_done(struct cork_raw_array *array)
+         }
+     }
+     if (array->items != NULL) {
+-        free(array->items);
++        cork_free(array->items, array->priv->allocated_size);
+     }
+     cork_free_user_data(array->priv);
+-    free(array->priv);
++    cork_delete(struct cork_array_priv, array->priv);
+ }
+ 
+ void
+@@ -179,7 +179,8 @@ cork_raw_array_ensure_size(struct cork_raw_array *array, size_t desired_count)
+ 
+         DEBUG("--- Array %p: Reallocating %zu->%zu bytes",
+               array, array->priv->allocated_size, new_size);
+-        array->items = cork_realloc(array->items, new_size);
++        array->items =
++            cork_realloc(array->items, array->priv->allocated_size, new_size);
+ 
+         array->priv->allocated_count = new_count;
+         array->priv->allocated_size = new_size;
+@@ -318,13 +319,20 @@ pointer__remove(void *user_data, void *vvalue)
+     *value = NULL;
+ }
+ 
++static void
++pointer__free(void *user_data)
++{
++    struct cork_pointer_array  *ptr_array = user_data;
++    cork_delete(struct cork_pointer_array, ptr_array);
++}
++
+ void
+ cork_raw_pointer_array_init(struct cork_raw_array *array, cork_free_f free_ptr)
+ {
+     struct cork_pointer_array  *ptr_array = cork_new(struct cork_pointer_array);
+     ptr_array->free = free_ptr;
+     cork_raw_array_init(array, sizeof(void *));
+-    cork_array_set_callback_data(array, ptr_array, free);
++    cork_array_set_callback_data(array, ptr_array, pointer__free);
+     cork_array_set_init(array, pointer__init);
+     cork_array_set_done(array, pointer__done);
+     cork_array_set_remove(array, pointer__remove);
+diff --git a/libcork/ds/bitset.c b/libcork/ds/bitset.c
+index 66d4e1f..ba1e1a6 100644
+--- a/libcork/ds/bitset.c
++++ b/libcork/ds/bitset.c
+@@ -1,6 +1,6 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+@@ -39,8 +39,8 @@ cork_bitset_new(size_t bit_count)
+ void
+ cork_bitset_free(struct cork_bitset *set)
+ {
+-    free(set->bits);
+-    free(set);
++    cork_free(set->bits, set->byte_count);
++    cork_delete(struct cork_bitset, set);
+ }
+ 
+ void
+diff --git a/libcork/ds/buffer.c b/libcork/ds/buffer.c
+index 8a3ace3..2cd8e1c 100644
+--- a/libcork/ds/buffer.c
++++ b/libcork/ds/buffer.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011-2012, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -42,7 +41,7 @@ void
+ cork_buffer_done(struct cork_buffer *buffer)
+ {
+     if (buffer->buf != NULL) {
+-        free(buffer->buf);
++        cork_free(buffer->buf, buffer->allocated_size);
+         buffer->buf = NULL;
+     }
+     buffer->size = 0;
+@@ -54,7 +53,7 @@ void
+ cork_buffer_free(struct cork_buffer *buffer)
+ {
+     cork_buffer_done(buffer);
+-    free(buffer);
++    cork_delete(struct cork_buffer, buffer);
+ }
+ 
+ 
+@@ -89,7 +88,7 @@ cork_buffer_ensure_size_int(struct cork_buffer *buffer, size_t desired_size)
+         new_size = desired_size;
+     }
+ 
+-    buffer->buf = cork_realloc(buffer->buf, new_size);
++    buffer->buf = cork_realloc(buffer->buf, buffer->allocated_size, new_size);
+     buffer->allocated_size = new_size;
+ }
+ 
+@@ -388,7 +387,7 @@ cork_buffer__managed_free(struct cork_managed_buffer *vself)
+     struct cork_buffer__managed_buffer  *self =
+         cork_container_of(vself, struct cork_buffer__managed_buffer, parent);
+     cork_buffer_free(self->buffer);
+-    free(self);
++    cork_delete(struct cork_buffer__managed_buffer, self);
+ }
+ 
+ static struct cork_managed_buffer_iface  CORK_BUFFER__MANAGED_BUFFER = {
+@@ -440,11 +439,6 @@ cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
+ {
+     struct cork_buffer__stream_consumer  *bconsumer = cork_container_of
+         (consumer, struct cork_buffer__stream_consumer, consumer);
+-
+-    if (is_first_chunk) {
+-        cork_buffer_clear(bconsumer->buffer);
+-    }
+-
+     cork_buffer_append(bconsumer->buffer, buf, size);
+     return 0;
+ }
+@@ -461,7 +455,7 @@ cork_buffer_stream_consumer_free(struct cork_stream_consumer *consumer)
+     struct cork_buffer__stream_consumer  *bconsumer =
+         cork_container_of
+         (consumer, struct cork_buffer__stream_consumer, consumer);
+-    free(bconsumer);
++    cork_delete(struct cork_buffer__stream_consumer, bconsumer);
+ }
+ 
+ struct cork_stream_consumer *
+diff --git a/libcork/ds/file-stream.c b/libcork/ds/file-stream.c
+index 70aa399..c9a7c73 100644
+--- a/libcork/ds/file-stream.c
++++ b/libcork/ds/file-stream.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012, RedJack, LLC.
++ * Copyright © 2012-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -126,7 +125,7 @@ cork_file_consumer__free(struct cork_stream_consumer *vself)
+ {
+     struct cork_file_consumer  *self =
+         cork_container_of(vself, struct cork_file_consumer, parent);
+-    free(self);
++    cork_delete(struct cork_file_consumer, self);
+ }
+ 
+ struct cork_stream_consumer *
+@@ -183,7 +182,7 @@ cork_fd_consumer__free(struct cork_stream_consumer *vself)
+ {
+     struct cork_fd_consumer  *self =
+         cork_container_of(vself, struct cork_fd_consumer, parent);
+-    free(self);
++    cork_delete(struct cork_fd_consumer, self);
+ }
+ 
+ struct cork_stream_consumer *
+diff --git a/libcork/ds/hash-table.c b/libcork/ds/hash-table.c
+index 079e6cc..280a7bd 100644
+--- a/libcork/ds/hash-table.c
++++ b/libcork/ds/hash-table.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011-2013, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -13,7 +12,6 @@
+ 
+ #include "libcork/core/callbacks.h"
+ #include "libcork/core/hash.h"
+-#include "libcork/core/mempool.h"
+ #include "libcork/core/types.h"
+ #include "libcork/ds/dllist.h"
+ #include "libcork/ds/hash-table.h"
+@@ -51,7 +49,6 @@ struct cork_hash_table {
+     size_t  bin_count;
+     size_t  bin_mask;
+     size_t  entry_count;
+-    struct cork_mempool  *pool;
+     void  *user_data;
+     cork_free_f  free_user_data;
+     cork_hash_f  hash;
+@@ -122,7 +119,7 @@ cork_hash_table_new_entry(struct cork_hash_table *table,
+                           cork_hash hash, void *key, void *value)
+ {
+     struct cork_hash_table_entry_priv  *entry =
+-        cork_mempool_new_object(table->pool);
++        cork_new(struct cork_hash_table_entry_priv);
+     cork_dllist_add(&table->insertion_order, &entry->insertion_order);
+     entry->public.hash = hash;
+     entry->public.key = key;
+@@ -141,7 +138,7 @@ cork_hash_table_free_entry(struct cork_hash_table *table,
+         table->free_value(entry->public.value);
+     }
+     cork_dllist_remove(&entry->insertion_order);
+-    cork_mempool_free_object(table->pool, entry);
++    cork_delete(struct cork_hash_table_entry_priv, entry);
+ }
+ 
+ 
+@@ -156,7 +153,6 @@ cork_hash_table_new(size_t initial_size, unsigned int flags)
+     table->equals = cork_hash_table__default_equals;
+     table->free_key = NULL;
+     table->free_value = NULL;
+-    table->pool = cork_mempool_new(struct cork_hash_table_entry_priv);
+     cork_dllist_init(&table->insertion_order);
+     if (initial_size < CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE) {
+         initial_size = CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE;
+@@ -197,9 +193,8 @@ void
+ cork_hash_table_free(struct cork_hash_table *table)
+ {
+     cork_hash_table_clear(table);
+-    cork_mempool_free(table->pool);
+-    free(table->bins);
+-    free(table);
++    cork_cfree(table->bins, table->bin_count, sizeof(struct cork_dllist));
++    cork_delete(struct cork_hash_table, table);
+ }
+ 
+ size_t
+@@ -270,7 +265,7 @@ cork_hash_table_ensure_size(struct cork_hash_table *table, size_t desired_count)
+                 }
+             }
+ 
+-            free(old_bins);
++            cork_cfree(old_bins, old_bin_count, sizeof(struct cork_dllist));
+         }
+     }
+ }
+@@ -619,6 +614,7 @@ cork_hash_table_map(struct cork_hash_table *table, void *user_data,
+         } else if (result == CORK_HASH_TABLE_MAP_DELETE) {
+             DEBUG("      Delete requested");
+             cork_dllist_remove(curr);
++            cork_dllist_remove(&entry->in_bucket);
+             table->entry_count--;
+             cork_hash_table_free_entry(table, entry);
+         }
+diff --git a/libcork/ds/managed-buffer.c b/libcork/ds/managed-buffer.c
+index 6fdbe44..830b88f 100644
+--- a/libcork/ds/managed-buffer.c
++++ b/libcork/ds/managed-buffer.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011-2012, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -50,7 +49,7 @@ cork_managed_buffer_wrapped__free(struct cork_managed_buffer *vself)
+     struct cork_managed_buffer_wrapped  *self =
+         cork_container_of(vself, struct cork_managed_buffer_wrapped, parent);
+     self->free(self->buf, self->size);
+-    free(self);
++    cork_delete(struct cork_managed_buffer_wrapped, self);
+ }
+ 
+ static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_WRAPPED = {
+@@ -94,7 +93,9 @@ cork_managed_buffer_copied__free(struct cork_managed_buffer *vself)
+ {
+     struct cork_managed_buffer_copied  *self =
+         cork_container_of(vself, struct cork_managed_buffer_copied, parent);
+-    free(self);
++    size_t  allocated_size =
++        cork_managed_buffer_copied_sizeof(self->parent.size);
++    cork_free(self, allocated_size);
+ }
+ 
+ static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_COPIED = {
+@@ -105,7 +106,7 @@ struct cork_managed_buffer *
+ cork_managed_buffer_new_copy(const void *buf, size_t size)
+ {
+     size_t  allocated_size = cork_managed_buffer_copied_sizeof(size);
+-    struct cork_managed_buffer_copied  *self = malloc(allocated_size);
++    struct cork_managed_buffer_copied  *self = cork_malloc(allocated_size);
+     if (self == NULL) {
+         return NULL;
+     }
+diff --git a/libcork/ds/ring-buffer.c b/libcork/ds/ring-buffer.c
+index 62c2cf0..92eb8b9 100644
+--- a/libcork/ds/ring-buffer.c
++++ b/libcork/ds/ring-buffer.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -37,14 +36,14 @@ cork_ring_buffer_new(size_t size)
+ void
+ cork_ring_buffer_done(struct cork_ring_buffer *self)
+ {
+-    free(self->elements);
++    cork_cfree(self->elements, self->allocated_size, sizeof(void *));
+ }
+ 
+ void
+ cork_ring_buffer_free(struct cork_ring_buffer *buf)
+ {
+     cork_ring_buffer_done(buf);
+-    free(buf);
++    cork_delete(struct cork_ring_buffer, buf);
+ }
+ 
+ int
+diff --git a/libcork/include/libcork/config/config.h b/libcork/include/libcork/config/config.h
+index 8c55ee4..1cf8f2f 100644
+--- a/libcork/include/libcork/config/config.h
++++ b/libcork/include/libcork/config/config.h
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011-2013, RedJack, LLC.
++ * Copyright © 2011-2015, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -28,6 +27,11 @@
+ /* Otherwise autodetect! */
+ 
+ 
++/**** VERSION ****/
++
++#include <libcork/config/version.h>
++
++
+ /**** ARCHITECTURES ****/
+ 
+ #include <libcork/config/arch.h>
+@@ -40,7 +44,7 @@
+ #include <sys/param.h>
+ #endif
+ 
+-#if defined(__linux) || defined(__CYGWIN__)
++#if defined(__linux)
+ /* Do some Linux-specific autodetection. */
+ #include <libcork/config/linux.h>
+ 
+@@ -52,14 +56,6 @@
+ /* Do some BSD (4.3 code base or newer)specific autodetection. */
+ #include <libcork/config/bsd.h>
+ 
+-#elif defined(__MINGW32__)
+-/* Do some mingw32 autodetection. */
+-#include <libcork/config/mingw32.h>
+-
+-#elif defined(__sun)
+-/* Do some Solaris autodetection. */
+-#include <libcork/config/solaris.h>
+-
+ #endif  /* platforms */
+ 
+ 
+diff --git a/libcork/include/libcork/config/gcc.h b/libcork/include/libcork/config/gcc.h
+index debcbbd..d7bbffa 100644
+--- a/libcork/include/libcork/config/gcc.h
++++ b/libcork/include/libcork/config/gcc.h
+@@ -75,10 +75,10 @@
+ #endif
+ 
+ /* Thread-local storage has been available since GCC 3.3, but not on Mac
+- * OS X. Also disable TLS for uClibc*/
++ * OS X. */
+ 
+ #if !(defined(__APPLE__) && defined(__MACH__))
+-#if CORK_CONFIG_GCC_VERSION >= 30300 && defined(TLS)
++#if CORK_CONFIG_GCC_VERSION >= 30300
+ #define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  1
+ #else
+ #define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  0
+diff --git a/libcork/include/libcork/config/version.h b/libcork/include/libcork/config/version.h
+new file mode 100644
+index 0000000..3072377
+--- /dev/null
++++ b/libcork/include/libcork/config/version.h
+@@ -0,0 +1,25 @@
++/* -*- coding: utf-8 -*-
++ * ----------------------------------------------------------------------
++ * Copyright © 2015, RedJack, LLC.
++ * All rights reserved.
++ *
++ * Please see the COPYING file in this distribution for license details.
++ * ----------------------------------------------------------------------
++ */
++
++#ifndef LIBCORK_CONFIG_VERSION_H
++#define LIBCORK_CONFIG_VERSION_H
++
++
++/*-----------------------------------------------------------------------
++ * Library version
++ */
++
++#define CORK_CONFIG_VERSION_MAJOR   0
++#define CORK_CONFIG_VERSION_MINOR   15
++#define CORK_CONFIG_VERSION_PATCH   0
++#define CORK_CONFIG_VERSION_STRING  "0.15.0"
++#define CORK_CONFIG_REVISION        "d6ecc2cfbcdf5013038a72b4544f7d9e6eb8f92d"
++
++
++#endif /* LIBCORK_CONFIG_VERSION_H */
+diff --git a/libcork/include/libcork/core/allocator.h b/libcork/include/libcork/core/allocator.h
+index 5a6b4aa..11fc0f0 100644
+--- a/libcork/include/libcork/core/allocator.h
++++ b/libcork/include/libcork/core/allocator.h
+@@ -1,75 +1,409 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2011-2012, RedJack, LLC.
++ * Copyright © 2011-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+ #ifndef LIBCORK_CORE_ALLOCATOR_H
+ #define LIBCORK_CORE_ALLOCATOR_H
+ 
++#include <assert.h>
+ #include <stdlib.h>
+ 
+ #include <libcork/core/api.h>
+ #include <libcork/core/attributes.h>
++#include <libcork/core/callbacks.h>
+ #include <libcork/core/error.h>
+ #include <libcork/core/types.h>
+ 
+ 
+ /*-----------------------------------------------------------------------
+- * Recoverable
++ * Allocator interface
+  */
+ 
+-#define cork_xmalloc  malloc
+-#define cork_xcalloc  calloc
+-#define cork_xfree    free
++struct cork_alloc;
+ 
+-#if CORK_HAVE_REALLOCF
+-#define cork_xrealloc  reallocf
+-#else
+-CORK_API void *
+-cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
+-#endif
++typedef void *
++(*cork_alloc_calloc_f)(const struct cork_alloc *alloc,
++                       size_t count, size_t size);
++
++typedef void *
++(*cork_alloc_malloc_f)(const struct cork_alloc *alloc, size_t size);
++
++/* Must not free `ptr` if allocation fails. */
++typedef void *
++(*cork_alloc_realloc_f)(const struct cork_alloc *alloc, void *ptr,
++                        size_t old_size, size_t new_size);
++
++typedef void
++(*cork_alloc_free_f)(const struct cork_alloc *alloc, void *ptr, size_t size);
++
++struct cork_alloc {
++    const struct cork_alloc  *parent;
++    void  *user_data;
++    cork_free_f  free_user_data;
++    cork_alloc_calloc_f  calloc;
++    cork_alloc_malloc_f  malloc;
++    cork_alloc_realloc_f  realloc;
++    cork_alloc_calloc_f  xcalloc;
++    cork_alloc_malloc_f  xmalloc;
++    cork_alloc_realloc_f  xrealloc;
++    cork_alloc_free_f  free;
++};
++
++/* NOT thread-safe; must be called before most other libcork functions.
++ * Allocator will automatically be freed at process exit. */
++CORK_API struct cork_alloc *
++cork_alloc_new_alloc(const struct cork_alloc *parent);
++
++
++CORK_API void
++cork_alloc_set_user_data(struct cork_alloc *alloc,
++                         void *user_data, cork_free_f free_user_data);
++
++/* These variants must always return a valid pointer.  If allocation fails, they
++ * should abort the process or transfer control in some other way to an error
++ * handler or cleanup routine.
++ *
++ * If you only provide implementations of the `x` variants, we'll provide
++ * default implementations of these that abort the process if a memory
++ * allocation fails. */
++
++CORK_API void
++cork_alloc_set_calloc(struct cork_alloc *alloc, cork_alloc_calloc_f calloc);
++
++CORK_API void
++cork_alloc_set_malloc(struct cork_alloc *alloc, cork_alloc_malloc_f malloc);
+ 
+-/* type-based macros */
+-#define cork_xnew(type)  ((type *) cork_xmalloc(sizeof(type)))
++CORK_API void
++cork_alloc_set_realloc(struct cork_alloc *alloc, cork_alloc_realloc_f realloc);
++
++/* These variants can return a NULL pointer if allocation fails. */
+ 
+-/* string-related functions */
++CORK_API void
++cork_alloc_set_xcalloc(struct cork_alloc *alloc, cork_alloc_calloc_f xcalloc);
++
++CORK_API void
++cork_alloc_set_xmalloc(struct cork_alloc *alloc, cork_alloc_malloc_f xmalloc);
+ 
++CORK_API void
++cork_alloc_set_xrealloc(struct cork_alloc *alloc,
++                        cork_alloc_realloc_f xrealloc);
++
++
++CORK_API void
++cork_alloc_set_free(struct cork_alloc *alloc, cork_alloc_free_f free);
++
++
++/* Low-level use of an allocator. */
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_calloc(const struct cork_alloc *alloc, size_t count, size_t size)
++{
++    return alloc->calloc(alloc, count, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_malloc(const struct cork_alloc *alloc, size_t size)
++{
++    return alloc->malloc(alloc, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_realloc(const struct cork_alloc *alloc, void *ptr,
++                   size_t old_size, size_t new_size)
++{
++    return alloc->realloc(alloc, ptr, old_size, new_size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_xcalloc(const struct cork_alloc *alloc, size_t count, size_t size)
++{
++    return alloc->xcalloc(alloc, count, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_xmalloc(const struct cork_alloc *alloc, size_t size)
++{
++    return alloc->xmalloc(alloc, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_xrealloc(const struct cork_alloc *alloc, void *ptr,
++                    size_t old_size, size_t new_size)
++{
++    return alloc->xrealloc(alloc, ptr, old_size, new_size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_alloc_xreallocf(const struct cork_alloc *alloc, void *ptr,
++                     size_t old_size, size_t new_size)
++{
++    void  *result = alloc->xrealloc(alloc, ptr, old_size, new_size);
++    if (result == NULL) {
++        alloc->free(alloc, ptr, old_size);
++        return NULL;
++    } else {
++        return result;
++    }
++}
++
++CORK_ATTR_UNUSED
++static void
++cork_alloc_free(const struct cork_alloc *alloc, void *ptr, size_t size)
++{
++    return alloc->free(alloc, ptr, size);
++}
++
++CORK_ATTR_UNUSED
++static void
++cork_alloc_cfree(const struct cork_alloc *alloc, void *ptr,
++                 size_t count, size_t size)
++{
++    assert(count < (SIZE_MAX / size));
++    return alloc->free(alloc, ptr, count * size);
++}
++
++#define cork_alloc_new(alloc, type) \
++    cork_alloc_malloc((alloc), sizeof(type))
++#define cork_alloc_xnew(alloc, type) \
++    cork_alloc_xmalloc((alloc), sizeof(type))
++#define cork_alloc_delete(alloc, type, ptr) \
++    cork_alloc_free((alloc), (ptr), sizeof(type))
++
++/* string-related helper functions */
++
++CORK_ATTR_MALLOC
+ CORK_API const char *
+-cork_xstrdup(const char *str);
++cork_alloc_strdup(const struct cork_alloc *alloc, const char *str);
+ 
++CORK_ATTR_MALLOC
+ CORK_API const char *
+-cork_xstrndup(const char *str, size_t size);
++cork_alloc_strndup(const struct cork_alloc *alloc,
++                   const char *str, size_t size);
++
++CORK_ATTR_MALLOC
++CORK_API const char *
++cork_alloc_xstrdup(const struct cork_alloc *alloc, const char *str);
++
++CORK_ATTR_MALLOC
++CORK_API const char *
++cork_alloc_xstrndup(const struct cork_alloc *alloc,
++                    const char *str, size_t size);
+ 
+ CORK_API void
+-cork_strfree(const char *str);
++cork_alloc_strfree(const struct cork_alloc *alloc, const char *str);
+ 
+ 
+ /*-----------------------------------------------------------------------
+- * Abort on failure
++ * Using the allocator interface
+  */
+ 
+-CORK_API void *
+-cork_malloc(size_t size) CORK_ATTR_MALLOC;
++/* All of the functions that you use to actually allocate memory assume that
++ * cork_current_allocator() returns the allocator instance that should be used.
++ * Your easiest approach is to do nothing special; in that case, all of the
++ * libcork memory allocation functions will transparently use the standard
++ * malloc/free family of functions.
++ *
++ * If you're writing a library, and want to allow your library clients to
++ * provide a separate custom memory allocator then the one they can already
++ * override for libcork itself, you should declare a pair of functions for
++ * getting and setting your library's current allocator (like libcork itself
++ * does), and (only when compiling the source of your library) define
++ * `cork_current_allocator` as a macro that aliases the getter function.  That
++ * will cause the libcork memory allocation functions to use whichever allocator
++ * your library user has provided.
++ *
++ * If you're writing an application, and want to provide a single allocator that
++ * all libcork-using libraries will pick up, just call cork_set_allocator before
++ * calling any other library functions.  Other libraries will use this as a
++ * default and everything that uses libcork's memory allocation functions will
++ * use your custom allocator. */
++
+ 
+-CORK_API void *
+-cork_calloc(size_t count, size_t size) CORK_ATTR_MALLOC;
++/* libcork's current allocator */
+ 
+-CORK_API void *
+-cork_realloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
++extern const struct cork_alloc  *cork_allocator;
+ 
+-CORK_API const char *
+-cork_strdup(const char *src) CORK_ATTR_MALLOC;
++/* We take control and will free when the process exits.  This is *NOT*
++ * thread-safe; it's only safe to call before you've called *ANY* other libcork
++ * function (or any function from any other library that uses libcork).  You can
++ * only call this at most once. */
++CORK_API void
++cork_set_allocator(const struct cork_alloc *alloc);
+ 
+-CORK_API const char *
+-cork_strndup(const char *src, size_t size) CORK_ATTR_MALLOC;
+ 
+-#define cork_new(type) \
+-    cork_malloc(sizeof(type))
++/* The current allocator of whichever library is being compiled. */
++
++#if !defined(cork_current_allocator)
++#define cork_current_allocator()  (cork_allocator)
++#endif
++
++
++/* using an allocator */
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_calloc(size_t count, size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_calloc(alloc, count, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_malloc(size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_malloc(alloc, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_realloc(void *ptr, size_t old_size, size_t new_size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_realloc(alloc, ptr, old_size, new_size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_xcalloc(size_t count, size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_xcalloc(alloc, count, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_xmalloc(size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_xmalloc(alloc, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_xrealloc(void *ptr, size_t old_size, size_t new_size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_xrealloc(alloc, ptr, old_size, new_size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static void *
++cork_xreallocf(void *ptr, size_t old_size, size_t new_size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_xreallocf(alloc, ptr, old_size, new_size);
++}
++
++CORK_ATTR_UNUSED
++static void
++cork_free(void *ptr, size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    cork_alloc_free(alloc, ptr, size);
++}
++
++CORK_ATTR_UNUSED
++static void
++cork_cfree(void *ptr, size_t count, size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    cork_alloc_cfree(alloc, ptr, count, size);
++}
++
++#define cork_new(type)          cork_malloc(sizeof(type))
++#define cork_xnew(type)         cork_xmalloc(sizeof(type))
++#define cork_delete(type, ptr)  cork_free((ptr), sizeof(type))
++
++
++/* string-related helper functions */
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static const char *
++cork_strdup(const char *str)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_strdup(alloc, str);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static const char *
++cork_strndup(const char *str, size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_strndup(alloc, str, size);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static const char *
++cork_xstrdup(const char *str)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_xstrdup(alloc, str);
++}
++
++CORK_ATTR_MALLOC
++CORK_ATTR_UNUSED
++static const char *
++cork_xstrndup(const char *str, size_t size)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_xstrndup(alloc, str, size);
++}
++
++CORK_ATTR_UNUSED
++static void
++cork_strfree(const char *str)
++{
++    const struct cork_alloc  *alloc = cork_current_allocator();
++    return cork_alloc_strfree(alloc, str);
++}
++
++
++/*-----------------------------------------------------------------------
++ * Debugging allocator
++ */
++
++/* An allocator that adds some additional debugging checks:
++ *
++ * - We verify that every "free" call (cork_free, cork_cfree, cork_delete,
++ *   cork_realloc) is passed the "correct" size — i.e., the same size that was
++ *   passed in to the correspond "new" call (cork_malloc, cork_calloc,
++ *   cork_realloc, cork_new).
++ */
++
++struct cork_alloc *
++cork_debug_alloc_new(const struct cork_alloc *parent);
+ 
+ 
+ #endif /* LIBCORK_CORE_ALLOCATOR_H */
+diff --git a/libcork/include/libcork/core/api.h b/libcork/include/libcork/core/api.h
+index 3dfda91..0d3c365 100644
+--- a/libcork/include/libcork/core/api.h
++++ b/libcork/include/libcork/core/api.h
+@@ -1,18 +1,23 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012, RedJack, LLC.
++ * Copyright © 2012-2015, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+ #ifndef LIBCORK_CORE_API_H
+ #define LIBCORK_CORE_API_H
+ 
++#include <libcork/config.h>
+ #include <libcork/core/attributes.h>
+ 
++
++/*-----------------------------------------------------------------------
++ * Calling conventions
++ */
++
+ /* If you're using libcork as a shared library, you don't need to do anything
+  * special; the following will automatically set things up so that libcork's
+  * public symbols are imported from the library.  When we build the shared
+@@ -22,4 +27,30 @@
+ #define CORK_API  CORK_IMPORT
+ #endif
+ 
++
++/*-----------------------------------------------------------------------
++ * Library version
++ */
++
++#define CORK_VERSION_MAJOR  CORK_CONFIG_VERSION_MAJOR
++#define CORK_VERSION_MINOR  CORK_CONFIG_VERSION_MINOR
++#define CORK_VERSION_PATCH  CORK_CONFIG_VERSION_PATCH
++
++#define CORK_MAKE_VERSION(major, minor, patch) \
++    ((major * 1000000) + (minor * 1000) + patch)
++
++#define CORK_VERSION  \
++    CORK_MAKE_VERSION(CORK_VERSION_MAJOR, \
++                      CORK_VERSION_MINOR, \
++                      CORK_VERSION_PATCH)
++
++CORK_API const char *
++cork_version_string(void)
++    CORK_ATTR_CONST;
++
++CORK_API const char *
++cork_revision_string(void)
++    CORK_ATTR_CONST;
++
++
+ #endif /* LIBCORK_CORE_API_H */
+diff --git a/libcork/include/libcork/core/callbacks.h b/libcork/include/libcork/core/callbacks.h
+index ce9543c..a63365f 100644
+--- a/libcork/include/libcork/core/callbacks.h
++++ b/libcork/include/libcork/core/callbacks.h
+@@ -1,6 +1,6 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+@@ -39,5 +39,8 @@ typedef void
+ typedef void *
+ (*cork_new_f)(void *user_data);
+ 
++typedef int
++(*cork_run_f)(void *user_data);
++
+ 
+ #endif /* LIBCORK_CORE_CALLBACKS_H */
+diff --git a/libcork/include/libcork/core/mempool.h b/libcork/include/libcork/core/mempool.h
+index e762bef..43a73c6 100644
+--- a/libcork/include/libcork/core/mempool.h
++++ b/libcork/include/libcork/core/mempool.h
+@@ -1,6 +1,6 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012-2013, RedJack, LLC.
++ * Copyright © 2012-2015, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+@@ -42,6 +42,18 @@ cork_mempool_free(struct cork_mempool *mp);
+ 
+ 
+ CORK_API void
++cork_mempool_set_user_data(struct cork_mempool *mp,
++                           void *user_data, cork_free_f free_user_data);
++
++CORK_API void
++cork_mempool_set_init_object(struct cork_mempool *mp, cork_init_f init_object);
++
++CORK_API void
++cork_mempool_set_done_object(struct cork_mempool *mp, cork_done_f done_object);
++
++/* Deprecated; you should now use separate calls to cork_mempool_set_user_data,
++ * cork_mempool_set_init_object, and cork_mempool_set_done_object. */
++CORK_API void
+ cork_mempool_set_callbacks(struct cork_mempool *mp,
+                            void *user_data, cork_free_f free_user_data,
+                            cork_init_f init_object,
+diff --git a/libcork/include/libcork/os/subprocess.h b/libcork/include/libcork/os/subprocess.h
+index 6aba53f..31c1eb5 100644
+--- a/libcork/include/libcork/os/subprocess.h
++++ b/libcork/include/libcork/os/subprocess.h
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012-2013, RedJack, LLC.
++ * Copyright © 2012-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -14,6 +13,7 @@
+ #include <stdarg.h>
+ 
+ #include <libcork/core/api.h>
++#include <libcork/core/callbacks.h>
+ #include <libcork/core/types.h>
+ #include <libcork/ds/stream.h>
+ #include <libcork/threads/basics.h>
+@@ -126,7 +126,8 @@ struct cork_subprocess;
+ 
+ /* Takes control of body */
+ CORK_API struct cork_subprocess *
+-cork_subprocess_new(struct cork_thread_body *body,
++cork_subprocess_new(void *user_data, cork_free_f free_user_data,
++                    cork_run_f run,
+                     struct cork_stream_consumer *stdout_consumer,
+                     struct cork_stream_consumer *stderr_consumer,
+                     int *exit_code);
+diff --git a/libcork/include/libcork/threads/atomics.h b/libcork/include/libcork/threads/atomics.h
+index e1cc04d..d1f139b 100644
+--- a/libcork/include/libcork/threads/atomics.h
++++ b/libcork/include/libcork/threads/atomics.h
+@@ -23,14 +23,19 @@
+ 
+ #define cork_int_atomic_add        __sync_add_and_fetch
+ #define cork_uint_atomic_add       __sync_add_and_fetch
++#define cork_size_atomic_add       __sync_add_and_fetch
+ #define cork_int_atomic_pre_add    __sync_fetch_and_add
+ #define cork_uint_atomic_pre_add   __sync_fetch_and_add
++#define cork_size_atomic_pre_add   __sync_fetch_and_add
+ #define cork_int_atomic_sub        __sync_sub_and_fetch
+ #define cork_uint_atomic_sub       __sync_sub_and_fetch
++#define cork_size_atomic_sub       __sync_sub_and_fetch
+ #define cork_int_atomic_pre_sub    __sync_fetch_and_sub
+ #define cork_uint_atomic_pre_sub   __sync_fetch_and_sub
++#define cork_size_atomic_pre_sub   __sync_fetch_and_sub
+ #define cork_int_cas               __sync_val_compare_and_swap
+ #define cork_uint_cas              __sync_val_compare_and_swap
++#define cork_size_cas              __sync_val_compare_and_swap
+ #define cork_ptr_cas               __sync_val_compare_and_swap
+ 
+ 
+diff --git a/libcork/include/libcork/threads/basics.h b/libcork/include/libcork/threads/basics.h
+index d5fef91..6208569 100644
+--- a/libcork/include/libcork/threads/basics.h
++++ b/libcork/include/libcork/threads/basics.h
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012, RedJack, LLC.
++ * Copyright © 2012-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -15,6 +14,7 @@
+ 
+ #include <libcork/core/api.h>
+ #include <libcork/core/attributes.h>
++#include <libcork/core/callbacks.h>
+ #include <libcork/threads/atomics.h>
+ 
+ 
+@@ -33,22 +33,6 @@ cork_current_thread_get_id(void);
+ 
+ 
+ /*-----------------------------------------------------------------------
+- * Main functions
+- */
+-
+-struct cork_thread_body {
+-    int
+-    (*run)(struct cork_thread_body *self);
+-
+-    void
+-    (*free)(struct cork_thread_body *self);
+-};
+-
+-#define cork_thread_body_run(tb)  ((tb)->run((tb)))
+-#define cork_thread_body_free(tb)  ((tb)->free((tb)))
+-
+-
+-/*-----------------------------------------------------------------------
+  * Threads
+  */
+ 
+@@ -60,7 +44,9 @@ CORK_API struct cork_thread *
+ cork_current_thread_get(void);
+ 
+ CORK_API struct cork_thread *
+-cork_thread_new(const char *name, struct cork_thread_body *body);
++cork_thread_new(const char *name,
++                void *user_data, cork_free_f free_user_data,
++                cork_run_f run);
+ 
+ /* Thread must not have been started yet. */
+ CORK_API void
+@@ -171,20 +157,23 @@ NAME##_get(void) \
+     return &NAME##__tls; \
+ }
+ 
++#define cork_tls_with_alloc(TYPE, NAME, allocate, deallocate) \
++    cork_tls(TYPE, NAME)
++
+ #elif CORK_HAVE_PTHREADS
+ #include <stdlib.h>
+ #include <pthread.h>
+ 
+ #include <libcork/core/allocator.h>
+ 
+-#define cork_tls(TYPE, NAME) \
++#define cork_tls_with_alloc(TYPE, NAME, allocate, deallocate) \
+ static pthread_key_t  NAME##__tls_key; \
+ cork_once_barrier(NAME##__tls_barrier); \
+ \
+ static void \
+-NAME##__tls_destroy(void *vself) \
++NAME##__tls_destroy(void *self) \
+ { \
+-    free(vself); \
++    deallocate(self); \
+ } \
+ \
+ static void \
+@@ -202,12 +191,28 @@ NAME##_get(void) \
+     cork_once(NAME##__tls_barrier, NAME##__create_key()); \
+     self = pthread_getspecific(NAME##__tls_key); \
+     if (CORK_UNLIKELY(self == NULL)) { \
+-        self = cork_calloc(1, sizeof(TYPE)); \
++        self = allocate(); \
+         pthread_setspecific(NAME##__tls_key, self); \
+     } \
+     return self; \
+ }
+ 
++#define cork_tls(TYPE, NAME) \
++\
++static TYPE * \
++NAME##__tls_allocate(void) \
++{ \
++    return cork_calloc(1, sizeof(TYPE)); \
++} \
++\
++static void \
++NAME##__tls_deallocate(void *vself) \
++{ \
++    cork_cfree(vself, 1, sizeof(TYPE)); \
++} \
++\
++cork_tls_with_alloc(TYPE, NAME, NAME##__tls_allocate, NAME##__tls_deallocate);
++
+ #else
+ #error "No thread-local storage implementation!"
+ #endif
+diff --git a/libcork/posix/env.c b/libcork/posix/env.c
+index ce4f25c..16b23ef 100644
+--- a/libcork/posix/env.c
++++ b/libcork/posix/env.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -54,7 +53,7 @@ cork_env_var_free(void *vvar)
+     struct cork_env_var  *var = vvar;
+     cork_strfree(var->name);
+     cork_strfree(var->value);
+-    free(var);
++    cork_delete(struct cork_env_var, var);
+ }
+ 
+ 
+@@ -122,7 +121,7 @@ cork_env_free(struct cork_env *env)
+ {
+     cork_hash_table_free(env->variables);
+     cork_buffer_done(&env->buffer);
+-    free(env);
++    cork_delete(struct cork_env, env);
+ }
+ 
+ const char *
+diff --git a/libcork/posix/exec.c b/libcork/posix/exec.c
+index 66fd215..0621028 100644
+--- a/libcork/posix/exec.c
++++ b/libcork/posix/exec.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -94,7 +93,7 @@ cork_exec_free(struct cork_exec *exec)
+         cork_strfree(exec->cwd);
+     }
+     cork_buffer_done(&exec->description);
+-    free(exec);
++    cork_delete(struct cork_exec, exec);
+ }
+ 
+ const char *
+diff --git a/libcork/posix/files.c b/libcork/posix/files.c
+index 7a4a2ad..a2fbf3a 100644
+--- a/libcork/posix/files.c
++++ b/libcork/posix/files.c
+@@ -1,6 +1,6 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+@@ -77,7 +77,7 @@ void
+ cork_path_free(struct cork_path *path)
+ {
+     cork_buffer_done(&path->given);
+-    free(path);
++    cork_delete(struct cork_path, path);
+ }
+ 
+ 
+@@ -131,8 +131,8 @@ cork_path_set_absolute(struct cork_path *path)
+     struct cork_buffer  buf;
+ 
+     if (path->given.size > 0 &&
+-        cork_buffer_char(&path->given, path->given.size - 1) == '/') {
+-        /* The path is already absolute */
++        cork_buffer_char(&path->given, 0) == '/') {
++        /* The path is already absolute. */
+         return 0;
+     }
+ 
+@@ -172,8 +172,8 @@ cork_path_append(struct cork_path *path, const char *more)
+     }
+ 
+     if (more[0] == '/') {
+-        /* If more starts with a "/", then its absolute, and should replace the
+-         * contents of the current path. */
++        /* If more starts with a "/", then it's absolute, and should replace
++         * the contents of the current path. */
+         cork_buffer_set_string(&path->given, more);
+     } else {
+         /* Otherwise, more is relative, and should be appended to the current
+@@ -290,7 +290,7 @@ cork_path_list_free(struct cork_path_list *list)
+     }
+     cork_array_done(&list->array);
+     cork_buffer_done(&list->string);
+-    free(list);
++    cork_delete(struct cork_path_list, list);
+ }
+ 
+ const char *
+@@ -396,7 +396,7 @@ void
+ cork_file_free(struct cork_file *file)
+ {
+     cork_file_done(file);
+-    free(file);
++    cork_delete(struct cork_file, file);
+ }
+ 
+ const struct cork_path *
+@@ -673,7 +673,7 @@ cork_file_list_free(struct cork_file_list *list)
+         cork_file_free(file);
+     }
+     cork_array_done(&list->array);
+-    free(list);
++    cork_delete(struct cork_file_list, list);
+ }
+ 
+ void
+diff --git a/libcork/posix/process.c b/libcork/posix/process.c
+index e22e166..72afdd3 100644
+--- a/libcork/posix/process.c
++++ b/libcork/posix/process.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -50,16 +49,43 @@ static void
+ cork_cleanup_entry_free(struct cork_cleanup_entry *self)
+ {
+     cork_strfree(self->name);
+-    free(self);
++    cork_delete(struct cork_cleanup_entry, self);
+ }
+ 
+ static struct cork_dllist  cleanup_entries = CORK_DLLIST_INIT(cleanup_entries);
++static bool  cleanup_registered = false;
++
++static void
++cork_cleanup_call_one(struct cork_dllist_item *item, void *user_data)
++{
++    struct cork_cleanup_entry  *entry =
++        cork_container_of(item, struct cork_cleanup_entry, item);
++    cork_cleanup_function  function = entry->function;
++    DEBUG("Call cleanup function [%d] %s\n", entry->priority, entry->name);
++    /* We need to free the entry before calling the entry's function, since one
++     * of the functions that libcork registers frees the allocator instance that
++     * we'd use to free the entry.  If we called the function first, the
++     * allocator would be freed before we could use it to free the entry. */
++    cork_cleanup_entry_free(entry);
++    function();
++}
++
++static void
++cork_cleanup_call_all(void)
++{
++    cork_dllist_map(&cleanup_entries, cork_cleanup_call_one, NULL);
++}
+ 
+ static void
+ cork_cleanup_entry_add(struct cork_cleanup_entry *entry)
+ {
+     struct cork_dllist_item  *curr;
+ 
++    if (CORK_UNLIKELY(!cleanup_registered)) {
++        atexit(cork_cleanup_call_all);
++        cleanup_registered = true;
++    }
++
+     /* Linear search through the list of existing cleanup functions.  When we
+      * find the first existing function with a higher priority, we've found
+      * where to insert the new function. */
+@@ -78,27 +104,6 @@ cork_cleanup_entry_add(struct cork_cleanup_entry *entry)
+     cork_dllist_add(&cleanup_entries, &entry->item);
+ }
+ 
+-static void
+-cork_cleanup_call_one(struct cork_dllist_item *item, void *user_data)
+-{
+-    struct cork_cleanup_entry  *entry =
+-        cork_container_of(item, struct cork_cleanup_entry, item);
+-    DEBUG("Call cleanup function [%d] %s\n", entry->priority, entry->name);
+-    entry->function();
+-    cork_cleanup_entry_free(entry);
+-}
+-
+-static void
+-cork_cleanup_call_all(void)
+-{
+-    cork_dllist_map(&cleanup_entries, cork_cleanup_call_one, NULL);
+-}
+-
+-
+-CORK_INITIALIZER(cleanup_init)
+-{
+-    atexit(cork_cleanup_call_all);
+-}
+ 
+ CORK_API void
+ cork_cleanup_at_exit_named(const char *name, int priority,
+diff --git a/libcork/posix/subprocess.c b/libcork/posix/subprocess.c
+index a301466..50b28d1 100644
+--- a/libcork/posix/subprocess.c
++++ b/libcork/posix/subprocess.c
+@@ -1,10 +1,9 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2012-2013, RedJack, LLC.
++ * Copyright © 2012-2014, RedJack, LLC.
+  * All rights reserved.
+  *
+- * Please see the COPYING file in this distribution for license
+- * details.
++ * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
+@@ -12,10 +11,8 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <signal.h>
+-#ifndef __MINGW32__
+ #include <sys/select.h>
+ #include <sys/wait.h>
+-#endif
+ #include <unistd.h>
+ 
+ #include "libcork/core.h"
+@@ -62,7 +59,7 @@ void
+ cork_subprocess_group_free(struct cork_subprocess_group *group)
+ {
+     cork_array_done(&group->subprocesses);
+-    free(group);
++    cork_delete(struct cork_subprocess_group, group);
+ }
+ 
+ void
+@@ -314,13 +311,16 @@ struct cork_subprocess {
+     struct cork_write_pipe  stdin_pipe;
+     struct cork_read_pipe  stdout_pipe;
+     struct cork_read_pipe  stderr_pipe;
+-    struct cork_thread_body  *body;
++    void  *user_data;
++    cork_free_f  free_user_data;
++    cork_run_f  run;
+     int  *exit_code;
+     char  buf[BUF_SIZE];
+ };
+ 
+ struct cork_subprocess *
+-cork_subprocess_new(struct cork_thread_body *body,
++cork_subprocess_new(void *user_data, cork_free_f free_user_data,
++                    cork_run_f run,
+                     struct cork_stream_consumer *stdout_consumer,
+                     struct cork_stream_consumer *stderr_consumer,
+                     int *exit_code)
+@@ -330,7 +330,9 @@ cork_subprocess_new(struct cork_thread_body *body,
+     cork_read_pipe_init(&self->stdout_pipe, stdout_consumer);
+     cork_read_pipe_init(&self->stderr_pipe, stderr_consumer);
+     self->pid = 0;
+-    self->body = body;
++    self->user_data = user_data;
++    self->free_user_data = free_user_data;
++    self->run = run;
+     self->exit_code = exit_code;
+     return self;
+ }
+@@ -338,11 +340,11 @@ cork_subprocess_new(struct cork_thread_body *body,
+ void
+ cork_subprocess_free(struct cork_subprocess *self)
+ {
+-    cork_thread_body_free(self->body);
++    cork_free_user_data(self);
+     cork_write_pipe_done(&self->stdin_pipe);
+     cork_read_pipe_done(&self->stdout_pipe);
+     cork_read_pipe_done(&self->stderr_pipe);
+-    free(self);
++    cork_delete(struct cork_subprocess, self);
+ }
+ 
+ struct cork_stream_consumer *
+@@ -356,36 +358,18 @@ cork_subprocess_stdin(struct cork_subprocess *self)
+  * Executing another program
+  */
+ 
+-struct cork_exec_body {
+-    struct cork_thread_body  parent;
+-    struct cork_exec  *exec;
+-};
+-
+ static int
+-cork_exec__run(struct cork_thread_body *vself)
++cork_exec__run(void *vself)
+ {
+-    struct cork_exec_body  *self =
+-        cork_container_of(vself, struct cork_exec_body, parent);
+-    return cork_exec_run(self->exec);
++    struct cork_exec  *exec = vself;
++    return cork_exec_run(exec);
+ }
+ 
+ static void
+-cork_exec__free(struct cork_thread_body *vself)
+-{
+-    struct cork_exec_body  *self =
+-        cork_container_of(vself, struct cork_exec_body, parent);
+-    cork_exec_free(self->exec);
+-    free(self);
+-}
+-
+-static struct cork_thread_body *
+-cork_exec_body_new(struct cork_exec *exec)
++cork_exec__free(void *vself)
+ {
+-    struct cork_exec_body  *self = cork_new(struct cork_exec_body);
+-    self->parent.run = cork_exec__run;
+-    self->parent.free = cork_exec__free;
+-    self->exec = exec;
+-    return &self->parent;
++    struct cork_exec  *exec = vself;
++    cork_exec_free(exec);
+ }
+ 
+ struct cork_subprocess *
+@@ -394,8 +378,10 @@ cork_subprocess_new_exec(struct cork_exec *exec,
+                          struct cork_stream_consumer *err,
+                          int *exit_code)
+ {
+-    struct cork_thread_body  *body = cork_exec_body_new(exec);
+-    return cork_subprocess_new(body, out, err, exit_code);
++    return cork_subprocess_new
++        (exec, cork_exec__free,
++         cork_exec__run,
++         out, err, exit_code);
+ }
+ 
+ 
+@@ -448,8 +434,8 @@ cork_subprocess_start(struct cork_subprocess *self)
+             _exit(EXIT_FAILURE);
+         }
+ 
+-        /* Run the subprocess's body */
+-        rc = cork_thread_body_run(self->body);
++        /* Run the subprocess */
++        rc = self->run(self->user_data);
+         if (CORK_LIKELY(rc == 0)) {
+             _exit(EXIT_SUCCESS);
+         } else {
+@@ -508,10 +494,10 @@ cork_subprocess_is_finished(struct cork_subprocess *self)
+         && cork_read_pipe_is_finished(&self->stderr_pipe);
+ }
+ 
+-#if defined(__APPLE__) || defined(__MINGW32__) || defined(__CYGWIN__)
++#if defined(__APPLE__)
+ #include <pthread.h>
+ #define THREAD_YIELD   pthread_yield_np
+-#elif defined(__linux__) || defined(BSD) || defined(__sun)
++#elif defined(__linux__) || defined(BSD)
+ #include <sched.h>
+ #define THREAD_YIELD   sched_yield
+ #else
+diff --git a/libcork/pthreads/thread.c b/libcork/pthreads/thread.c
+index 0dd55a3..002416e 100644
+--- a/libcork/pthreads/thread.c
++++ b/libcork/pthreads/thread.c
+@@ -1,13 +1,21 @@
+ /* -*- coding: utf-8 -*-
+  * ----------------------------------------------------------------------
+- * Copyright © 2013, RedJack, LLC.
++ * Copyright © 2013-2015, RedJack, LLC.
+  * All rights reserved.
+  *
+  * Please see the COPYING file in this distribution for license details.
+  * ----------------------------------------------------------------------
+  */
+ 
++#if defined(__linux)
++/* This is needed on Linux to get the pthread_setname_np function. */
++#if !defined(_GNU_SOURCE)
++#define _GNU_SOURCE 1
++#endif
++#endif
++
+ #include <assert.h>
++#include <string.h>
+ 
+ #include <pthread.h>
+ 
+@@ -28,7 +36,9 @@ struct cork_thread {
+     const char  *name;
+     cork_thread_id  id;
+     pthread_t  thread_id;
+-    struct cork_thread_body  *body;
++    void  *user_data;
++    cork_free_f  free_user_data;
++    cork_run_f  run;
+     cork_error  error_code;
+     struct cork_buffer  error_message;
+     bool  started;
+@@ -69,12 +79,16 @@ cork_current_thread_get_id(void)
+  */
+ 
+ struct cork_thread *
+-cork_thread_new(const char *name, struct cork_thread_body *body)
++cork_thread_new(const char *name,
++                void *user_data, cork_free_f free_user_data,
++                cork_run_f run)
+ {
+     struct cork_thread  *self = cork_new(struct cork_thread);
+     self->name = cork_strdup(name);
+     self->id = cork_uint_atomic_add(&last_thread_descriptor, 1);
+-    self->body = body;
++    self->user_data = user_data;
++    self->free_user_data = free_user_data;
++    self->run = run;
+     self->error_code = CORK_ERROR_NONE;
+     cork_buffer_init(&self->error_message);
+     self->started = false;
+@@ -86,9 +100,9 @@ static void
+ cork_thread_free_private(struct cork_thread *self)
+ {
+     cork_strfree(self->name);
+-    cork_thread_body_free(self->body);
++    cork_free_user_data(self);
+     cork_buffer_done(&self->error_message);
+-    free(self);
++    cork_delete(struct cork_thread, self);
+ }
+ 
+ void
+@@ -110,16 +124,29 @@ cork_thread_get_id(struct cork_thread *self)
+     return self->id;
+ }
+ 
++#define PTHREADS_MAX_THREAD_NAME_LENGTH  16
++
+ static void *
+ cork_thread_pthread_run(void *vself)
+ {
+     int  rc;
+     struct cork_thread  *self = vself;
+     struct cork_thread_descriptor  *desc = cork_thread_descriptor_get();
++#if defined(__APPLE__) && defined(__MACH__)
++    char  thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH];
++#endif
+ 
+     desc->current_thread = self;
+     desc->id = self->id;
+-    rc = cork_thread_body_run(self->body);
++    rc = self->run(self->user_data);
++
++#if defined(__APPLE__) && defined(__MACH__)
++    /* On Mac OS X, we set the name of the current thread, not of an arbitrary
++     * thread of our choosing. */
++    strncpy(thread_name, self->name, PTHREADS_MAX_THREAD_NAME_LENGTH);
++    thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH - 1] = '\0';
++    pthread_setname_np(thread_name);
++#endif
+ 
+     /* If an error occurred in the body of the thread, save the error into the
+      * cork_thread object so that we can propagate that error when some calls
+@@ -142,6 +169,9 @@ cork_thread_start(struct cork_thread *self)
+ {
+     int  rc;
+     pthread_t  thread_id;
++#if defined(__linux)
++    char  thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH];
++#endif
+ 
+     assert(!self->started);
+ 
+@@ -151,6 +181,13 @@ cork_thread_start(struct cork_thread *self)
+         return -1;
+     }
+ 
++#if defined(__linux)
++    /* On Linux we choose which thread to name via an explicit thread ID. */
++    strncpy(thread_name, self->name, PTHREADS_MAX_THREAD_NAME_LENGTH);
++    thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH - 1] = '\0';
++    pthread_setname_np(thread_id, thread_name);
++#endif
++
+     self->thread_id = thread_id;
+     self->started = true;
+     return 0;
