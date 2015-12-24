@@ -1,0 +1,20 @@
+--- a/config.h
++++ b/config.h
+@@ -24,7 +24,7 @@
+  * Define your own version identifier here, e.g. '#define VERSION "my vlmcsd based on svn560"'
+  */
+ 
+-#define VERSION "private build"
++#define VERSION "vlmcsd for OpenWrt love from MDL forum"
+ 
+ #endif // VERSION
+ 
+@@ -76,7 +76,7 @@
+  * at a default location
+  */
+ 
+-//#define INI_FILE "/etc/vlmcsd.ini"
++#define INI_FILE "/etc/vlmcsd.ini"
+ 
+ #endif // INI_FILE
+ 

@@ -29,7 +29,24 @@ endef
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) -R ./src/* $(PKG_BUILD_DIR)/
+	$(call Build/Prepare/Default)
 endef
+
+# AUXV=1          Use /proc/self/auxv (**requires Linux with glibc >= 2.16 or musl**.)
+MAKE_FLAGS+= \
+	VERBOSE=3 \
+	$(if $(CONFIG_USE_MUSL)$(CONFIG_GLIBC_VERSION_2_21),AUXV=1)
+
+#-D_PEDANTIC      Report rare error/warning conditions instead of silently ignoring them.
+TARGET_CFLAGS+= \
+	-D_PEDANTIC
+
+TARGET_CFLAGS += -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
+
+# Use Link time optimization
+TARGET_CFLAGS += -flto
+TARGET_LDFLAGS += -Wl,-flto
 
 #[安装(编译)时执行的脚本 记得加上#!/bin/sh 没有就空着]
 define Package/vlmcsd/install
