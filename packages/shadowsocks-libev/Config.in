@@ -12,6 +12,9 @@ choice
 	config SHADOWSOCKS_LIBEV_OPENSSL
 		bool "OpenSSL"
 
+	config SHADOWSOCKS_LIBEV_MBEDTLS
+		bool "MbedTLS"
+
 endchoice
 
 endif

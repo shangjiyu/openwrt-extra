@@ -21,6 +21,7 @@ PKG_USE_MIPS16:=0
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_SHADOWSOCKS_LIBEV_POLARSSL \
+	CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS \
 	CONFIG_SHADOWSOCKS_LIBEV_OPENSSL
 
 include $(INCLUDE_DIR)/package.mk
@@ -29,7 +30,7 @@ define Package/shadowsocks-libev/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Lightweight Secured Socks5 Proxy
-  DEPENDS:=+libpthread +SHADOWSOCKS_LIBEV_POLARSSL:libpolarssl +SHADOWSOCKS_LIBEV_OPENSSL:libopenssl
+  DEPENDS:=+libpthread +SHADOWSOCKS_LIBEV_POLARSSL:libpolarssl +SHADOWSOCKS_LIBEV_OPENSSL:libopenssl +CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS:libmbedtls
   URL:=https://github.com/shadowsocks/shadowsocks-libev
 endef
 
@@ -52,7 +53,9 @@ define Package/shadowsocks-libev-server/config
 endef
 
 CONFIGURE_ARGS += \
-	$(if $(CONFIG_SHADOWSOCKS_LIBEV_POLARSSL),--with-crypto-library=polarssl,)
+	--enable-system-shared-lib --disable-ssp \
+	$(if $(CONFIG_SHADOWSOCKS_LIBEV_POLARSSL),--with-crypto-library=polarssl,) \
+	$(if $(CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS),--with-crypto-library=mbedtls,)
 
 define Package/shadowsocks-libev/description
 Shadowsocks-libev is a lightweight secured scoks5 proxy for embedded devices and low end boxes.
