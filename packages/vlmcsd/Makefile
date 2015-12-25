@@ -44,9 +44,9 @@ TARGET_CFLAGS+= \
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
 TARGET_LDFLAGS += -Wl,--gc-sections
 
-# Use Link time optimization
-TARGET_CFLAGS += -flto
-TARGET_LDFLAGS += -Wl,-flto
+## Use Link time optimization
+#TARGET_CFLAGS += -flto
+#TARGET_LDFLAGS += -Wl,-flto
 
 #[安装(编译)时执行的脚本 记得加上#!/bin/sh 没有就空着]
 define Package/vlmcsd/install
