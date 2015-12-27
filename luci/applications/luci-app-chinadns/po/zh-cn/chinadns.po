@@ -1,6 +1,9 @@
 msgid "chinadns"
 msgstr "ChinaDNS"
 
+msgid "ChinaDNS"
+msgstr "中国DNS"
+
 msgid "chinadns is not running"
 msgstr "ChinaDNS 未启动"
 

@@ -18,7 +18,7 @@ function index()
 	page.order  = 65
 ]]--
 
-	page = entry({"admin", "services", "chinadns"}, cbi("chinadns"), _("chinadns"), 55)
-	page.i18n = "chinadns"
+	page = entry({"admin", "services", "chinadns"}, cbi("chinadns"), _("ChinaDNS"), 55)
+	page.i18n = "ChinaDNS"
 	page.dependent = true
 end
