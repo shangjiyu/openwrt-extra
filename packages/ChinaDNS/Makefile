@@ -35,12 +35,12 @@ A DNS forwarder that ignores incorrect(you knew it) responses.
 endef
 
 define Package/ChinaDNS/conffiles
-/etc/chinadns_chnroute.txt
+/etc/ipset
 endef
 
 define Package/ChinaDNS/install
 	$(INSTALL_DIR) $(1)/etc/ipset
-	wget -O- 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | awk -F'|' '/CN\|ipv4/ { printf("%s/%d\n", $$$$$ 4, 32-log($$$$$ 5)/log(2))  }' > $(1)/etc/ipset/whitelist
+	$(INSTALL_DATA) ./files/whitelist $(1)/etc/ipset/whitelist
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/chinadns $(1)/usr/bin
 endef
