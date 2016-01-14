@@ -7,13 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pcap-dnsproxy
-PKG_VERSION:=0.4.4.6
-PKG_RELEASE:=1
+PKG_VERSION:=0.4.5
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/chengr28/Pcap_DNSProxy.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=7ae780921b69df446c3410ff8d28d31d6f0b6343
+PKG_SOURCE_VERSION:=13d202f077eba188c0ed3925a2ce2173966e960f
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 CMAKE_INSTALL:=1
 
@@ -35,23 +35,58 @@ CMAKE_OPTIONS += \
 
 # Port 53 leads to dnsmasq startup failure.
 define Package/pcap-dnsproxy/config
-	if PACKAGE_pcap-dnsproxy
-	config PACKAGE_pcap-dnsproxy_libsodium
-		bool "Build with libsodium support.(Recommended)"
-		default y
 	config PACKAGE_pcap-dnsproxy_libpcap
 		bool "Build with libpcap support.(Strongly recommended)"
 		default y
-	config PACKAGE_pcap-dnsproxy_KeyPairGenerator
-		bool "Ship KeyPairGenerator."
-		default n
-	config PACKAGE_pcap-dnsproxy_advancedoptions
-		bool "Use advanced compile options, see Makefile for details."
-		default n
+		help
+		  LibPcap is for packet capture, Pcap_DNSProxy takes advantage
+		  of it to detect poisoned DNS reply.
+
+		  We strongly recommend to keep it as-is.
+	config PACKAGE_pcap-dnsproxy_libsodium
+		bool "Build with libsodium support.(Recommended)"
+		default y
+		help
+		  LibSodium is for DNSCurve/DNSCrypt protocol support.
+
+		  We recommend to keep it as-is unless you do NOT
+		  need this protocol anymore.
 	config PCAP_DNSPROXY_LISTENPORT
-		int "Change default Listen Port, can NOT be 53"
+		int "Listen Port, should NOT be 53"
 		default 1053
-	endif
+		help
+		  You can customize the listen port of Pcap_DNSProxy.
+		  Note that you should NOT set the value to 53, which
+		  conflicts with DNSMasq in OpenWrt.
+	menu "Tools and miscellaneous"
+		config PACKAGE_pcap-dnsproxy_KeyPairGenerator
+			bool "Bundle KeyPairGenerator."
+			default n
+			help
+			  Package KeyPairGenerator into final IPK.
+
+			  Unless you really need it, you should
+			  probably say N here.
+		config PACKAGE_pcap-dnsproxy_FileHash
+			bool "Bundle FileHash."
+			default n
+			help
+			  Package FileHash into final IPK.
+
+			  Unless you really need it, you should
+			  probably say N here.
+		config PACKAGE_pcap-dnsproxy_advancedoptions
+			bool "Compile with advanced options. (for expert only)"
+			default n
+			help
+			  Enable this option to use link-time optimization and
+			  other GCC compile flags to reduce binary size.
+
+			  Please refer to Makefile for details.
+
+			  Unless you know what you are doing, you
+			  should probably say N here.
+	endmenu
 endef
 
 # Note: GCC 4.6 and 4.8 dont have complete C++11 support
@@ -113,6 +148,7 @@ endef
 define Package/pcap-dnsproxy/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(if $(CONFIG_PACKAGE_pcap-dnsproxy_KeyPairGenerator),$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/KeyPairGenerator $(1)/usr/sbin/KeyPairGenerator)
+	$(if $(CONFIG_PACKAGE_pcap-dnsproxy_FileHash),$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/FileHash $(1)/usr/sbin/FileHash)
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/Pcap_DNSProxy $(1)/usr/sbin/Pcap_DNSProxy
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DATA) ./files/pcap-dnsproxy.config $(1)/etc/config/pcap-dnsproxy
