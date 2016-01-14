@@ -25,7 +25,7 @@ define Package/tun2socks/Default
   CATEGORY:=Network
   SUBMENU:=VPN
   TITLE:=tun2socks
-  DEPENDS:=+kmod-tun +ip
+  DEPENDS:=+kmod-tun +ip +librt
 endef
 
 define Package/tun2socks
