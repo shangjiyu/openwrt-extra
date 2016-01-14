@@ -29,7 +29,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/vtun-sodium
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:=+kmod-tun +VTUN_LZO:liblzo +VTUN_LZO:zlib +libsodium
+  DEPENDS:=@BROKEN +kmod-tun +VTUN_LZO:liblzo +VTUN_LZO:zlib +libsodium
   TITLE:=VPN tunneling daemon
   URL:=https://github.com/jedisct1/vtun
   SUBMENU:=VPN
