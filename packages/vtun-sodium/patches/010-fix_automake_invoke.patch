@@ -1,0 +1,41 @@
+Index: vtun-sodium-4.0.0/configure.ac
+===================================================================
+--- vtun-sodium-4.0.0.orig/configure.ac	2016-01-24 12:38:46.000000000 +0800
++++ vtun-sodium-4.0.0/configure.ac	2016-01-24 12:56:16.582407006 +0800
+@@ -7,7 +7,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ dnl
+ 
+-AC_INIT(vtun, 3) dnl this needs to change via variables as in the tail
++AC_INIT(vtun-sodium, 4) dnl this needs to change via variables as in the tail
+ AC_CONFIG_HEADER(config.h)
+ 
+ dnl Shapper support
+@@ -136,7 +136,7 @@
+    AC_CHECKING( for LZO Library and Header files ... )
+    AC_SEARCH_HEADERS(lzo_asm.h,
+ 	$LZO_HDR_DIR /usr/include/lzo "" /usr/local/include,
+-	LZOCHK="lzo2 lzo",
++	LZOCHK="lzo2",
+    AC_SEARCH_HEADERS(lzo1x.h, 
+ 	$LZO_HDR_DIR /usr/include/lzo "" /usr/local/include,
+ 		LZOCHK="lzo",
+@@ -203,9 +203,6 @@
+ 
+ AC_MSG_RESULT()
+ 
+-CFLAGS="$CFLAGS -fstack-protector-all -fno-strict-overflow -fno-strict-aliasing"
+-CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=2"
+-
+ AC_CHECK_FUNCS([getpt grantpt unlockpt ptsname])
+ 
+ OS_REL=`uname -r | tr -d '[A-Za-z\-\_\.]'`
+@@ -237,6 +234,6 @@
+ REL=`echo 'BRANCH-3_X' | tr -d '$: \-' | sed 's/^[A-Za-z]*//' | sed 's/\_/\./'`
+ changequote([,])
+ 
+-AC_DEFINE_UNQUOTED(VTUN_VER, "$REL `date '+%m/%d/%Y'`", [Vtun version])
+-
++AC_DEFINE_UNQUOTED(VTUN_VER, "$REL `date '+%m/%d/%Y'`", [Vtun-Sodium version])
++AM_INIT_AUTOMAKE
+ AC_OUTPUT(Makefile)

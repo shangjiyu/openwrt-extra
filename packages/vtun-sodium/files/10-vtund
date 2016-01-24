@@ -1,0 +1,17 @@
+#!/bin/sh
+
+[ "$ACTION" = ifup -o "$ACTION" = ifupdate ] && {
+        [ "$INTERFACE" = wan -o "$DEVICE" = eth1 ] && {
+                ip route add 10.8.0.0/16 dev $DEVICE
+                ip route add 172.16.0.0/12 dev $DEVICE
+                logger -s -t vtund "add route to vtund server"
+        }
+}
+
+[ "$ACTION" = ifdown ] && {
+        [ "$INTERFACE" = wan -o "$DEVICE" = eth1 ] && {
+                ip route del 10.8.0.0/16 dev $DEVICE
+                ip route del 172.16.0.0/12 dev $DEVICE
+                logger -s -t vtund "del route to vtund server"
+        }
+}
