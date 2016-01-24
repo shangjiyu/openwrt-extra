@@ -29,17 +29,16 @@ define Package/glorytun/description
 	Glorytun
 endef
 
-TARGET_CFLAGS += -std=c99
-TARGET_CFLAGS += -D_GNU_SOURCE
+TARGET_CFLAGS += -std=c99 -D_GNU_SOURCE
 
 define Package/glorytun/conffiles
 /etc/config/glorytun
 endef
 
-define Build/Configure
-        (cd $(PKG_BUILD_DIR); ./autogen.sh --host=$(GNU_TARGET_NAME) --target=$(GNU_TARGET_NAME); cd -);
-        $(call Build/Configure/Default,$CONFIGURE_ARGS)
-endef
+#define Build/Configure
+#        (cd $(PKG_BUILD_DIR); ./autogen.sh --host=$(GNU_TARGET_NAME) --target=$(GNU_TARGET_NAME); cd -);
+#        $(call Build/Configure/Default,$CONFIGURE_ARGS)
+#endef
 
 define Package/glorytun/install
 	$(INSTALL_DIR) $(1)/usr/sbin
