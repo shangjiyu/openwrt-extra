@@ -9,8 +9,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vtun-sodium
 PKG_VERSION:=4.0.0
-PKG_RELEASE:=1
-PKG_REV:=290c661aa97ffbb6936bce87a7b302ed06bbefd5
+PKG_RELEASE:=2
+PKG_REV:=11c15757c4f1a60ec8b31f8dee9dab1a88309534
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/shangjiyu/vtun
