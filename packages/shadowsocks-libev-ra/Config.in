@@ -1,4 +1,4 @@
-if PACKAGE_shadowsocks-libev || PACKAGE_shadowsocks-libev-server
+if PACKAGE_shadowsocks-libev-ra || PACKAGE_shadowsocks-libev-ra-spec || PACKAGE_shadowsocks-libev-ra-server
 
 comment "SSL support"
 
