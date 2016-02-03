@@ -31,7 +31,7 @@ define Package/shadowsocks-libev-ra/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Lightweight Secured Socks5 Proxy
-  DEPENDS:=+libpthrea +libev +libsodium +SHADOWSOCKS_LIBEV_POLARSSL:libpolarssl +SHADOWSOCKS_LIBEV_OPENSSL:libopenssl +CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS:libmbedtls
+  DEPENDS:=+libpthread +libev +libsodium +SHADOWSOCKS_LIBEV_POLARSSL:libpolarssl +SHADOWSOCKS_LIBEV_OPENSSL:libopenssl +CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS:libmbedtls
   URL:=https://github.com/shadowsocks/shadowsocks-libev
 endef
 
@@ -94,6 +94,7 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 		set firewall.shadowsocks.reload=1
 		commit firewall
 EOF
+/etc/init.d/shadowsocks enable >/dev/null 2>&1
 fi
 exit 0
 endef
