@@ -6,8 +6,9 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI Support for vsftpd
-LUCI_DEPENDS:=+vsftpd
+LUCI_TITLE:=vsftpd - FTP module
+LUCI_DEPENDS:=@((PACKAGE_vsftpd||PACKAGE_vsftpd-tls)&&VSFTPD_USE_UCI_SCRIPTS)
+LUCI_PKGARCH:=all
 
 include ../../luci.mk
 
