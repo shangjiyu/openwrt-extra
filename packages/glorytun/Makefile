@@ -45,7 +45,7 @@ define Package/glorytun/install
 	$(INSTALL_BIN) ./files/glorytun.sh $(1)/usr/sbin/glorytun.sh
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/glorytun $(1)/usr/sbin
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_DIR) ./files/glorytun $(1)/etc/init.d/glorytun
+	$(INSTALL_BIN) ./files/glorytun $(1)/etc/init.d/glorytun
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/glorytun.defaults $(1)/etc/uci-defaults/glorytun.defaults
 endef
