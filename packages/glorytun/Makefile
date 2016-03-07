@@ -42,7 +42,20 @@ endef
 
 define Package/glorytun/install
 	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) ./files/glorytun.sh $(1)/usr/sbin/glorytun.sh
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/glorytun $(1)/usr/sbin
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_DIR) ./files/glorytun $(1)/etc/init.d/glorytun
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/glorytun.defaults $(1)/etc/uci-defaults/glorytun.defaults
+endef
+
+define Package/glorytun/postinst
+#!/bin/sh
+if [ -z $${IPKG_INSTROOT} ] ; then
+	( . /etc/uci-defaults/glorytun.defaults ) && rm -f /etc/uci-defaults/glorytun.defaults
+	[ -x /etc/init.d/glorytun ] && /etc/init.d/glorytun restart;
+fi
 endef
 
 $(eval $(call BuildPackage,glorytun))
