@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015 wongsyrone
+# Copyright (C) 2015-2016 wongsyrone
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
@@ -7,19 +7,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pcap-dnsproxy
-PKG_VERSION:=0.4.5
-PKG_RELEASE:=2
+PKG_VERSION:=0.4.5.4
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/chengr28/Pcap_DNSProxy.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=13d202f077eba188c0ed3925a2ce2173966e960f
+PKG_SOURCE_VERSION:=ef61fc645fc6e7bc2c4739617d73bae413bb5c53
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=LICENSE
-PKG_USE_MIPS16:=0
 
 PKG_MAINTAINER:=Chengr28 <chengr28@gmail.com>
 
@@ -159,6 +158,7 @@ define Package/pcap-dnsproxy/install
 	$(SED) 's,\x0D,,g'                                                                $(PKG_BUILD_DIR)/Source/ExampleConfig/*
 	$(SED) 's,Listen Port = 53,Listen Port = $(CONFIG_PCAP_DNSPROXY_LISTENPORT),g'    $(PKG_BUILD_DIR)/Source/ExampleConfig/Config.ini
 	$(SED) 's,Log Maximum Size = 8MB,Log Maximum Size = 50KB,g'                       $(PKG_BUILD_DIR)/Source/ExampleConfig/Config.ini
+	$(SED) 's,Operation Mode = Private,Operation Mode = Server,g'                     $(PKG_BUILD_DIR)/Source/ExampleConfig/Config.ini
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/Source/ExampleConfig/Config.ini $(1)/etc/pcap-dnsproxy/Config.conf
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/Source/ExampleConfig/Hosts.ini $(1)/etc/pcap-dnsproxy/Hosts.conf
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/Source/ExampleConfig/IPFilter.ini $(1)/etc/pcap-dnsproxy/IPFilter.conf

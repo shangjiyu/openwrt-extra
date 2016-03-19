@@ -1,18 +1,21 @@
 #!/bin/sh /etc/rc.common
-# Copyright (C) 2015 wongsyrone
+# Copyright (C) 2015-2016 wongsyrone
 
 . /lib/functions.sh
 
 START=95
 
-EXTRA_COMMANDS="flush libver"
-EXTRA_HELP="	flush	Flush DNS cache of Pcap_DNSProxy and system (dnsmasq's cache in OP)
-	libver	Print current version of library"
+EXTRA_COMMANDS="status flush libver"
+EXTRA_HELP=\
+"	flush	Flush DNS cache stored in Pcap_DNSProxy and DNSMasq
+	libver	Print library version Pcap_DNSProxy linked to
+	status	Show the running status of Pcap_DNSProxy"
 
 SERVICE_DAEMONIZE=1
 
-PROG="/usr/sbin/Pcap_DNSProxy"
-CONFDIR="/etc/pcap-dnsproxy"
+PROG=/usr/sbin/Pcap_DNSProxy
+CONFDIR=/etc/pcap-dnsproxy
+ERRLOG=$CONFDIR/Error.log
 
 config_load "pcap-dnsproxy"
 
@@ -23,17 +26,24 @@ parse_pcap_dnsproxy()
 
 config_foreach parse_pcap_dnsproxy 'pcap-dnsproxy'
 
-# MUST set Config.conf before 'enable' this service
-# do NOT use daemon code inside pcap-dnsproxy, use start-stop-daemon instead.
+
 
 start() {
-	[ "1" = "$ENABLED" ] || [ "on" = "$ENABLED" ] || [ "true" = "$ENABLED" ] && {
+	[ "1" = "$ENABLED" -o "on" = "$ENABLED" -o "true" = "$ENABLED" ] && {
 		[ $(ps|grep ${PROG}|grep -v grep|wc -l) -ge 1 ] && {
-			echo "Pcap_DNSProxy is already running"
+			echo "Pcap_DNSProxy is already running, no need to start again"
 			exit 1
 		}
+		[ -f "$ERRLOG" ] && {
+			echo "Removing previous ${ERRLOG##*/}"
+			rm -f "$ERRLOG" >/dev/null 2>&1
+		}
+		# do NOT use daemon code inside pcap-dnsproxy, use start-stop-daemon instead
 		service_start $PROG -c $CONFDIR --disable-daemon
-		RESULT=$?
+		local RESULT=$?
+		# wait to check error log file
+		sleep 1s
+		[ -f "$ERRLOG" ] && echo "WARNING: ${ERRLOG##*/} exists, check its content and other config files in ${CONFDIR}" || echo "Hooray! ${ERRLOG##*/} not found"
 		[ $RESULT -eq 0 -a $(ps|grep ${PROG}|grep -v grep|wc -l) -ge 1 ] && {
 			echo "Pcap_DNSProxy started successfully"
 		}
@@ -43,19 +53,20 @@ start() {
 }
 
 stop() {
-	# If you cant stop, use 'killall' instead.
+	# If you can NOT terminate Pcap_DNSProxy, try 'killall' instead.
 	# e.g. killall -SIGTERM Pcap_DNSProxy
 	[ $(ps|grep ${PROG}|grep -v grep|wc -l) -ge 1 ] && {
 		service_stop $PROG
-		RESULT=$?
+		local RESULT=$?
+		sleep 1s
 		[ $RESULT -eq 0 -a $(ps|grep ${PROG}|grep -v grep|wc -l) -eq 0 ] && {
 			echo "Pcap_DNSProxy terminated successfully"
-		} ||
+		} || {
 			echo "Failed to terminate Pcap_DNSProxy"
 			echo "Retry or use 'killall -SIG{TERM,KILL} Pcap_DNSProxy' instead"
 		}
 	} || {
-		echo "Pcap_DNSProxy is not running"
+		echo "Pcap_DNSProxy is not running, no need to terminate"
 	}
 }
 
@@ -69,10 +80,15 @@ flush() {
 	[ $(ps|grep ${PROG}|grep -v grep|wc -l) -ge 1 ] && {
 		$PROG --flush-dns
 	} || {
-		echo "Pcap_DNSProxy is not running"
+		echo "Pcap_DNSProxy is not running, I can NOT flush DNS cache for you."
+		exit 1
 	}
 }
 
 libver() {
 	$PROG --lib-version
+}
+
+status() {
+	[ $(ps|grep ${PROG}|grep -v grep|wc -l) -ge 1 ] && echo "Pcap_DNSProxy is running, PID is $(pidof ${PROG##*/})" || echo "Pcap_DNSProxy is NOT running"
 }
