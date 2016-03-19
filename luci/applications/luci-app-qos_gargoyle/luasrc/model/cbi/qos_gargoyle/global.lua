@@ -46,12 +46,14 @@ e.write = function(self, section)
 	end
 end
 
+--[[
 network = s:option(Value, "network", translate("network"),translate("wan,lan....."))
 network.default = ""
 wa.cbi_add_networks(network)
 
 mtu = s:option(Value, "mtu", translate("mtu"))
 mtu.datatype = "and(uinteger,min(1))"
+]]--
 
 s = m:section(TypedSection, "upload", translate("UpLoad"))
 
