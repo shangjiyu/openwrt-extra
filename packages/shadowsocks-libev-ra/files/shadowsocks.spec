@@ -100,6 +100,15 @@ start_tunnel() {
 	return $?
 }
 
+start_local() {
+	/usr/bin/ss-local \
+		-c $CONFIG_FILE $ARG_OTA ${ARG_UDP:="-u"} \
+		-l $(uci_get_by_type local_client client_port 1081) \
+		-b $(uci_get_by_type local_client client_address 127.0.0.1) \
+		-f /var/run/ss-local.pid
+	return $?
+}
+
 rules() {
 	GLOBAL_SERVER=$(uci_get_by_type global global_server)
 	[ "$GLOBAL_SERVER" = "nil" ] && exit 0
@@ -114,10 +123,14 @@ start() {
 	case "$(uci_get_by_type udp_forward tunnel_enable)" in
 		1|on|true|yes|enabled) start_tunnel;;
 	esac
+	case "$(uci_get_by_type local_client local_enable)" in
+		1|on|true|yes|enabled) start_local;;
+	esac
 }
 
 stop() {
 	/usr/bin/ss-rules -f
 	killall -q -9 ss-redir
 	killall -q -9 ss-tunnel
+	killall -q -9 ss-local
 }

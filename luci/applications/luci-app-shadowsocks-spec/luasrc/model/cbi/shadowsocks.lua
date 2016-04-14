@@ -117,6 +117,23 @@ o = s:option(Value, "tunnel_forward", translate("Forwarding Tunnel"))
 o.default = "8.8.4.4:53"
 o.rmempty = false
 
+-- [[ Local Client ]]--
+s = m:section(TypedSection, "local_client", translate("Local Client"))
+s.anonymous = true
+
+o = s:option(Flag, "local_enable", translate("Enable"))
+o.default = 0
+o.rmempty = false
+
+o = s:option(Value, "client_port", translate("Local Client Listening Port"))
+o.datatype = "port"
+o.default = 1081
+o.rmempty = false
+
+o = s:option(Value, "client_address", translate("Local Client Listening Address"))
+o.default = "127.0.0.1"
+o.rmempty = false
+
 -- [[ Access Control ]]--
 s = m:section(TypedSection, "access_control", translate("Access Control"))
 s.anonymous = true

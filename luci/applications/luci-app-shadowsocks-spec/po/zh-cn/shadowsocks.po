@@ -70,6 +70,15 @@ msgstr "UDP转发地址"
 msgid "Access Control"
 msgstr "访问控制"
 
+msgid "Local Client"
+msgstr "本地客户端"
+
+msgid "Local Client Listening Port"
+msgstr "本地客户端监听端口"
+
+msgid "Local Client Listening Address"
+msgstr "本地客户端监地址"
+
 msgid "Interfaces - WAN"
 msgstr "接口 - WAN"
 
