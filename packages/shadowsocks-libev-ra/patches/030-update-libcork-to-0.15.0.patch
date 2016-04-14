@@ -36,8 +36,6 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  28 files changed, 1030 insertions(+), 280 deletions(-)
  create mode 100644 libcork/include/libcork/config/version.h
 
-diff --git a/libcork/core/allocator.c b/libcork/core/allocator.c
-index 9bfb15d..9a2ad05 100644
 --- a/libcork/core/allocator.c
 +++ b/libcork/core/allocator.c
 @@ -1,13 +1,13 @@
@@ -87,9 +85,10 @@ index 9bfb15d..9a2ad05 100644
 +    void  *result = cork_alloc_xcalloc(alloc, count, size);
 +    if (CORK_UNLIKELY(result == NULL)) {
 +        abort();
-+    }
-+    return result;
-+}
+     }
+     return result;
+ }
+-#endif
 +
 +static void *
 +cork_alloc__default_malloc(const struct cork_alloc *alloc, size_t size)
@@ -97,10 +96,9 @@ index 9bfb15d..9a2ad05 100644
 +    void  *result = cork_alloc_xmalloc(alloc, size);
 +    if (CORK_UNLIKELY(result == NULL)) {
 +        abort();
-     }
-     return result;
- }
--#endif
++    }
++    return result;
++}
 +
 +static void *
 +cork_alloc__default_realloc(const struct cork_alloc *alloc, void *ptr,
@@ -264,7 +262,7 @@ index 9bfb15d..9a2ad05 100644
  
  
  /*-----------------------------------------------------------------------
-@@ -40,92 +215,207 @@ cork_xrealloc(void *ptr, size_t new_size)
+@@ -40,92 +215,207 @@ cork_xrealloc(void *ptr, size_t new_size
   */
  
  static inline const char *
@@ -510,8 +508,6 @@ index 9bfb15d..9a2ad05 100644
 +    cork_alloc_set_free(debug, cork_debug_alloc__free);
 +    return debug;
  }
-diff --git a/libcork/core/error.c b/libcork/core/error.c
-index 323d28f..114a090 100644
 --- a/libcork/core/error.c
 +++ b/libcork/core/error.c
 @@ -1,6 +1,6 @@
@@ -522,7 +518,7 @@ index 323d28f..114a090 100644
   * All rights reserved.
   *
   * Please see the COPYING file in this distribution for license details.
-@@ -50,7 +50,7 @@ cork_error_free(struct cork_error *error)
+@@ -50,7 +50,7 @@ cork_error_free(struct cork_error *error
  {
      cork_buffer_done(&error->buf1);
      cork_buffer_done(&error->buf2);
@@ -531,8 +527,6 @@ index 323d28f..114a090 100644
  }
  
  
-diff --git a/libcork/core/gc.c b/libcork/core/gc.c
-index 4230685..d16562d 100644
 --- a/libcork/core/gc.c
 +++ b/libcork/core/gc.c
 @@ -1,10 +1,9 @@
@@ -557,11 +551,9 @@ index 4230685..d16562d 100644
      } while (0)
  
  #define cork_gc_recurse(gc, hdr, recurser) \
-diff --git a/libcork/core/ip-address.c b/libcork/core/ip-address.c
-index 2e3930b..6ad95fb 100644
 --- a/libcork/core/ip-address.c
 +++ b/libcork/core/ip-address.c
-@@ -286,6 +286,13 @@ cork_ipv6_init(struct cork_ipv6 *addr, const char *str)
+@@ -286,6 +286,13 @@ cork_ipv6_init(struct cork_ipv6 *addr, c
       * final parse. */
      DEBUG("%2u:\t", (unsigned int) (ch-str));
      if (CORK_LIKELY(digits_seen > 0)) {
@@ -575,8 +567,6 @@ index 2e3930b..6ad95fb 100644
          DEBUG("hextet %u = %04x\n\t", hextets_seen, digit);
          *(dest++) = CORK_UINT16_HOST_TO_BIG(digit);
          hextets_seen++;
-diff --git a/libcork/core/mempool.c b/libcork/core/mempool.c
-index 38f5d0c..1937d35 100644
 --- a/libcork/core/mempool.c
 +++ b/libcork/core/mempool.c
 @@ -1,6 +1,6 @@
@@ -587,7 +577,7 @@ index 38f5d0c..1937d35 100644
   * All rights reserved.
   *
   * Please see the COPYING file in this distribution for license details.
-@@ -96,30 +96,49 @@ cork_mempool_free(struct cork_mempool *mp)
+@@ -96,30 +96,49 @@ cork_mempool_free(struct cork_mempool *m
  
      for (curr = mp->blocks; curr != NULL; ) {
          struct cork_mempool_block  *next = curr->next_block;
@@ -643,11 +633,9 @@ index 38f5d0c..1937d35 100644
  
  /* If this function succeeds, then we guarantee that there will be at
   * least one object in mp->free_list. */
-diff --git a/libcork/ds/array.c b/libcork/ds/array.c
-index 8fa09b6..378b1a0 100644
 --- a/libcork/ds/array.c
 +++ b/libcork/ds/array.c
-@@ -78,10 +78,10 @@ cork_raw_array_done(struct cork_raw_array *array)
+@@ -78,10 +78,10 @@ cork_raw_array_done(struct cork_raw_arra
          }
      }
      if (array->items != NULL) {
@@ -660,7 +648,7 @@ index 8fa09b6..378b1a0 100644
  }
  
  void
-@@ -179,7 +179,8 @@ cork_raw_array_ensure_size(struct cork_raw_array *array, size_t desired_count)
+@@ -179,7 +179,8 @@ cork_raw_array_ensure_size(struct cork_r
  
          DEBUG("--- Array %p: Reallocating %zu->%zu bytes",
                array, array->priv->allocated_size, new_size);
@@ -670,7 +658,7 @@ index 8fa09b6..378b1a0 100644
  
          array->priv->allocated_count = new_count;
          array->priv->allocated_size = new_size;
-@@ -318,13 +319,20 @@ pointer__remove(void *user_data, void *vvalue)
+@@ -318,13 +319,20 @@ pointer__remove(void *user_data, void *v
      *value = NULL;
  }
  
@@ -692,8 +680,6 @@ index 8fa09b6..378b1a0 100644
      cork_array_set_init(array, pointer__init);
      cork_array_set_done(array, pointer__done);
      cork_array_set_remove(array, pointer__remove);
-diff --git a/libcork/ds/bitset.c b/libcork/ds/bitset.c
-index 66d4e1f..ba1e1a6 100644
 --- a/libcork/ds/bitset.c
 +++ b/libcork/ds/bitset.c
 @@ -1,6 +1,6 @@
@@ -715,8 +701,6 @@ index 66d4e1f..ba1e1a6 100644
  }
  
  void
-diff --git a/libcork/ds/buffer.c b/libcork/ds/buffer.c
-index 8a3ace3..2cd8e1c 100644
 --- a/libcork/ds/buffer.c
 +++ b/libcork/ds/buffer.c
 @@ -1,10 +1,9 @@
@@ -750,7 +734,7 @@ index 8a3ace3..2cd8e1c 100644
  }
  
  
-@@ -89,7 +88,7 @@ cork_buffer_ensure_size_int(struct cork_buffer *buffer, size_t desired_size)
+@@ -89,7 +88,7 @@ cork_buffer_ensure_size_int(struct cork_
          new_size = desired_size;
      }
  
@@ -759,7 +743,7 @@ index 8a3ace3..2cd8e1c 100644
      buffer->allocated_size = new_size;
  }
  
-@@ -388,7 +387,7 @@ cork_buffer__managed_free(struct cork_managed_buffer *vself)
+@@ -388,7 +387,7 @@ cork_buffer__managed_free(struct cork_ma
      struct cork_buffer__managed_buffer  *self =
          cork_container_of(vself, struct cork_buffer__managed_buffer, parent);
      cork_buffer_free(self->buffer);
@@ -768,7 +752,7 @@ index 8a3ace3..2cd8e1c 100644
  }
  
  static struct cork_managed_buffer_iface  CORK_BUFFER__MANAGED_BUFFER = {
-@@ -440,11 +439,6 @@ cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
+@@ -440,11 +439,6 @@ cork_buffer_stream_consumer_data(struct
  {
      struct cork_buffer__stream_consumer  *bconsumer = cork_container_of
          (consumer, struct cork_buffer__stream_consumer, consumer);
@@ -780,7 +764,7 @@ index 8a3ace3..2cd8e1c 100644
      cork_buffer_append(bconsumer->buffer, buf, size);
      return 0;
  }
-@@ -461,7 +455,7 @@ cork_buffer_stream_consumer_free(struct cork_stream_consumer *consumer)
+@@ -461,7 +455,7 @@ cork_buffer_stream_consumer_free(struct
      struct cork_buffer__stream_consumer  *bconsumer =
          cork_container_of
          (consumer, struct cork_buffer__stream_consumer, consumer);
@@ -789,8 +773,6 @@ index 8a3ace3..2cd8e1c 100644
  }
  
  struct cork_stream_consumer *
-diff --git a/libcork/ds/file-stream.c b/libcork/ds/file-stream.c
-index 70aa399..c9a7c73 100644
 --- a/libcork/ds/file-stream.c
 +++ b/libcork/ds/file-stream.c
 @@ -1,10 +1,9 @@
@@ -806,7 +788,7 @@ index 70aa399..c9a7c73 100644
   * ----------------------------------------------------------------------
   */
  
-@@ -126,7 +125,7 @@ cork_file_consumer__free(struct cork_stream_consumer *vself)
+@@ -126,7 +125,7 @@ cork_file_consumer__free(struct cork_str
  {
      struct cork_file_consumer  *self =
          cork_container_of(vself, struct cork_file_consumer, parent);
@@ -815,7 +797,7 @@ index 70aa399..c9a7c73 100644
  }
  
  struct cork_stream_consumer *
-@@ -183,7 +182,7 @@ cork_fd_consumer__free(struct cork_stream_consumer *vself)
+@@ -183,7 +182,7 @@ cork_fd_consumer__free(struct cork_strea
  {
      struct cork_fd_consumer  *self =
          cork_container_of(vself, struct cork_fd_consumer, parent);
@@ -824,8 +806,6 @@ index 70aa399..c9a7c73 100644
  }
  
  struct cork_stream_consumer *
-diff --git a/libcork/ds/hash-table.c b/libcork/ds/hash-table.c
-index 079e6cc..280a7bd 100644
 --- a/libcork/ds/hash-table.c
 +++ b/libcork/ds/hash-table.c
 @@ -1,10 +1,9 @@
@@ -857,7 +837,7 @@ index 079e6cc..280a7bd 100644
      void  *user_data;
      cork_free_f  free_user_data;
      cork_hash_f  hash;
-@@ -122,7 +119,7 @@ cork_hash_table_new_entry(struct cork_hash_table *table,
+@@ -122,7 +119,7 @@ cork_hash_table_new_entry(struct cork_ha
                            cork_hash hash, void *key, void *value)
  {
      struct cork_hash_table_entry_priv  *entry =
@@ -866,7 +846,7 @@ index 079e6cc..280a7bd 100644
      cork_dllist_add(&table->insertion_order, &entry->insertion_order);
      entry->public.hash = hash;
      entry->public.key = key;
-@@ -141,7 +138,7 @@ cork_hash_table_free_entry(struct cork_hash_table *table,
+@@ -141,7 +138,7 @@ cork_hash_table_free_entry(struct cork_h
          table->free_value(entry->public.value);
      }
      cork_dllist_remove(&entry->insertion_order);
@@ -875,7 +855,7 @@ index 079e6cc..280a7bd 100644
  }
  
  
-@@ -156,7 +153,6 @@ cork_hash_table_new(size_t initial_size, unsigned int flags)
+@@ -156,7 +153,6 @@ cork_hash_table_new(size_t initial_size,
      table->equals = cork_hash_table__default_equals;
      table->free_key = NULL;
      table->free_value = NULL;
@@ -895,7 +875,7 @@ index 079e6cc..280a7bd 100644
  }
  
  size_t
-@@ -270,7 +265,7 @@ cork_hash_table_ensure_size(struct cork_hash_table *table, size_t desired_count)
+@@ -270,7 +265,7 @@ cork_hash_table_ensure_size(struct cork_
                  }
              }
  
@@ -904,7 +884,7 @@ index 079e6cc..280a7bd 100644
          }
      }
  }
-@@ -619,6 +614,7 @@ cork_hash_table_map(struct cork_hash_table *table, void *user_data,
+@@ -619,6 +614,7 @@ cork_hash_table_map(struct cork_hash_tab
          } else if (result == CORK_HASH_TABLE_MAP_DELETE) {
              DEBUG("      Delete requested");
              cork_dllist_remove(curr);
@@ -912,8 +892,6 @@ index 079e6cc..280a7bd 100644
              table->entry_count--;
              cork_hash_table_free_entry(table, entry);
          }
-diff --git a/libcork/ds/managed-buffer.c b/libcork/ds/managed-buffer.c
-index 6fdbe44..830b88f 100644
 --- a/libcork/ds/managed-buffer.c
 +++ b/libcork/ds/managed-buffer.c
 @@ -1,10 +1,9 @@
@@ -929,7 +907,7 @@ index 6fdbe44..830b88f 100644
   * ----------------------------------------------------------------------
   */
  
-@@ -50,7 +49,7 @@ cork_managed_buffer_wrapped__free(struct cork_managed_buffer *vself)
+@@ -50,7 +49,7 @@ cork_managed_buffer_wrapped__free(struct
      struct cork_managed_buffer_wrapped  *self =
          cork_container_of(vself, struct cork_managed_buffer_wrapped, parent);
      self->free(self->buf, self->size);
@@ -938,7 +916,7 @@ index 6fdbe44..830b88f 100644
  }
  
  static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_WRAPPED = {
-@@ -94,7 +93,9 @@ cork_managed_buffer_copied__free(struct cork_managed_buffer *vself)
+@@ -94,7 +93,9 @@ cork_managed_buffer_copied__free(struct
  {
      struct cork_managed_buffer_copied  *self =
          cork_container_of(vself, struct cork_managed_buffer_copied, parent);
@@ -958,8 +936,6 @@ index 6fdbe44..830b88f 100644
      if (self == NULL) {
          return NULL;
      }
-diff --git a/libcork/ds/ring-buffer.c b/libcork/ds/ring-buffer.c
-index 62c2cf0..92eb8b9 100644
 --- a/libcork/ds/ring-buffer.c
 +++ b/libcork/ds/ring-buffer.c
 @@ -1,10 +1,9 @@
@@ -992,8 +968,6 @@ index 62c2cf0..92eb8b9 100644
  }
  
  int
-diff --git a/libcork/include/libcork/config/config.h b/libcork/include/libcork/config/config.h
-index 8c55ee4..1cf8f2f 100644
 --- a/libcork/include/libcork/config/config.h
 +++ b/libcork/include/libcork/config/config.h
 @@ -1,10 +1,9 @@
@@ -1045,8 +1019,6 @@ index 8c55ee4..1cf8f2f 100644
  #endif  /* platforms */
  
  
-diff --git a/libcork/include/libcork/config/gcc.h b/libcork/include/libcork/config/gcc.h
-index debcbbd..d7bbffa 100644
 --- a/libcork/include/libcork/config/gcc.h
 +++ b/libcork/include/libcork/config/gcc.h
 @@ -75,10 +75,10 @@
@@ -1062,9 +1034,6 @@ index debcbbd..d7bbffa 100644
  #define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  1
  #else
  #define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  0
-diff --git a/libcork/include/libcork/config/version.h b/libcork/include/libcork/config/version.h
-new file mode 100644
-index 0000000..3072377
 --- /dev/null
 +++ b/libcork/include/libcork/config/version.h
 @@ -0,0 +1,25 @@
@@ -1093,8 +1062,6 @@ index 0000000..3072377
 +
 +
 +#endif /* LIBCORK_CONFIG_VERSION_H */
-diff --git a/libcork/include/libcork/core/allocator.h b/libcork/include/libcork/core/allocator.h
-index 5a6b4aa..11fc0f0 100644
 --- a/libcork/include/libcork/core/allocator.h
 +++ b/libcork/include/libcork/core/allocator.h
 @@ -1,75 +1,409 @@
@@ -1131,14 +1098,15 @@ index 5a6b4aa..11fc0f0 100644
 -#define cork_xmalloc  malloc
 -#define cork_xcalloc  calloc
 -#define cork_xfree    free
-+struct cork_alloc;
- 
+-
 -#if CORK_HAVE_REALLOCF
 -#define cork_xrealloc  reallocf
 -#else
 -CORK_API void *
 -cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 -#endif
++struct cork_alloc;
++
 +typedef void *
 +(*cork_alloc_calloc_f)(const struct cork_alloc *alloc,
 +                       size_t count, size_t size);
@@ -1190,21 +1158,18 @@ index 5a6b4aa..11fc0f0 100644
 +
 +CORK_API void
 +cork_alloc_set_malloc(struct cork_alloc *alloc, cork_alloc_malloc_f malloc);
- 
--/* type-based macros */
--#define cork_xnew(type)  ((type *) cork_xmalloc(sizeof(type)))
++
 +CORK_API void
 +cork_alloc_set_realloc(struct cork_alloc *alloc, cork_alloc_realloc_f realloc);
 +
 +/* These variants can return a NULL pointer if allocation fails. */
- 
--/* string-related functions */
++
 +CORK_API void
 +cork_alloc_set_xcalloc(struct cork_alloc *alloc, cork_alloc_calloc_f xcalloc);
 +
 +CORK_API void
 +cork_alloc_set_xmalloc(struct cork_alloc *alloc, cork_alloc_malloc_f xmalloc);
- 
++
 +CORK_API void
 +cork_alloc_set_xrealloc(struct cork_alloc *alloc,
 +                        cork_alloc_realloc_f xrealloc);
@@ -1213,9 +1178,12 @@ index 5a6b4aa..11fc0f0 100644
 +CORK_API void
 +cork_alloc_set_free(struct cork_alloc *alloc, cork_alloc_free_f free);
 +
-+
+ 
+-/* type-based macros */
+-#define cork_xnew(type)  ((type *) cork_xmalloc(sizeof(type)))
 +/* Low-level use of an allocator. */
-+
+ 
+-/* string-related functions */
 +CORK_ATTR_MALLOC
 +CORK_ATTR_UNUSED
 +static void *
@@ -1303,22 +1271,22 @@ index 5a6b4aa..11fc0f0 100644
 +    cork_alloc_xmalloc((alloc), sizeof(type))
 +#define cork_alloc_delete(alloc, type, ptr) \
 +    cork_alloc_free((alloc), (ptr), sizeof(type))
-+
+ 
 +/* string-related helper functions */
++
++CORK_ATTR_MALLOC
++CORK_API const char *
++cork_alloc_strdup(const struct cork_alloc *alloc, const char *str);
 +
 +CORK_ATTR_MALLOC
  CORK_API const char *
 -cork_xstrdup(const char *str);
-+cork_alloc_strdup(const struct cork_alloc *alloc, const char *str);
++cork_alloc_strndup(const struct cork_alloc *alloc,
++                   const char *str, size_t size);
  
 +CORK_ATTR_MALLOC
  CORK_API const char *
 -cork_xstrndup(const char *str, size_t size);
-+cork_alloc_strndup(const struct cork_alloc *alloc,
-+                   const char *str, size_t size);
-+
-+CORK_ATTR_MALLOC
-+CORK_API const char *
 +cork_alloc_xstrdup(const struct cork_alloc *alloc, const char *str);
 +
 +CORK_ATTR_MALLOC
@@ -1539,8 +1507,6 @@ index 5a6b4aa..11fc0f0 100644
  
  
  #endif /* LIBCORK_CORE_ALLOCATOR_H */
-diff --git a/libcork/include/libcork/core/api.h b/libcork/include/libcork/core/api.h
-index 3dfda91..0d3c365 100644
 --- a/libcork/include/libcork/core/api.h
 +++ b/libcork/include/libcork/core/api.h
 @@ -1,18 +1,23 @@
@@ -1601,8 +1567,6 @@ index 3dfda91..0d3c365 100644
 +
 +
  #endif /* LIBCORK_CORE_API_H */
-diff --git a/libcork/include/libcork/core/callbacks.h b/libcork/include/libcork/core/callbacks.h
-index ce9543c..a63365f 100644
 --- a/libcork/include/libcork/core/callbacks.h
 +++ b/libcork/include/libcork/core/callbacks.h
 @@ -1,6 +1,6 @@
@@ -1622,8 +1586,6 @@ index ce9543c..a63365f 100644
 +
  
  #endif /* LIBCORK_CORE_CALLBACKS_H */
-diff --git a/libcork/include/libcork/core/mempool.h b/libcork/include/libcork/core/mempool.h
-index e762bef..43a73c6 100644
 --- a/libcork/include/libcork/core/mempool.h
 +++ b/libcork/include/libcork/core/mempool.h
 @@ -1,6 +1,6 @@
@@ -1634,7 +1596,7 @@ index e762bef..43a73c6 100644
   * All rights reserved.
   *
   * Please see the COPYING file in this distribution for license details.
-@@ -42,6 +42,18 @@ cork_mempool_free(struct cork_mempool *mp);
+@@ -42,6 +42,18 @@ cork_mempool_free(struct cork_mempool *m
  
  
  CORK_API void
@@ -1653,8 +1615,6 @@ index e762bef..43a73c6 100644
  cork_mempool_set_callbacks(struct cork_mempool *mp,
                             void *user_data, cork_free_f free_user_data,
                             cork_init_f init_object,
-diff --git a/libcork/include/libcork/os/subprocess.h b/libcork/include/libcork/os/subprocess.h
-index 6aba53f..31c1eb5 100644
 --- a/libcork/include/libcork/os/subprocess.h
 +++ b/libcork/include/libcork/os/subprocess.h
 @@ -1,10 +1,9 @@
@@ -1688,8 +1648,6 @@ index 6aba53f..31c1eb5 100644
                      struct cork_stream_consumer *stdout_consumer,
                      struct cork_stream_consumer *stderr_consumer,
                      int *exit_code);
-diff --git a/libcork/include/libcork/threads/atomics.h b/libcork/include/libcork/threads/atomics.h
-index e1cc04d..d1f139b 100644
 --- a/libcork/include/libcork/threads/atomics.h
 +++ b/libcork/include/libcork/threads/atomics.h
 @@ -23,14 +23,19 @@
@@ -1712,8 +1670,6 @@ index e1cc04d..d1f139b 100644
  #define cork_ptr_cas               __sync_val_compare_and_swap
  
  
-diff --git a/libcork/include/libcork/threads/basics.h b/libcork/include/libcork/threads/basics.h
-index d5fef91..6208569 100644
 --- a/libcork/include/libcork/threads/basics.h
 +++ b/libcork/include/libcork/threads/basics.h
 @@ -1,10 +1,9 @@
@@ -1828,8 +1784,6 @@ index d5fef91..6208569 100644
  #else
  #error "No thread-local storage implementation!"
  #endif
-diff --git a/libcork/posix/env.c b/libcork/posix/env.c
-index ce4f25c..16b23ef 100644
 --- a/libcork/posix/env.c
 +++ b/libcork/posix/env.c
 @@ -1,10 +1,9 @@
@@ -1863,8 +1817,6 @@ index ce4f25c..16b23ef 100644
  }
  
  const char *
-diff --git a/libcork/posix/exec.c b/libcork/posix/exec.c
-index 66fd215..0621028 100644
 --- a/libcork/posix/exec.c
 +++ b/libcork/posix/exec.c
 @@ -1,10 +1,9 @@
@@ -1889,8 +1841,6 @@ index 66fd215..0621028 100644
  }
  
  const char *
-diff --git a/libcork/posix/files.c b/libcork/posix/files.c
-index 7a4a2ad..a2fbf3a 100644
 --- a/libcork/posix/files.c
 +++ b/libcork/posix/files.c
 @@ -1,6 +1,6 @@
@@ -1910,7 +1860,7 @@ index 7a4a2ad..a2fbf3a 100644
  }
  
  
-@@ -131,8 +131,8 @@ cork_path_set_absolute(struct cork_path *path)
+@@ -131,8 +131,8 @@ cork_path_set_absolute(struct cork_path
      struct cork_buffer  buf;
  
      if (path->given.size > 0 &&
@@ -1921,7 +1871,7 @@ index 7a4a2ad..a2fbf3a 100644
          return 0;
      }
  
-@@ -172,8 +172,8 @@ cork_path_append(struct cork_path *path, const char *more)
+@@ -172,8 +172,8 @@ cork_path_append(struct cork_path *path,
      }
  
      if (more[0] == '/') {
@@ -1932,7 +1882,7 @@ index 7a4a2ad..a2fbf3a 100644
          cork_buffer_set_string(&path->given, more);
      } else {
          /* Otherwise, more is relative, and should be appended to the current
-@@ -290,7 +290,7 @@ cork_path_list_free(struct cork_path_list *list)
+@@ -290,7 +290,7 @@ cork_path_list_free(struct cork_path_lis
      }
      cork_array_done(&list->array);
      cork_buffer_done(&list->string);
@@ -1950,7 +1900,7 @@ index 7a4a2ad..a2fbf3a 100644
  }
  
  const struct cork_path *
-@@ -673,7 +673,7 @@ cork_file_list_free(struct cork_file_list *list)
+@@ -673,7 +673,7 @@ cork_file_list_free(struct cork_file_lis
          cork_file_free(file);
      }
      cork_array_done(&list->array);
@@ -1959,8 +1909,6 @@ index 7a4a2ad..a2fbf3a 100644
  }
  
  void
-diff --git a/libcork/posix/process.c b/libcork/posix/process.c
-index e22e166..72afdd3 100644
 --- a/libcork/posix/process.c
 +++ b/libcork/posix/process.c
 @@ -1,10 +1,9 @@
@@ -2021,7 +1969,7 @@ index e22e166..72afdd3 100644
      /* Linear search through the list of existing cleanup functions.  When we
       * find the first existing function with a higher priority, we've found
       * where to insert the new function. */
-@@ -78,27 +104,6 @@ cork_cleanup_entry_add(struct cork_cleanup_entry *entry)
+@@ -78,27 +104,6 @@ cork_cleanup_entry_add(struct cork_clean
      cork_dllist_add(&cleanup_entries, &entry->item);
  }
  
@@ -2049,8 +1997,6 @@ index e22e166..72afdd3 100644
  
  CORK_API void
  cork_cleanup_at_exit_named(const char *name, int priority,
-diff --git a/libcork/posix/subprocess.c b/libcork/posix/subprocess.c
-index a301466..50b28d1 100644
 --- a/libcork/posix/subprocess.c
 +++ b/libcork/posix/subprocess.c
 @@ -1,10 +1,9 @@
@@ -2105,7 +2051,7 @@ index a301466..50b28d1 100644
                      struct cork_stream_consumer *stdout_consumer,
                      struct cork_stream_consumer *stderr_consumer,
                      int *exit_code)
-@@ -330,7 +330,9 @@ cork_subprocess_new(struct cork_thread_body *body,
+@@ -330,7 +330,9 @@ cork_subprocess_new(struct cork_thread_b
      cork_read_pipe_init(&self->stdout_pipe, stdout_consumer);
      cork_read_pipe_init(&self->stderr_pipe, stderr_consumer);
      self->pid = 0;
@@ -2116,7 +2062,7 @@ index a301466..50b28d1 100644
      self->exit_code = exit_code;
      return self;
  }
-@@ -338,11 +340,11 @@ cork_subprocess_new(struct cork_thread_body *body,
+@@ -338,11 +340,11 @@ cork_subprocess_new(struct cork_thread_b
  void
  cork_subprocess_free(struct cork_subprocess *self)
  {
@@ -2130,7 +2076,7 @@ index a301466..50b28d1 100644
  }
  
  struct cork_stream_consumer *
-@@ -356,36 +358,18 @@ cork_subprocess_stdin(struct cork_subprocess *self)
+@@ -356,36 +358,18 @@ cork_subprocess_stdin(struct cork_subpro
   * Executing another program
   */
  
@@ -2152,7 +2098,8 @@ index a301466..50b28d1 100644
  
  static void
 -cork_exec__free(struct cork_thread_body *vself)
--{
++cork_exec__free(void *vself)
+ {
 -    struct cork_exec_body  *self =
 -        cork_container_of(vself, struct cork_exec_body, parent);
 -    cork_exec_free(self->exec);
@@ -2161,8 +2108,7 @@ index a301466..50b28d1 100644
 -
 -static struct cork_thread_body *
 -cork_exec_body_new(struct cork_exec *exec)
-+cork_exec__free(void *vself)
- {
+-{
 -    struct cork_exec_body  *self = cork_new(struct cork_exec_body);
 -    self->parent.run = cork_exec__run;
 -    self->parent.free = cork_exec__free;
@@ -2173,7 +2119,7 @@ index a301466..50b28d1 100644
  }
  
  struct cork_subprocess *
-@@ -394,8 +378,10 @@ cork_subprocess_new_exec(struct cork_exec *exec,
+@@ -394,8 +378,10 @@ cork_subprocess_new_exec(struct cork_exe
                           struct cork_stream_consumer *err,
                           int *exit_code)
  {
@@ -2186,7 +2132,7 @@ index a301466..50b28d1 100644
  }
  
  
-@@ -448,8 +434,8 @@ cork_subprocess_start(struct cork_subprocess *self)
+@@ -448,8 +434,8 @@ cork_subprocess_start(struct cork_subpro
              _exit(EXIT_FAILURE);
          }
  
@@ -2197,7 +2143,7 @@ index a301466..50b28d1 100644
          if (CORK_LIKELY(rc == 0)) {
              _exit(EXIT_SUCCESS);
          } else {
-@@ -508,10 +494,10 @@ cork_subprocess_is_finished(struct cork_subprocess *self)
+@@ -508,10 +494,10 @@ cork_subprocess_is_finished(struct cork_
          && cork_read_pipe_is_finished(&self->stderr_pipe);
  }
  
@@ -2210,8 +2156,6 @@ index a301466..50b28d1 100644
  #include <sched.h>
  #define THREAD_YIELD   sched_yield
  #else
-diff --git a/libcork/pthreads/thread.c b/libcork/pthreads/thread.c
-index 0dd55a3..002416e 100644
 --- a/libcork/pthreads/thread.c
 +++ b/libcork/pthreads/thread.c
 @@ -1,13 +1,21 @@
@@ -2279,7 +2223,7 @@ index 0dd55a3..002416e 100644
  }
  
  void
-@@ -110,16 +124,29 @@ cork_thread_get_id(struct cork_thread *self)
+@@ -110,16 +124,29 @@ cork_thread_get_id(struct cork_thread *s
      return self->id;
  }
  
@@ -2310,7 +2254,7 @@ index 0dd55a3..002416e 100644
  
      /* If an error occurred in the body of the thread, save the error into the
       * cork_thread object so that we can propagate that error when some calls
-@@ -142,6 +169,9 @@ cork_thread_start(struct cork_thread *self)
+@@ -142,6 +169,9 @@ cork_thread_start(struct cork_thread *se
  {
      int  rc;
      pthread_t  thread_id;
@@ -2320,7 +2264,7 @@ index 0dd55a3..002416e 100644
  
      assert(!self->started);
  
-@@ -151,6 +181,13 @@ cork_thread_start(struct cork_thread *self)
+@@ -151,6 +181,13 @@ cork_thread_start(struct cork_thread *se
          return -1;
      }
  
