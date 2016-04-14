@@ -46,6 +46,9 @@ start() {
 		[ -f "$ERRLOG" ] && echo "WARNING: ${ERRLOG##*/} exists, check its content and other config files in ${CONFDIR}" || echo "Hooray! ${ERRLOG##*/} not found"
 		[ $RESULT -eq 0 -a $(ps|grep ${PROG}|grep -v grep|wc -l) -ge 1 ] && {
 			echo "Pcap_DNSProxy started successfully"
+		} || {
+			echo "Pcap_DNSProxy failed to start"
+			exit 1
 		}
 	} || {
 		echo "Pcap_DNSProxy is disabled, please check /etc/config/pcap-dnsproxy for more info"
@@ -61,6 +64,7 @@ stop() {
 		sleep 1s
 		[ $RESULT -eq 0 -a $(ps|grep ${PROG}|grep -v grep|wc -l) -eq 0 ] && {
 			echo "Pcap_DNSProxy terminated successfully"
+			rm -rf "/tmp/pcap_dnsproxy_fifo"
 		} || {
 			echo "Failed to terminate Pcap_DNSProxy"
 			echo "Retry or use 'killall -SIG{TERM,KILL} Pcap_DNSProxy' instead"
