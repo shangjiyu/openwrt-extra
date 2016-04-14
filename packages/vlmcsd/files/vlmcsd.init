@@ -1,19 +1,17 @@
 #!/bin/sh /etc/rc.common
-# Copyright (C) 2014-2999 extgui.com
-# Author bywayboy<bywayboy@qq.com>
-# Last Update: 2014-09-23
+# Copyright (C) 2014-2015 bywayboy & wongsyrone
 
 . /lib/functions.sh
 
-START=93
+START=95
 
 EXECUTEBIN="/usr/sbin/vlmcsd"
 PIDFILE="/var/run/vlmcsd.pid"
 INIFILE="/etc/vlmcsd.ini"
 CONFIGFILE=""
 LISTENPORT=1688
-ENABLED='1'
-USEEPIDFILE='0'
+ENABLED='0'
+USEPIDFILE='1'
 
 config_load "vlmcsd"
 
@@ -21,7 +19,7 @@ parse_vlmcsd()
 {
 	config_get LISTENPORT "$section" "port"
 	config_get ENABLED "$section" "enabled"
-	config_get USEEPIDFILE "$section" "useepifile"
+	config_get USEPIDFILE "$section" "usepidfile"
 }
 config_foreach parse_vlmcsd 'vlmcsd'
 
@@ -29,7 +27,7 @@ start ()
 {
 	if [ "1" = "$ENABLED" ] || [ "on" = "$ENABLED" ] || [ "true" = "$ENABLED" ]; then
 		if [ ! -f $PIDFILE ]; then 
-			if [ "1" = "$USEEPIDFILE" ] || [ "on" = "$USEEPIDFILE" ] || [ "true" = "$USEEPIDFILE" ]; then
+			if [ "1" = "$USEPIDFILE" ] || [ "on" = "$USEPIDFILE" ] || [ "true" = "$USEPIDFILE" ]; then
 				$EXECUTEBIN -d -i $INIFILE -p $PIDFILE -P $LISTENPORT -l syslog
 			else
 				$EXECUTEBIN -d -p $PIDFILE -P $LISTENPORT -l syslog
@@ -55,9 +53,10 @@ stop ()
 	if [ -f $PIDFILE ]; then
 		PID=`cat $PIDFILE`
 		kill $PID
-		echo "KMS Has been stopped"
+		echo "vlmcsd terminated successfully"
+		rm -f $PIDFILE
 	else
-		echo "KMS is not running"
+		echo "vlmcsd is not running"
 	fi
 }
 
