@@ -1,0 +1,32 @@
+menu "Dnsforwarder-5 configuration"
+	depends on PACKAGE_dnsforwarder-5
+
+choice
+	prompt "Downloader"
+	default ENABLE_DOWNLOADER_LIBCURL
+
+config ENABLE_DOWNLOADER_LIBCURL
+	bool "Libcurl"
+
+config ENABLE_DOWNLOADER_WGET
+	bool "Wget"
+
+endchoice
+
+choice
+	prompt "Base64decoder"
+	default ENABLE_BASE64_OPENSSL
+
+config ENABLE_BASE64_OPENSSL
+	bool "openssl"
+
+config ENABLE_BASE64_UUDECODE
+	bool "uudecode"
+
+endchoice
+
+config ENABLE_STATIC
+	bool "Enable static"
+	default N
+
+endmenu

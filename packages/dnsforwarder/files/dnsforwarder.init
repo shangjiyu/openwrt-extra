@@ -1,0 +1,29 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2014
+
+START=60
+STOP=60
+APP='dnsforwarder'
+
+
+start() {
+	config_load "$APP"
+	local enabled path 
+
+	config_get enabled config enabled
+	config_get  path config path
+
+	[ "$enabled" = '1' ] && {
+		service_start /usr/bin/dnsforwarder -d -f  $path
+	}
+}
+
+stop() {
+	service_stop /usr/bin/dnsforwarder
+}
+
+fake() {
+	service_start /usr/bin/dnsforwarder -P
+}
+
+
