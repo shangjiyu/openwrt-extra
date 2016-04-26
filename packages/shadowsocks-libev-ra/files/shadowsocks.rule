@@ -7,7 +7,7 @@
 # See /LICENSE for more information.
 #
 
-TAG="_SS_SPEC_RULE_"   # comment tag
+TAG="SS_SPEC"          # iptables tag
 IPT="iptables -t nat"  # alias of iptables
 FWI=$(uci get firewall.shadowsocks.path 2>/dev/null)  # firewall include file
 
@@ -43,21 +43,12 @@ loger() {
 }
 
 flush_r() {
-	flush_iptables() {
-		local ipt="iptables -t $1"
-		local DAT=$(iptables-save -t $1)
-		eval $(echo "$DAT" | grep "$TAG" | sed -e 's/^-A/$ipt -D/' -e 's/$/;/')
-		for chain in $(echo "$DAT" | awk '/^:SS_SPEC/{print $1}'); do
-			$ipt -F ${chain:1} 2>/dev/null && $ipt -X ${chain:1}
-		done
-	}
-	flush_iptables nat
-	flush_iptables mangle
+	iptables-save -c | grep -v "$TAG" | iptables-restore -c
 	ip rule del fwmark 0x01/0x01 table 100 2>/dev/null
 	ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null
 	ipset -X ss_spec_lan_ac 2>/dev/null
 	ipset -X ss_spec_wan_ac 2>/dev/null
-	echo '#!/bin/sh' >$FWI
+	[ -n "$FWI" ] && echo '#!/bin/sh' >$FWI
 	return 0
 }
 
@@ -93,7 +84,7 @@ ac_rule() {
 				MATCH_SET="-m set ! --match-set ss_spec_lan_ac src"
 				;;
 			*)
-				loger 3 "Bad argument \`-a $LAN_AC_IP\`."
+				loger 3 "Illegal argument \`-a $LAN_AC_IP\`."
 				return 2
 				;;
 		esac
@@ -104,15 +95,15 @@ ac_rule() {
 		$(for ip in ${LAN_AC_IP:1}; do echo "add ss_spec_lan_ac $ip"; done)
 EOF
 	$IPT -I PREROUTING 1 ${IFNAME:+-i $IFNAME} -p tcp $EXT_ARGS $MATCH_SET \
-		-m comment --comment "$TAG" -j SS_SPEC_WAN_AC
+		-j SS_SPEC_WAN_AC
 	if [ "$OUTPUT" = 1 ]; then
-		$IPT -I OUTPUT 1 -p tcp $EXT_ARGS \
-			-m comment --comment "$TAG" -j SS_SPEC_WAN_AC
+		$IPT -I OUTPUT 1 -p tcp $EXT_ARGS -j SS_SPEC_WAN_AC
 	fi
 	return $?
 }
 
 tp_rule() {
+	lsmod | grep -q TPROXY || return 0
 	[ -n "$TPROXY" ] || return 0
 	ip rule add fwmark 0x01/0x01 table 100
 	ip route add local 0.0.0.0/0 dev lo table 100
@@ -121,7 +112,7 @@ tp_rule() {
 	$ipt -A SS_SPEC_TPROXY -p udp -m set ! --match-set ss_spec_wan_ac dst \
 		-j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 	$ipt -I PREROUTING 1 ${IFNAME:+-i $IFNAME} -p udp $EXT_ARGS $MATCH_SET \
-		-m comment --comment "$TAG" -j SS_SPEC_TPROXY
+		-j SS_SPEC_TPROXY
 	return $?
 }
 
@@ -157,19 +148,14 @@ EOF
 }
 
 gen_include() {
-	extract_rules() {
-		echo "*$1"
-		iptables-save -t $1 | grep SS_SPEC_ |\
-			sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
-		echo 'COMMIT'
-	}
+	[ -n "$FWI" ] || return 0
 	cat <<-EOF >>$FWI
 	iptables-restore -n <<-EOT
-	$(extract_rules nat)
-	$(extract_rules mangle)
+	$(iptables-save | grep -E "$TAG|^\*|^COMMIT" |\
+			sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/")
 	EOT
 EOF
-	return 0
+	return $?
 }
 
 while getopts ":s:l:S:L:i:e:a:b:w:ouUfh" arg; do
