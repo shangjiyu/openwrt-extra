@@ -9,7 +9,7 @@ Subject: [PATCH] Add keepalive feature for remote connections
 
 --- a/src/redir.c
 +++ b/src/redir.c
-@@ -87,6 +87,7 @@ static int auth = 0;
+@@ -89,6 +89,7 @@ static int auth = 0;
  #ifdef HAVE_SETRLIMIT
  static int nofile = 0;
  #endif
@@ -17,44 +17,42 @@ Subject: [PATCH] Add keepalive feature for remote connections
  
  int getdestaddr(int fd, struct sockaddr_storage *destaddr)
  {
-@@ -607,6 +608,7 @@ static void accept_cb(EV_P_ ev_io *w, in
+@@ -629,6 +630,7 @@ static void accept_cb(EV_P_ ev_io *w, in
      setsockopt(remotefd, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(opt));
  #endif
  
 +    if (keepalive) {
-     //Enable TCP keepalive feature
-     int keepAlive = 1;
-     int keepIdle = 40;
-@@ -616,7 +618,8 @@ static void accept_cb(EV_P_ ev_io *w, in
-     setsockopt(remotefd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepIdle, sizeof(keepIdle));
-     setsockopt(remotefd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepInterval, sizeof(keepInterval));
-     setsockopt(remotefd, SOL_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
--    
+     // Enable TCP keepalive feature
+     int keepAlive    = 1;
+     int keepIdle     = 40;
+@@ -638,6 +640,7 @@ static void accept_cb(EV_P_ ev_io *w, in
+     setsockopt(remotefd, SOL_TCP, TCP_KEEPIDLE, (void *)&keepIdle, sizeof(keepIdle));
+     setsockopt(remotefd, SOL_TCP, TCP_KEEPINTVL, (void *)&keepInterval, sizeof(keepInterval));
+     setsockopt(remotefd, SOL_TCP, TCP_KEEPCNT, (void *)&keepCount, sizeof(keepCount));
 +    }
-+
+ 
      // Setup
      setnonblocking(remotefd);
- 
-@@ -652,7 +655,7 @@ int main(int argc, char **argv)
+@@ -680,7 +683,7 @@ int main(int argc, char **argv)
  
      opterr = 0;
  
--    while ((c = getopt(argc, argv, "f:s:p:l:k:t:m:c:b:a:n:uUvA")) != -1)
-+    while ((c = getopt(argc, argv, "f:s:p:l:k:t:m:c:b:a:n:uUvAK")) != -1)
+-    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:c:b:a:n:huUvA",
++    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:c:b:a:n:huUvAK",
+                             long_options, &option_index)) != -1) {
          switch (c) {
-         case 's':
-             if (remote_num < MAX_REMOTE_NUM) {
-@@ -705,6 +708,9 @@ int main(int argc, char **argv)
-         case 'A':
-             auth = 1;
+         case 0:
+@@ -747,6 +750,9 @@ int main(int argc, char **argv)
+             // The option character is not recognized.
+             opterr = 1;
              break;
 +        case 'K':
 +            keepalive = 1;
 +            break;
          }
+     }
  
-     if (opterr) {
-@@ -746,6 +752,9 @@ int main(int argc, char **argv)
+@@ -789,6 +795,9 @@ int main(int argc, char **argv)
          if (auth == 0) {
              auth = conf->auth;
          }
@@ -64,7 +62,7 @@ Subject: [PATCH] Add keepalive feature for remote connections
  #ifdef HAVE_SETRLIMIT
          if (nofile == 0) {
              nofile = conf->nofile;
-@@ -786,6 +795,10 @@ int main(int argc, char **argv)
+@@ -829,6 +838,10 @@ int main(int argc, char **argv)
          LOGI("onetime authentication enabled");
      }
  
@@ -87,7 +85,7 @@ Subject: [PATCH] Add keepalive feature for remote connections
      char *nameserver;
 --- a/src/jconf.c
 +++ b/src/jconf.c
-@@ -189,6 +189,8 @@ jconf_t *read_jconf(const char *file)
+@@ -187,6 +187,8 @@ jconf_t *read_jconf(const char *file)
                  conf.fast_open = value->u.boolean;
              } else if (strcmp(name, "auth") == 0) {
                  conf.auth = value->u.boolean;

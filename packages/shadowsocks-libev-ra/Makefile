@@ -1,9 +1,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=shadowsocks-libev-ra
-PKG_VERSION:=2.4.5
-PKG_RELEASE:=3
-PKG_REV:=43fde8d39ce9f6fa78f6a278ce0a1bf8107bfdee
+PKG_VERSION:=2.4.6
+PKG_RELEASE:=1
+PKG_REV:=8b4252873aba886db97f4b62c649cfa505cf56c5
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
