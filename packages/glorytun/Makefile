@@ -1,16 +1,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=glorytun
-PKG_VERSION:=0.1.0
+PKG_VERSION:=0.0.30
 PKG_RELEASE:=1
-PKG_REV:=154ee9a7d704105a73721b3d6ed721ff0abb505b
+PKG_REV:=6f36424d120575320ab1c5537c31cf314076f8e4
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/jedisct1/glorytun.git
+PKG_SOURCE_URL:=https://github.com/angt/glorytun.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.bz2
-PKG_MAINTAINER:=Frank Denis <github@pureftpd.org>
+PKG_MAINTAINER:=Adrien Gallouët <adrien@gallouet.fr>
 
 PKG_FIXUP:=autoreconf
 
@@ -26,7 +26,7 @@ define Package/glorytun
 endef
 
 define Package/glorytun/description
-	Glorytun
+Glorytun - Small, Simple and Stupid TCP VPN.
 endef
 
 TARGET_CFLAGS += -std=c99 -D_GNU_SOURCE

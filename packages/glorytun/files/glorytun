@@ -57,20 +57,31 @@ start_instance() {
 
 	procd_set_param env dev=$dev iplocal=$iplocal ippeer=$ippeer
 
-	[ -n "$table" ]         && procd_append_param env table=$table
-	[ -n "$pref" ]          && procd_append_param env pref=$pref
-	[ -n "$metric" ]        && procd_append_param env metric=$metric
-	[ -n "$mtu" ]           && procd_append_param env mtu=$mtu
-	[ -n "$congestion" ]    && procd_append_param command congestion $congestion
-	[ -n "${buffer_size}" ] && procd_append_param command buffer-size "${buffer_size}"
+	procd_append_param env GLORYTUN_HOST="${server}"
+	procd_append_param env GLORYTUN_PORT="${port}"
+	procd_append_param env GLORYTUN_DEV="${dev}"
+	procd_append_param env GLORYTUN_IP_LOCAL="${iplocal}"
+	procd_append_param env GLORYTUN_IP_PEER="${ippeer}"
+	procd_append_param env GLORYTUN_TABLE="${table}"
+	procd_append_param env GLORYTUN_PREF="${pref:-0}"
+	procd_append_param env GLORYTUN_METRIC="${metric}"
+	procd_append_param env GLORYTUN_MTU="${mtu:-1450}"
+	procd_append_param env GLORYTUN_TXQLEN="${txqlen:-1000}"
+
+#	[ -n "$congestion" ]    && procd_append_param command congestion $congestion
+#	[ -n "${buffer_size}" ] && procd_append_param command buffer-size "${buffer_size}"
 	[ "$multiqueue" -eq 1 ] && procd_append_param command multiqueue
-	[ "$delay" -eq 1 ]      && procd_append_param command delay
-	[ "$noquickack" -eq 1 ] && procd_append_param command noquickack
+#	[ "$delay" -eq 1 ]      && procd_append_param command delay
+#	[ "$noquickack" -eq 1 ] && procd_append_param command noquickack
 
 	# if process dies sooner than respawn_threshold, it is considered crashed and
 	# after respawn_retry retries the service is stopped
 	# procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
 	procd_set_param respawn 15 30 0
+	
+	procd_set_param stdout 1	
+	procd_set_param stderr 1
+
 	procd_close_instance
 
 }
@@ -80,3 +91,7 @@ start_service() {
         config_foreach start_instance 'tunnel'
 }
 
+stop_service() {
+	# be sure, all is down
+	killall glorytun
+}
