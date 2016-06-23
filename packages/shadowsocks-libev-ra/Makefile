@@ -1,9 +1,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=shadowsocks-libev-ra
-PKG_VERSION:=2.4.6
+PKG_VERSION:=2.4.7
 PKG_RELEASE:=1
-PKG_REV:=8b4252873aba886db97f4b62c649cfa505cf56c5
+PKG_REV:=e69b0a999021a4694af1add82c904c817c10ba99
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
@@ -67,6 +67,12 @@ CONFIGURE_ARGS += \
 	--enable-system-shared-lib --disable-ssp \
 	$(if $(CONFIG_SHADOWSOCKS_LIBEV_POLARSSL),--with-crypto-library=polarssl,) \
 	$(if $(CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS),--with-crypto-library=mbedtls,)
+# Check whether compiler follows our inline suggestion
+TARGET_CFLAGS += -Wno-error=inline -Winline
+
+# Use Link time optimization
+TARGET_CFLAGS += -flto
+TARGET_LDFLAGS += -Wl,-flto
 
 define Package/shadowsocks-libev-ra/description
 ShadowSocks-Libev is a lightweight secured scoks5 proxy for embedded devices and low end boxes.

@@ -52,7 +52,7 @@
  
  ss_local_CFLAGS = $(AM_CFLAGS) -DMODULE_LOCAL
  ss_tunnel_CFLAGS = $(AM_CFLAGS) -DMODULE_TUNNEL
-@@ -96,12 +90,8 @@ ss_redir_SOURCES = utils.c \
+@@ -97,12 +91,8 @@ ss_redir_SOURCES = utils.c \
                     redir.c
  ss_redir_CFLAGS = $(AM_CFLAGS) -DMODULE_REDIR
  ss_redir_LDADD = $(SS_COMMON_LIBS)
@@ -65,3 +65,17 @@
  
  lib_LTLIBRARIES = libshadowsocks.la
  libshadowsocks_la_SOURCES = $(ss_local_SOURCES)
+--- a/configure.ac
++++ b/configure.ac
+@@ -287,9 +287,9 @@ AC_CONFIG_FILES([ shadowsocks-libev.pc
+                  Makefile
+                  libcork/Makefile
+                  libipset/Makefile
++                 libudns/Makefile
+                  src/Makefile])
+ AM_COND_IF([USE_SYSTEM_SHARED_LIB],
+   [],
+-  [AC_CONFIG_FILES([libudns/Makefile
+-                 libev/Makefile])])
++  [AC_CONFIG_FILES([libev/Makefile])])
+ AC_OUTPUT
