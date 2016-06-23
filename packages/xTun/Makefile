@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xTun
 PKG_VERSION:=0.5.0
-PKG_RELEASE=1
+PKG_RELEASE=
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_PROTO:=git
@@ -21,7 +21,6 @@ include $(INCLUDE_DIR)/package.mk
 define Package/xTun/Default
   SECTION:=net
   CATEGORY:=Network
-  SUBMENU:=VPN
   TITLE:=A secure and fast VPN for protect your network traffic
   URL:=https://github.com/lparam/xTun
 endef
