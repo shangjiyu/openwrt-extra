@@ -28,9 +28,9 @@ start ()
 	if [ "1" = "$ENABLED" ] || [ "on" = "$ENABLED" ] || [ "true" = "$ENABLED" ]; then
 		if [ ! -f $PIDFILE ]; then 
 			if [ "1" = "$USEPIDFILE" ] || [ "on" = "$USEPIDFILE" ] || [ "true" = "$USEPIDFILE" ]; then
-				$EXECUTEBIN -d -i $INIFILE -p $PIDFILE -P $LISTENPORT -l syslog
+				$EXECUTEBIN -d -i $INIFILE -p $PIDFILE -P $LISTENPORT -l syslog -r 2
 			else
-				$EXECUTEBIN -d -p $PIDFILE -P $LISTENPORT -l syslog
+				$EXECUTEBIN -d -p $PIDFILE -P $LISTENPORT -l syslog -r 2
 			fi
 		else
 			PID=`cat $PIDFILE`
