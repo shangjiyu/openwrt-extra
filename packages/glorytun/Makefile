@@ -1,9 +1,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=glorytun
-PKG_VERSION:=0.0.30
+PKG_VERSION:=0.0.34
 PKG_RELEASE:=1
-PKG_REV:=6f36424d120575320ab1c5537c31cf314076f8e4
+PKG_REV:=c81592fcc5bb205b91a6328100cb7780b1c434da
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/angt/glorytun.git
