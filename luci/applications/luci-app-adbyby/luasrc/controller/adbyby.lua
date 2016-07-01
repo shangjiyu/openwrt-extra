@@ -1,16 +1,10 @@
---[[
-Luci configration for dns2sock.Made By shangjiyu
-]]--
-
+--Mr.Z<zenghuaguo@hotmail.com>
 module("luci.controller.adbyby", package.seeall)
 
 function index()
-	
 	if not nixio.fs.access("/etc/config/adbyby") then
 		return
 	end
-
-	local page
-	page = entry({"admin", "services", "adbyby"}, cbi("adbyby"), _("ADBYBY"), 38)
-	page.dependent = true
+	
+	entry({"admin", "services", "adbyby"}, cbi("adbyby"), _("广告屏蔽大师"), 56).dependent = true
 end

@@ -1,14 +1,15 @@
-#
-# Copyright (C) 2008-2014 The LuCI Team <luci@lists.subsignal.org>
+# Copyright (C) 2016 Openwrt.org
 #
 # This is free software, licensed under the Apache License, Version 2.0 .
 #
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI Support for adbyby-MTK7620
-LUCI_DEPENDS:=+adbyby-MTK7620
+LUCI_TITLE:=LuCI support for Adbyby
+LUCI_DEPENDS:=+adbyby +wget +kmod-nls-utf8 +ipset
+LUCI_PKGARCH:=all
 
 include ../../luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
+

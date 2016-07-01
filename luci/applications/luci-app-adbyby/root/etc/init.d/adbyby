@@ -1,21 +1,199 @@
 #!/bin/sh /etc/rc.common
-
+#Mr.Z<zenghuaguo@hotmail.com>
 START=99
-STOP=99
-APP='adbyby'
+STOP=10
 
-start() {
-	config_load "$APP"
-	local enabled path
-	config_get enabled config enabled
-	config_get path config path '/usr/bin/adbyby'
-	[ "$enabled" = '1' ] && {
-		service_start "$path" & sleep 1
-		iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8118
-	}
+EXTRA_COMMANDS="add_rule del_rule"
+PROG_PATH=/usr/share/adbyby
+DATA_PATH=$PROG_PATH/data
+WAN_FILE=/tmp/adbyby_wan.conf
+CRON_FILE=/etc/crontabs/root
+ipt_n="iptables -t nat"
+dns_ver=$(dnsmasq --version | grep no-ipset)
+
+get_config()
+{
+	config_get_bool enable $1 enable
+	config_get daemon $1 daemon
+	config_get cron_mode $1 cron_mode
+	config_get lan_mode $1 lan_mode
+	config_get lan_ip $1 lan_ip
+	config_get wan_mode $1 wan_mode
+	config_get wan_ip $1 wan_ip
+	config_get exrule $1 exrule
+	config_get whitehost $1 whitehost
 }
 
-stop() {
-	iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8118
-	service_stop /usr/bin/adbyby
+add_rules()
+{
+	rm -f $DATA_PATH/user.bin
+	grep -v ^! $DATA_PATH/rules.txt > $DATA_PATH/user.txt
+}
+
+add_exrule()
+{
+	if [ -n "$exrule" ]; then
+		wget -O- $exrule --quiet --timeout=5 --no-check-certificate | grep -E '^(@@\||\||[[:alnum:]])' | sort -u >> $DATA_PATH/user.txt
+	fi
+}
+
+add_whitehost()
+{
+	for list in $whitehost; do
+		echo @@\|http://\$domain=$list >> $DATA_PATH/user.txt
+	done
+}
+
+add_cron()
+{
+	if [ $cron_mode -eq 1 ]; then
+		echo '0 6 * * * /etc/init.d/adbyby restart' >> $CRON_FILE
+		crontab $CRON_FILE
+	fi
+}
+
+del_cron()
+{
+	sed -i '/adbyby/d' $CRON_FILE
+	/etc/init.d/cron restart
+}
+
+ip_rule()
+{
+	if [ $lan_mode -ne 0 ]; then
+		ipset -N adbyby_lan hash:ip
+		for ip in $lan_ip; do
+			ipset -A adbyby_lan $ip 2>/dev/null
+		done
+		case $lan_mode in
+			1)
+				$ipt_n -A ADBYBY -m set ! --match-set adbyby_lan src -j RETURN
+				;;
+			2)
+				$ipt_n -A ADBYBY -m set --match-set adbyby_lan src -j RETURN
+				;;
+		esac
+	fi
+	ipset -N adbyby_wan hash:ip
+	local var=0
+	local ad_ver=$($PROG_PATH/adbyby --version | awk '{print substr($3,1,3)}')
+	case $ad_ver in
+		2.1|2.5|2.6)
+			var=0
+			;;
+		*)
+			var=1
+			;;
+	esac
+	if [ $wan_mode -ne 0 ]; then
+		if [ -z "$dns_ver" ]; then
+			for ip in $wan_ip; do
+				if [ -n "$(echo $ip | grep -E '^([0-9]{1,3}\.){3}[0-9]{1,3}')" ]; then
+					ipset -A adbyby_wan $ip 2>/dev/null
+				else
+					echo ipset=/$ip/adbyby_wan >> $WAN_FILE
+				fi
+			done
+			echo conf-file=$WAN_FILE >> /etc/dnsmasq.conf
+			case $var in
+				0)
+					/etc/init.d/dnsmasq restart
+					;;
+				1)
+					[ $wan_mode -eq 2 ] && /etc/init.d/dnsmasq restart
+					;;
+			esac
+		else
+			for ip in $wan_ip; do
+				if [ -n "$(echo $ip | grep -E '^([0-9]{1,3}\.){3}[0-9]{1,3}')" ]; then
+					ipset -A adbyby_wan $ip 2>/dev/null
+				else
+					local iplist=$(nslookup $ip | awk '/^Address.*([0-9]{1,3}\.){3}[0-9]{1,3}$/{print $3}')
+					for line in $iplist; do
+						ipset -A adbyby_wan $line 2>/dev/null
+					done
+				fi
+			done
+		fi
+	fi
+	case $wan_mode in
+		0)
+			[ -z "$dns_ver" ] && [ $var -eq 1 ] && \
+			[ $(awk -F= '/^ipset/{print $2}' $PROG_PATH/adhook.ini) -eq 1 ] && \
+			$ipt_n -A ADBYBY -m set ! --match-set adbyby_wan dst -j RETURN
+			;;
+		1)
+			$ipt_n -A ADBYBY -m set ! --match-set adbyby_wan dst -j RETURN
+			;;
+		2)
+			$ipt_n -A ADBYBY -m set --match-set adbyby_wan dst -j RETURN
+			;;
+	esac
+}
+
+add_rule()
+{
+	$ipt_n -N ADBYBY
+	$ipt_n -A ADBYBY -d 0.0.0.0/8 -j RETURN
+	$ipt_n -A ADBYBY -d 10.0.0.0/8 -j RETURN
+	$ipt_n -A ADBYBY -d 127.0.0.0/8 -j RETURN
+	$ipt_n -A ADBYBY -d 169.254.0.0/16 -j RETURN
+	$ipt_n -A ADBYBY -d 172.16.0.0/12 -j RETURN
+	$ipt_n -A ADBYBY -d 192.168.0.0/16 -j RETURN
+	$ipt_n -A ADBYBY -d 224.0.0.0/4 -j RETURN
+	$ipt_n -A ADBYBY -d 240.0.0.0/4 -j RETURN
+	ip_rule
+	$ipt_n -A ADBYBY -p tcp --dport 80 -j REDIRECT --to-ports 8118
+	$ipt_n -I PREROUTING -j ADBYBY
+}
+
+del_rule()
+{
+	$ipt_n -D PREROUTING -j ADBYBY 2>/dev/null
+	$ipt_n -F ADBYBY 2>/dev/null
+	$ipt_n -X ADBYBY 2>/dev/null
+	ipset -F adbyby_lan 2>/dev/null
+	ipset -X adbyby_lan 2>/dev/null
+	ipset -F adbyby_wan 2>/dev/null
+	ipset -X adbyby_wan 2>/dev/null
+	if [ -z "$dns_ver" ]; then
+		sed -i '/adbyby/d' /etc/dnsmasq.conf
+		rm -f $WAN_FILE
+		rm -f /tmp/adbyby_host.conf
+		/etc/init.d/dnsmasq restart
+	fi
+}
+
+start()
+{
+	config_load adbyby
+	config_foreach get_config adbyby
+	[ $enable -eq 0 ] && exit 0
+	add_rules
+	add_exrule
+	add_whitehost
+	add_cron
+	case $daemon in
+		0|1)
+			$PROG_PATH/adbyby --no-daemon &>/dev/null &
+			if [ $daemon -eq 1 ]; then
+				$PROG_PATH/adbyby.sh &
+			fi
+			;;
+		2)
+			$PROG_PATH/adbyby &>/dev/null &
+			;;
+	esac
+	sleep 1
+	[ -n "$(pgrep $PROG_PATH/adbyby)" ] && \
+	iptables-save | grep ADBYBY >/dev/null || \
+	add_rule
+}
+
+stop()
+{
+	del_rule
+	del_cron
+	killall -q -9 adbyby.sh
+	killall -q adbyby
 }
