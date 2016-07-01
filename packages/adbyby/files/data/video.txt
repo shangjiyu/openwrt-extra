@@ -1,0 +1,54 @@
+!  -----更新时间:  2016-1-26 22:56:24   by:xwhyc-----------------------------------------------
+!  -----广告反馈:http://bbs.kafan.cn/thread-1730471-1-1.html   QQ群: 79547134(满), 364066294(满)，470705224(满)，534897434--------------
+
+
+
+
+
+
+
+
+!--------------------------------------------------
+|http://cmsjs.eastmoney.com/js/news_fixed_leftv$script
+|http://1.qtmojo.com/mediamax/MediaMax.js
+|http://106.187.95.251
+||niu.code668.com
+|http://imedia.bokecc.com/servlet/adloader?index=
+
+
+!-----------------------
+bt2d.com##div.ad-container
+160.com##div#ad_index,div.bran_90
+10jqka.com.cn##div.ad,div.onead,div.taobao,div.linead,div.bt-ad,div#realbottom
+rom.7to.cn##div.ggtc_box
+17kqw.com##DIV[id^="lovexin1"],td[height="60"],table[height="617"],img[width="780"][height="60"]
+haolexiang.com##div.ctrl_ad,div.right_ad2
+liepin.com##div.ui-masklayer,div.aui-dialog-content
+mtime.cn##div#clientAd,div.scrolladd
+zhaopin.com##div#indexAppWrap
+chuanke.com##div#down_float_div
+anjuke.com##div#xapp_down_new
+baihe.com##div.carousel
+kuxun.cn##a.Topadlink
+m.1905.com##div.mod-latest-banner
+m.appchina.com##div[class^="yyh"]
+huxiu.com##div#app-guide-box
+gfan.com##div[class^="fter "]
+3g.ifeng.com##a#gotobaidu
+codes51.com##div[id^="f21ac82b21eeb7322631b6aa94e17f"],div.imageplus-append-single-txt-big
+3g.ifeng.com##div#footer_baidu
+120ask.com##div.h-top-pic
+2000fun.com##div[id^="div-gpt-ad-"],div.single-box
+zimuzu.tv##div[class="couplet couplet_l"],a[href^="http://www.jianai360.com"]
+23zw.com##div#ptopad,div#pbtad
+romzhijia.net##div#slideBox
+huoche.net##img[src^="http://resource.huoche.net/Images/"],div.ad-list,div#float_right,div.box
+douyutv.com##div.lol-ad
+2500sz.com##div.tl-focus,div#wx,a[href="http://www.szaist.cn/zhuanti/lama/?mcgg"]
+
+
+
+!---------adbyby---------
+
+
+
