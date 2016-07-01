@@ -21,7 +21,7 @@ define Package/glorytun
 	CATEGORY:=Network
 	SUBMENU:=VPN
 	TITLE:=Glorytun
-	DEPENDS:=+kmod-tun +libsodium
+	DEPENDS:=+kmod-tun +libsodium +librt
 	URL:=https://github.com/angt/glorytun
 endef
 
