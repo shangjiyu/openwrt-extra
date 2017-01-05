@@ -39,3 +39,7 @@ the list of packages:
 * tengine
 * vlmcsd
 * xsocks
+
+nealwon added
+=============
+* luci-app-vlmcsd
