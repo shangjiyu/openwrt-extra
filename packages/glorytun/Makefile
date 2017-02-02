@@ -2,8 +2,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=glorytun
 PKG_VERSION:=0.0.34
-PKG_RELEASE:=1
-PKG_REV:=c81592fcc5bb205b91a6328100cb7780b1c434da
+PKG_RELEASE:=4
+PKG_REV:=94b26771867d45e00a766d6aa73fe942
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/angt/glorytun.git
@@ -21,7 +21,7 @@ define Package/glorytun
 	CATEGORY:=Network
 	SUBMENU:=VPN
 	TITLE:=Glorytun
-	DEPENDS:=+kmod-tun +libsodium +librt
+	DEPENDS:=+kmod-tun +libsodium +librt +ip +iptables +@BUSYBOX_DEFAULT_PKILL
 	URL:=https://github.com/angt/glorytun
 endef
 
