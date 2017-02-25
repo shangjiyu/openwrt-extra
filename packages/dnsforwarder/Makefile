@@ -30,7 +30,7 @@ endef
 define Package/dnsforwarder-5
   SECTION:=net
   CATEGORY:=Network
-  SUBMENU:=DNS
+  SUBMENU:=Routing and Redirection
   TITLE:=Dnsforwarder-5
   URL:=https://github.com/holmium/dnsforwarder/
   DEPENDS:=+libpthread +ENABLE_DOWNLOADER_LIBCURL:libcurl  +ENABLE_BASE64_OPENSSL:libopenssl  +ENABLE_BASE64_UUDECODE:uudecod +ENABLE_DOWNLOADER_WGET:wget 
