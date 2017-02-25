@@ -1,28 +1,62 @@
-require("luci.sys")
-require("nixio.fs")
+local m, s
 
-local fexist = nixio.fs.access("/etc/config/vlmcsd")
-if not fexist then
-	local f = io.open("/etc/config/vlmcsd", "w+")
-	if f then
-		f:write("config vlmcsd Global config\n\toption port 1680\n")
-		f:close()
-	end
+local running=(luci.sys.call("pidof vlmcsd > /dev/null") == 0)
+if running then	
+	m = Map("vlmcsd", translate("vlmcsd config"), translate("Vlmcsd is running."))
+else
+	m = Map("vlmcsd", translate("vlmcsd config"), translate("Vlmcsd is not running."))
 end
 
-m=Map("vlmcsd", translate("vlmcsd"),
-    translate("Configure vlmcsd service (Windows/Office KMS activation service)."))
+s = m:section(TypedSection, "vlmcsd", "")
+s.addremove = false
+s.anonymous = true
 
-s=m:section(TypedSection, "vlmcsd", translate("Settings"))
-s.annonymous=true
-s:option(Flag, "enabled", translate("Enable"))
-port =s:option(Value, "port", translate("Port"))
-port.rmempty = true
-s:option(Flag, "useepifile", translate("Use File"), translate("Use vlmcsd.ini file, not required"))
+enable = s:option(Flag, "enabled", translate("Enable"))
+enable.rmempty = false
+function enable.cfgvalue(self, section)
+	return luci.sys.init.enabled("vlmcsd") and self.enabled or self.disabled
+end
 
-local apply = luci.http.formvalue("cbi.apply")
-if apply then
-        io.popen("/etc/init.d/vlmcsd restart")
+local hostname = luci.model.uci.cursor():get_first("system", "system", "hostname")
+
+autoactivate = s:option(Flag, "autoactivate", translate("Auto activate"))
+autoactivate.rmempty = false
+
+config = s:option(Value, "config", translate("configfile"), translate("This file is /etc/vlmcsd.ini."), "")
+config.template = "cbi/tvalue"
+config.rows = 5
+config.wrap = "off"
+
+function config.cfgvalue(self, section)
+	return nixio.fs.readfile("/etc/vlmcsd.ini")
+end
+
+function config.write(self, section, value)
+	value = value:gsub("\r\n?", "\n")
+	nixio.fs.writefile("/etc/vlmcsd.ini", value)
+end
+
+function enable.write(self, section, value)
+	if value == "1" then
+		luci.sys.call("/etc/init.d/vlmcsd enable >/dev/null")
+		luci.sys.call("/etc/init.d/vlmcsd start >/dev/null")
+		luci.sys.call("/etc/init.d/dnsmasq restart >/dev/null")
+	else
+		luci.sys.call("/etc/init.d/vlmcsd stop >/dev/null")
+		luci.sys.call("/etc/init.d/vlmcsd disable >/dev/null")
+		luci.sys.call("/etc/init.d/dnsmasq restart >/dev/null")
+	end
+	Flag.write(self, section, value)
+end
+
+function autoactivate.write(self, section, value)
+	if value == "1" then
+		luci.sys.call("sed -i '/srv-host=_vlmcs._tcp.lan/d' /etc/dnsmasq.conf")
+		luci.sys.call("echo srv-host=_vlmcs._tcp.lan,".. hostname ..".lan,1688,0,100 >> /etc/dnsmasq.conf")
+	else
+		luci.sys.call("sed -i '/srv-host=_vlmcs._tcp.lan/d' /etc/dnsmasq.conf")
+	end
+	Flag.write(self, section, value)
 end
 
 return m
