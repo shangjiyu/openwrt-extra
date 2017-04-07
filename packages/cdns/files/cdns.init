@@ -1,0 +1,49 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=15
+USE_PROCD=1
+
+apply_servers() {
+	json_add_object
+	json_add_string 'ip_port' "$1"
+	json_close_object
+}
+
+start_instance() {
+	config_get_bool enabled $1 enabled 0
+	[ $enabled -eq 1 ] || exit 1
+	json_init
+	json_add_object 'global'
+	json_add_boolean 'daemon' 0
+	json_add_string 'log' 'syslog:daemon'
+	config_get_bool log_debug $1 log_debug
+	json_add_boolean 'log_debug' log_debug
+	json_close_object
+	json_add_object 'cdns'
+	config_get listen_ip $1 listen_ip "127.0.0.1"
+	json_add_string 'listen_ip' "$listen_ip"
+	config_get listen_port $1 listen_port "1153"
+	json_add_int 'listen_port' "$listen_port"
+	config_get timeout $1 timeout "2"
+	json_add_int 'timeout' "$timeout"
+	json_add_array 'servers'
+	config_list_foreach $1 'server' apply_servers
+	json_close_array
+	json_close_object
+	json_dump > /var/etc/cdns_$1.json
+	procd_open_instance
+	procd_set_param command /usr/bin/cdns -c /var/etc/cdns_$1.json
+	procd_set_param respawn
+	procd_close_instance
+
+}
+
+start_service() {
+	config_load cdns
+	config_foreach start_instance cdns
+}
+
+reload_service() {
+	restart
+}
