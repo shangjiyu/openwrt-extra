@@ -19,7 +19,7 @@ local lanipaddr = uci:get("network", "lan", "ipaddr") or "192.168.1.1"
 -- @return	String containing the current get_oscam_port
 function get_oscam_port()
 
-	local oscam_conf= fs.readfile("/usr/oscam/oscam.conf")
+	local oscam_conf= fs.readfile("/etc/oscam/oscam.conf")
 	local oscam_conf_port = tonumber(oscam_conf:match("[Hh]ttppor[Tt].-= ([^\n]+)")) or "8899"
 	return oscam_conf_port
 end
