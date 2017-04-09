@@ -1,28 +1,35 @@
-vlmcsd
-======
+openwrt-vlmcsd
+-----
+#### A OpenWRT package for vlmcsd.
 
-KMS Emulator in C for openwrt.
+You can use [luci-app-vlmcsd](https://github.com/cokebar/luci-app-vlmcsd "") to control it. luci-app-vlmscd support KMS auto-activation.
 
-http://forums.mydigitallife.info/threads/50234-Emulated-KMS-Servers-on-non-Windows-platforms
+Travis CI: [![Build Status](https://travis-ci.org/cokebar/openwrt-vlmcsd.svg?branch=master)](https://travis-ci.org/cokebar/openwrt-vlmcsd)
 
-##Windows ¼¤»îÃüÁî£º
+Using without luci-app-vlmcsd
+-----
+If you don't use luci-app-vlmcsd and you want vlmcsd support KMS auto activation, you should modify the settings of dnsmasq manually:
 
-CD ¡°%SystemRoot%\SYSTEM32¡å
+1. Add the following line at the end of `/etc/dnsmasq.conf`:
 
-CSCRIPT /NOLOGO SLMGR.VBS /SKMS 192.168.0.xxx
+ Â  `srv-host=_vlmcs._tcp.lan,hostname.lan,1688,0,100`
+   
+ Â  (replace "hostname.lan" with your actual host name, eg: openwrt.lan, or just replace it with your IP of LANï¼‰
 
-CSCRIPT /NOLOGO SLMGR.VBS /ATO
+2. Restart dnsmasq:
 
-CSCRIPT /NOLOGO SLMGR.VBS /XPR
+   `/etc/init.d/dnsmasq restart`
 
-##Office/Project/Visio 2013(2010»»ÏÂ°²×°Â·¾¶) ¼¤»îÃüÁî£º
+   You can check if the dnsmasq setting works with the following cammand in Windows:
+   
+   `nslookup -type=srv _vlmcs._tcp.lan`
+   
+   The response should be your router's IP.
 
-32Î»£ºCD ¡°%ProgramFiles(x86)%\MICROSOFT OFFICE\OFFICE15¡å
+3. `/etc/init.d/vlmcsd enable && /etc/init.d/vlmcsd start && /etc/init.d/dnsmasq restart`
 
-64Î»£ºCD ¡°%ProgramFiles%\MICROSOFT OFFICE\OFFICE15¡å
-
-CSCRIPT OSPP.VBS /SETHST:192.168.0.xxx
-
-CSCRIPT OSPP.VBS /ACT
-
-CSCRIPT OSPP.VBS /DSTATUS
+Pre-compiled Download
+-----
+Your can find pre-compiled ipk:
+- in this branch: https://github.com/cokebar/openwrt-vlmcsd/tree/gh-pages
+- on release page: https://github.com/cokebar/openwrt-vlmcsd/releases

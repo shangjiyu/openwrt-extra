@@ -31,7 +31,7 @@ define Package/shadowsocks-libev-ra/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Lightweight Secured Socks5 Proxy
-  DEPENDS:=+libpthread +libev +libsodium +SHADOWSOCKS_LIBEV_POLARSSL:libpolarssl +SHADOWSOCKS_LIBEV_OPENSSL:libopenssl +CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS:libmbedtls
+  DEPENDS:=+libpthread +libev +libsodium +zlib +SHADOWSOCKS_LIBEV_OPENSSL:libopenssl +CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS:libmbedtls
   URL:=https://github.com/shadowsocks/shadowsocks-libev
 endef
 
@@ -65,7 +65,6 @@ endef
 
 CONFIGURE_ARGS += \
 	--enable-system-shared-lib --disable-ssp \
-	$(if $(CONFIG_SHADOWSOCKS_LIBEV_POLARSSL),--with-crypto-library=polarssl,) \
 	$(if $(CONFIG_SHADOWSOCKS_LIBEV_MBEDTLS),--with-crypto-library=mbedtls,)
 # Check whether compiler follows our inline suggestion
 TARGET_CFLAGS += -Wno-error=inline -Winline

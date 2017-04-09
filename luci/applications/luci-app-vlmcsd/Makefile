@@ -7,6 +7,6 @@ LUCI_TITLE:=Windows/Office Acitvation - vlmcsd
 LUCI_DEPENDS:=@((PACKAGE_vlmcsd))
 LUCI_PKGARCH:=all
 
-include ../luci.mk
+include ../../luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
