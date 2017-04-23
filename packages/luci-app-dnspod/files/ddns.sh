@@ -51,7 +51,7 @@ dns_lookup() {
     local os=`uname -n`
     if [ "$os" = "ubuntu" ]; then
         nslookup ${1} $server | awk '/^Address: / { print $2 }'
-    elif [ "$os" = "OpenWrt" ]; then
+    elif [ "$os" = "OpenWrt" -o "$os" = "LEDE" ]; then
         nslookup ${1} $server | tr -d '\n[:blank:]' | sed 's/.\+1 \([0-9\.]\+\).*/\1/'
     fi
 }

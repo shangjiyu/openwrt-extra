@@ -9,3 +9,20 @@
  
  #include "utils.h"
  #include "tc_util.h"
+@@ -68,6 +70,7 @@
+ #define talk(a,b,c,d,e) rtnl_talk(a,b,c,d,e,NULL,NULL)
+ #endif
+ 
++#define __sighandler_t sighandler_t
+ 
+ /* use_names is required when linking to tc_util.o */
+ bool use_names = false;
+@@ -624,7 +627,7 @@ int tc_class_modify(__u32 rate)
+     }
+ 
+ 
+-    if (talk(&rth, &req.n, 0, 0, NULL) < 0)
++    if (rtnl_talk(&rth, &req.n, NULL, 0) < 0)
+         return 2;
+ 
+     return 0;

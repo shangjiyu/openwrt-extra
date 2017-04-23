@@ -13,9 +13,9 @@ PKG_RELEASE:=2
 PKG_MAINTAINER:=shangjiyu <shangjiyu@gmail.com>
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/ziahamza/webui-aria2.git
+PKG_SOURCE_URL:=https://github.com/kuoruan/webui-aria2.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=e48a7a79e98e4acc0d65a1baee90fc7624f024a3
+PKG_SOURCE_VERSION:=c087af8e78f33903c2533c773010b0210509efcc
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
 include $(INCLUDE_DIR)/package.mk
