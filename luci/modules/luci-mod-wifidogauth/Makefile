@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI WiFidog Authencation
-LUCI_DEPENDS:=+luci-base +wifidog
+LUCI_DEPENDS:=+wifidog
 
 include ../../luci.mk
 
