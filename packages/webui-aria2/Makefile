@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=webui-aria2
-PKG_VERSION:=20151031
-PKG_RELEASE:=2
+PKG_VERSION:=20170511
+PKG_RELEASE:=1
 PKG_MAINTAINER:=shangjiyu <shangjiyu@gmail.com>
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/kuoruan/webui-aria2.git
+PKG_SOURCE_URL:=https://github.com/ziahamza/webui-aria2.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=c087af8e78f33903c2533c773010b0210509efcc
+PKG_SOURCE_VERSION:=a7a7cb30be59d79ed879ad9502a3e480dbb0f857
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
 include $(INCLUDE_DIR)/package.mk

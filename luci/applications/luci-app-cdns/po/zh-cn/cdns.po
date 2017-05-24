@@ -1,0 +1,52 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-03-26 16:44+0800\n"
+"PO-Revision-Date: 2017-03-26 16:45+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.12\n"
+"X-Poedit-Basepath: ../../luasrc/model/cbi\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-KeywordsList: translate\n"
+"X-Poedit-SearchPath-0: cdns.lua\n"
+
+#: cdns.lua:2
+msgid "CureDNS"
+msgstr "CureDNS"
+
+#: cdns.lua:2
+msgid "CureDNS is an experimental tool to cure your poisoned DNS."
+msgstr "CureDNS是一个用于“治愈”您的DNS的试验性的工具。"
+
+#: cdns.lua:4
+msgid "General Settings"
+msgstr "设置"
+
+#: cdns.lua:7
+msgid "Enable"
+msgstr "启用"
+
+#: cdns.lua:8
+msgid "Debug Logging"
+msgstr "详细日志"
+
+#: cdns.lua:9
+msgid "Listen IP"
+msgstr "监听IP"
+
+#: cdns.lua:13
+msgid "Listen Port"
+msgstr "监听端口"
+
+#: cdns.lua:17
+msgid "Wait Timeout"
+msgstr "超时时间"
+
+#: cdns.lua:22
+msgid "DNS Servers"
+msgstr "DNS服务器"

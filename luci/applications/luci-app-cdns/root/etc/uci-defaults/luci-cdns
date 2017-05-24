@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@cdns[-1]
+	add ucitrack cdns
+	set ucitrack.@cdns[-1].init=cdns
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

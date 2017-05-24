@@ -1,0 +1,39 @@
+[submodule "packages/luci-app-aliddns"]
+	path = packages/luci-app-aliddns
+	url = https://github.com/chenhw2/luci-app-aliddns.git
+[submodule "packages/luci-app-koolproxy"]
+	path = packages/luci-app-koolproxy
+	url = https://github.com/openwrt-develop/luci-app-koolproxy.git
+[submodule "packages/luci-app-shadowsocksR"]
+	path = packages/luci-app-shadowsocksR
+	url = https://github.com/AlexZhuo/luci-app-shadowsocksR.git
+[submodule "packages/luci-theme-atmaterial"]
+	path = packages/luci-theme-atmaterial
+	url = https://github.com/openwrt-develop/luci-theme-atmaterial.git
+[submodule "packages/mproxy"]
+	path = packages/mproxy
+	url = https://github.com/openwrt-develop/openwrt-mproxy.git
+[submodule "packages/shadowsocks-libev"]
+	path = packages/shadowsocks-libev
+	url = https://github.com/shadowsocks/openwrt-shadowsocks.git
+[submodule "packages/shadowsocksR-libev"]
+	path = packages/shadowsocksR-libev
+	url = https://github.com/AlexZhuo/openwrt-shadowsocksr.git
+[submodule "luci/applications/luci-app-kcptun"]
+	path = luci/applications/luci-app-kcptun
+	url = https://github.com/AlexZhuo/luci-app-kcptun.git
+[submodule "packages/luci-app-bandwidthd"]
+	path = packages/luci-app-bandwidthd
+	url = https://github.com/AlexZhuo/luci-app-bandwidthd.git
+[submodule "packages/luci-app-redsocks2"]
+	path = packages/luci-app-redsocks2
+	url = https://github.com/AlexZhuo/luci-app-redsocks2.git
+[submodule "packages/redsocks2"]
+	path = packages/redsocks2
+	url = https://github.com/AlexZhuo/openwrt-redsocks2.git
+[submodule "luci/applications/luci-app-qos-gargoyle"]
+	path = luci/applications/luci-app-qos-gargoyle
+	url = https://github.com/kuoruan/luci-app-qos-gargoyle.git
+[submodule "luci/applications/luci-app-shadowsocks"]
+	path = luci/applications/luci-app-shadowsocks
+	url = https://github.com/shadowsocks/luci-app-shadowsocks.git
