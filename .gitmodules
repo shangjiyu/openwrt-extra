@@ -37,3 +37,6 @@
 [submodule "luci/applications/luci-app-shadowsocks"]
 	path = luci/applications/luci-app-shadowsocks
 	url = https://github.com/shadowsocks/luci-app-shadowsocks.git
+[submodule "packages/luci-app-pptp-server"]
+	path = packages/luci-app-pptp-server
+	url = https://github.com/AlexZhuo/luci-app-pptp-server.git
